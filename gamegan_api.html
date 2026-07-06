@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GameGAN API Interface</title>
+    <meta name="system" content="GameGAN Behavioral Prediction Engine">
+    <meta name="module" content="API and Interactive Demo Interface">
+    <meta name="intents" content="behavioral prediction, consciousness-aware guidance, intervention optimization">
+</head>
+<body>
+    <!-- 
+    GameGAN API Interface Specification
+    ====================================
+    
+    This module defines the interactive interface for GameGAN behavioral predictions.
+    It provides both REST API endpoints and browser-based demo capabilities.
+    
+    System Integration:
+    - Receives: Trinity charts from TrinityEngine
+    - Receives: Context data from ResonanceEngine
+    - Receives: Intervention proposals from PaperTab
+    - Returns: Behavioral predictions with probabilities and recommendations
+    - Feeds to: PhotoGAN for sensory rendering
+    - Feeds to: PaperTab for display optimization
+    -->
+    
+    <!-- API Endpoint Definitions -->
+    <section id="api-endpoints">
+        <h1>GameGAN API Endpoints</h1>
+        
+        <!-- Main Prediction Endpoint -->
+        <article class="endpoint" data-method="POST" data-path="/api/gamegan/predict">
+            <h2>POST /api/gamegan/predict</h2>
+            <p>Primary behavioral prediction endpoint</p>
+            
+            <div class="request-format">
+                <h3>Request Body</h3>
+                <pre>
+{
+  "trinity_chart": {
+    "body": {
+      "type": "Projector",
+      "profile": "2/4",
+      "authority": "splenic",
+      "definition": "single",
+      "centers": {
+        "head": {"defined": false},
+        "ajna": {"defined": true},
+        "throat": {"defined": false},
+        "g": {"defined": true},
+        "heart": {"defined": false},
+        "sacral": {"defined": false},
+        "spleen": {"defined": true},
+        "solar": {"defined": false},
+        "root": {"defined": false}
+      }
+    },
+    "mind": {},
+    "heart": {}
+  },
+  "intervention": {
+    "content": "You might benefit from taking a break",
+    "tone": "gentle",
+    "style": "informative",
+    "allows_response": true,
+    "requires_immediate": false,
+    "complexity": "low"
+  },
+  "context": {
+    "emotional_wave": "neutral",
+    "positive_interactions": 5,
+    "negative_interactions": 1,
+    "successful_predictions": 3,
+    "session_count": 10,
+    "initial_trust": 0.6,
+    "recent_rejection": false
+  }
+}
+                </pre>
+            </div>
+            
+            <div class="response-format">
+                <h3>Response Body</h3>
+                <pre>
+{
+  "acceptance_probability": 0.73,
+  "resistance_level": 0.31,
+  "optimal_tone": "gentle",
+  "optimal_sense": "visual",
+  "secondary_sense": "kinesthetic",
+  "predicted_outcome": "integration",
+  "confidence": 0.70,
+  "warnings": [],
+  "suggestions": [
+    "Include visual diagram or image",
+    "Start with basic principles before details"
+  ],
+  "details": {
+    "openness": 0.68,
+    "emotional_state": "stable",
+    "authority_alignment": true,
+    "processing_mode": "foundational",
+    "trust_level": 0.65
+  }
+}
+                </pre>
+            </div>
+        </article>
+        
+        <!-- Batch Prediction Endpoint -->
+        <article class="endpoint" data-method="POST" data-path="/api/gamegan/predict/batch">
+            <h2>POST /api/gamegan/predict/batch</h2>
+            <p>Test multiple intervention variants, return best prediction</p>
+            
+            <div class="request-format">
+                <h3>Request Body</h3>
+                <pre>
+{
+  "trinity_chart": {...},
+  "interventions": [
+    {"tone": "gentle", "style": "supportive", "content": "..."},
+    {"tone": "direct", "style": "informative", "content": "..."},
+    {"tone": "playful", "style": "conversational", "content": "..."}
+  ],
+  "context": {...}
+}
+                </pre>
+            </div>
+            
+            <div class="response-format">
+                <h3>Response Body</h3>
+                <pre>
+{
+  "predictions": [
+    {"intervention_index": 0, "acceptance_probability": 0.73, ...},
+    {"intervention_index": 1, "acceptance_probability": 0.65, ...},
+    {"intervention_index": 2, "acceptance_probability": 0.81, ...}
+  ],
+  "recommended": 2,
+  "reasoning": "Playful tone scores highest with this chart configuration"
+}
+                </pre>
+            </div>
+        </article>
+        
+        <!-- Feedback Recording Endpoint -->
+        <article class="endpoint" data-method="POST" data-path="/api/gamegan/feedback">
+            <h2>POST /api/gamegan/feedback</h2>
+            <p>Record actual outcome for prediction accuracy tracking</p>
+            
+            <div class="request-format">
+                <h3>Request Body</h3>
+                <pre>
+{
+  "user_id": "user_12345",
+  "prediction": {...previous prediction object...},
+  "actual_outcome": "accepted",
+  "user_feedback": {
+    "felt_natural": true,
+    "timing_good": true,
+    "tone_appropriate": true
+  }
+}
+                </pre>
+            </div>
+        </article>
+        
+        <!-- Analytics Endpoint -->
+        <article class="endpoint" data-method="GET" data-path="/api/gamegan/analytics">
+            <h2>GET /api/gamegan/analytics</h2>
+            <p>Retrieve prediction accuracy and system performance metrics</p>
+            
+            <div class="response-format">
+                <h3>Response Body</h3>
+                <pre>
+{
+  "total_predictions": 1547,
+  "accuracy_rate": 0.78,
+  "average_confidence": 0.72,
+  "by_outcome": {
+    "integration": {"count": 892, "accuracy": 0.85},
+    "partial": {"count": 423, "accuracy": 0.72},
+    "delayed": {"count": 167, "accuracy": 0.65},
+    "rejection": {"count": 65, "accuracy": 0.71}
+  },
+  "by_type": {
+    "Manifestor": {"count": 234, "avg_acceptance": 0.61},
+    "Generator": {"count": 687, "avg_acceptance": 0.74},
+    "Projector": {"count": 421, "avg_acceptance": 0.82},
+    "Reflector": {"count": 205, "avg_acceptance": 0.88}
+  }
+}
+                </pre>
+            </div>
+        </article>
+    </section>
+    
+    <!-- Interactive Demo Interface -->
+    <section id="demo-interface">
+        <h1>Interactive Demo Interface</h1>
+        
+        <div class="demo-container">
+            <!-- Chart Configuration Panel -->
+            <div class="panel" data-component="chart-config">
+                <h2>Trinity Chart Configuration</h2>
+                <form id="chart-form">
+                    <label>Type:
+                        <select name="type">
+                            <option value="Manifestor">Manifestor</option>
+                            <option value="Generator">Generator</option>
+                            <option value="Manifesting Generator">Manifesting Generator</option>
+                            <option value="Projector" selected>Projector</option>
+                            <option value="Reflector">Reflector</option>
+                        </select>
+                    </label>
+                    
+                    <label>Authority:
+                        <select name="authority">
+                            <option value="emotional">Emotional</option>
+                            <option value="sacral">Sacral</option>
+                            <option value="splenic" selected>Splenic</option>
+                            <option value="ego">Ego</option>
+                            <option value="self">Self</option>
+                            <option value="mental">Mental</option>
+                            <option value="lunar">Lunar</option>
+                        </select>
+                    </label>
+                    
+                    <fieldset data-component="center-toggles">
+                        <legend>Defined Centers</legend>
+                        <label><input type="checkbox" name="head"> Head</label>
+                        <label><input type="checkbox" name="ajna" checked> Ajna</label>
+                        <label><input type="checkbox" name="throat"> Throat</label>
+                        <label><input type="checkbox" name="g" checked> G Center</label>
+                        <label><input type="checkbox" name="heart"> Heart</label>
+                        <label><input type="checkbox" name="sacral"> Sacral</label>
+                        <label><input type="checkbox" name="spleen" checked> Spleen</label>
+                        <label><input type="checkbox" name="solar"> Solar Plexus</label>
+                        <label><input type="checkbox" name="root"> Root</label>
+                    </fieldset>
+                </form>
+            </div>
+            
+            <!-- Intervention Configuration Panel -->
+            <div class="panel" data-component="intervention-config">
+                <h2>Intervention Settings</h2>
+                <form id="intervention-form">
+                    <label>Content:
+                        <textarea name="content" rows="3">You might benefit from taking a break and reflecting on your energy levels</textarea>
+                    </label>
+                    
+                    <label>Tone:
+                        <select name="tone">
+                            <option value="very_gentle">Very Gentle</option>
+                            <option value="gentle" selected>Gentle</option>
+                            <option value="direct">Direct</option>
+                            <option value="supportive">Supportive</option>
+                            <option value="directive">Directive</option>
+                        </select>
+                    </label>
+                    
+                    <label>Style:
+                        <select name="style">
+                            <option value="informative" selected>Informative</option>
+                            <option value="responsive">Responsive</option>
+                            <option value="patient">Patient</option>
+                            <option value="directive">Directive</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </label>
+                    
+                    <label><input type="checkbox" name="allows_response" checked> Allows Response</label>
+                    <label><input type="checkbox" name="requires_immediate"> Requires Immediate Action</label>
+                </form>
+            </div>
+            
+            <!-- Context Configuration Panel -->
+            <div class="panel" data-component="context-config">
+                <h2>Context Settings</h2>
+                <form id="context-form">
+                    <label>Emotional Wave:
+                        <select name="emotional_wave">
+                            <option value="high">High</option>
+                            <option value="neutral" selected>Neutral</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </label>
+                    
+                    <label>Trust Level:
+                        <input type="range" name="trust_level" min="0" max="1" step="0.1" value="0.6">
+                        <output>0.6</output>
+                    </label>
+                    
+                    <label>Session Count:
+                        <input type="number" name="session_count" min="1" max="100" value="10">
+                    </label>
+                    
+                    <button type="button" data-action="run-prediction">Run Prediction</button>
+                </form>
+            </div>
+            
+            <!-- Prediction Results Panel -->
+            <div class="panel" data-component="prediction-results">
+                <h2>Prediction Results</h2>
+                <div id="results-display">
+                    <p>Click "Run Prediction" to see behavioral forecast</p>
+                </div>
+                
+                <!-- Results Template (populated by JavaScript) -->
+                <template id="results-template">
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <span class="label">Acceptance</span>
+                            <span class="value" data-field="acceptance_probability"></span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">Resistance</span>
+                            <span class="value" data-field="resistance_level"></span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">Confidence</span>
+                            <span class="value" data-field="confidence"></span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">Outcome</span>
+                            <span class="value" data-field="predicted_outcome"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendations">
+                        <div class="optimal-delivery">
+                            <strong>Optimal Tone:</strong> <span data-field="optimal_tone"></span><br>
+                            <strong>Primary Sense:</strong> <span data-field="optimal_sense"></span><br>
+                            <strong>Secondary Sense:</strong> <span data-field="secondary_sense"></span>
+                        </div>
+                        
+                        <div class="warnings" data-section="warnings">
+                            <h3>⚠️ Warnings</h3>
+                            <ul data-list="warnings"></ul>
+                        </div>
+                        
+                        <div class="suggestions" data-section="suggestions">
+                            <h3>💡 Suggestions</h3>
+                            <ul data-list="suggestions"></ul>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+    
+    <!-- WebSocket Real-Time Interface -->
+    <section id="websocket-interface">
+        <h1>WebSocket Real-Time Predictions</h1>
+        
+        <div class="websocket-spec">
+            <h2>Connection</h2>
+            <pre>
+const socket = io('https://api.papertab.io');
+
+socket.on('connect', () => {
+  console.log('Connected to GameGAN prediction service');
+});
+            </pre>
+            
+            <h2>Events</h2>
+            
+            <h3>Client → Server: request_prediction</h3>
+            <pre>
+socket.emit('request_prediction', {
+  trinity_chart: {...},
+  intervention: {...},
+  context: {...}
+});
+            </pre>
+            
+            <h3>Server → Client: prediction_result</h3>
+            <pre>
+socket.on('prediction_result', (prediction) => {
+  console.log('Acceptance:', prediction.acceptance_probability);
+  console.log('Optimal tone:', prediction.optimal_tone);
+  console.log('Warnings:', prediction.warnings);
+});
+            </pre>
+            
+            <h3>Client → Server: record_outcome</h3>
+            <pre>
+socket.emit('record_outcome', {
+  prediction_id: '12345',
+  actual_outcome: 'accepted',
+  user_feedback: {...}
+});
+            </pre>
+        </div>
+    </section>
+    
+    <!-- Integration Code Examples -->
+    <section id="integration-examples">
+        <h1>Integration Examples</h1>
+        
+        <!-- PaperTab Integration -->
+        <article class="integration-example" data-system="PaperTab">
+            <h2>PaperTab Integration</h2>
+            <pre>
+// In PaperTab main flow
+async function displayGuidance(userId, guidanceContent) {
+  // 1. Get user's consciousness architecture
+  const chart = await trinityEngine.getChart(userId);
+  const state = await resonanceEngine.getCurrentState(userId);
+  
+  // 2. Prepare intervention
+  const intervention = {
+    content: guidanceContent,
+    tone: 'gentle',
+    style: 'informative',
+    allows_response: true,
+    requires_immediate: false,
+    complexity: 'low'
+  };
+  
+  // 3. Predict behavioral response
+  const prediction = await fetch('/api/gamegan/predict', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      trinity_chart: chart,
+      intervention: intervention,
+      context: state
+    })
+  }).then(r => r.json());
+  
+  // 4. Check if safe to display
+  if (prediction.acceptance_probability < 0.5) {
+    console.log('Low acceptance probability, modifying approach');
+    // Try gentler approach or postpone
+    return postponeGuidance(userId, prediction.suggestions);
+  }
+  
+  // 5. Optimize based on sensory preference
+  const visual = await photoGAN.render(
+    guidanceContent, 
+    prediction.optimal_sense
+  );
+  
+  // 6. Display optimized intervention
+  return displayOptimizedGuidance(guidanceContent, visual, prediction);
+}
+            </pre>
+        </article>
+        
+        <!-- React Component Integration -->
+        <article class="integration-example" data-system="React">
+            <h2>React Component Integration</h2>
+            <pre>
+import { useState, useEffect } from 'react';
+import { predictResponse } from './gamegan';
+
+function GuidanceComponent({ chart, content }) {
+  const [prediction, setPrediction] = useState(null);
+  const [shouldDisplay, setShouldDisplay] = useState(false);
+  
+  useEffect(() => {
+    const intervention = {
+      content: content,
+      tone: 'gentle',
+      style: 'informative'
+    };
+    
+    const pred = predictResponse(chart, intervention);
+    setPrediction(pred);
+    setShouldDisplay(pred.acceptance_probability > 0.6);
+  }, [chart, content]);
+  
+  if (!shouldDisplay) return null;
+  
+  return (
+    &lt;div className={`guidance ${prediction.optimal_tone}`}&gt;
+      {prediction.warnings.length > 0 && (
+        &lt;div className="warnings"&gt;
+          {prediction.warnings.map(w => &lt;p key={w}&gt;⚠️ {w}&lt;/p&gt;)}
+        &lt;/div&gt;
+      )}
+      &lt;div className={`content ${prediction.optimal_sense}`}&gt;
+        {content}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+            </pre>
+        </article>
+    </section>
+    
+    <!-- System Metadata -->
+    <footer id="system-metadata">
+        <h2>System Metadata</h2>
+        <dl>
+            <dt>Module Name</dt>
+            <dd>GameGAN API Interface</dd>
+            
+            <dt>Dependencies</dt>
+            <dd>TrinityEngine, ResonanceEngine, UserHistory</dd>
+            
+            <dt>Output To</dt>
+            <dd>PhotoGAN, PaperTab</dd>
+            
+            <dt>API Version</dt>
+            <dd>1.0.0</dd>
+            
+            <dt>Protocol</dt>
+            <dd>REST, WebSocket</dd>
+            
+            <dt>Authentication</dt>
+            <dd>JWT Bearer Token</dd>
+            
+            <dt>Rate Limits</dt>
+            <dd>100 predictions/minute per user</dd>
+        </dl>
+    </footer>
+</body>
+</html>
