@@ -1,0 +1,1115 @@
+{
+  "version": "3.0",
+  "format": "syntia-timeline",
+  "architecture_mode": "META_CONTROLLER",
+  "coherence": 0.6593,
+  "duration": 133.55,
+  "tracks": [
+    {
+      "id": "clip_L1C1G20H20",
+      "type": "input",
+      "start": 0,
+      "duration": 2.62,
+      "layer": 1,
+      "center": 1,
+      "visual": {
+        "gate": 20,
+        "keyword": "Contemplation",
+        "hue": 100,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "audio": {
+        "frequency": 472,
+        "harmonic": 1,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L1C2G18H18",
+      "type": "input",
+      "start": 2.62,
+      "duration": 2.62,
+      "layer": 1,
+      "center": 2,
+      "visual": {
+        "gate": 18,
+        "keyword": "Work on Decay",
+        "hue": 90,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 33,
+          "y": 0
+        }
+      },
+      "audio": {
+        "frequency": 468,
+        "harmonic": 1,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L1C3G19H19",
+      "type": "input",
+      "start": 5.23,
+      "duration": 3.0,
+      "layer": 1,
+      "center": 3,
+      "visual": {
+        "gate": 19,
+        "keyword": "Approach",
+        "hue": 95,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 66,
+          "y": 0
+        }
+      },
+      "audio": {
+        "frequency": 470,
+        "harmonic": 1,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L1C4G22H22",
+      "type": "input",
+      "start": 8.23,
+      "duration": 3.0,
+      "layer": 1,
+      "center": 4,
+      "visual": {
+        "gate": 22,
+        "keyword": "Grace",
+        "hue": 110,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "audio": {
+        "frequency": 476,
+        "harmonic": 1,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L1C5G18H18",
+      "type": "input",
+      "start": 11.23,
+      "duration": 2.62,
+      "layer": 1,
+      "center": 5,
+      "visual": {
+        "gate": 18,
+        "keyword": "Work on Decay",
+        "hue": 90,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 33,
+          "y": 0
+        }
+      },
+      "audio": {
+        "frequency": 468,
+        "harmonic": 1,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L1C6G17H17",
+      "type": "input",
+      "start": 13.85,
+      "duration": 3.0,
+      "layer": 1,
+      "center": 6,
+      "visual": {
+        "gate": 17,
+        "keyword": "Following",
+        "hue": 85,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 66,
+          "y": 0
+        }
+      },
+      "audio": {
+        "frequency": 466,
+        "harmonic": 1,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L1C7G24H24",
+      "type": "input",
+      "start": 16.84,
+      "duration": 2.62,
+      "layer": 1,
+      "center": 7,
+      "visual": {
+        "gate": 24,
+        "keyword": "Return",
+        "hue": 120,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "audio": {
+        "frequency": 480,
+        "harmonic": 1,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L1C8G21H21",
+      "type": "input",
+      "start": 19.46,
+      "duration": 3.0,
+      "layer": 1,
+      "center": 8,
+      "visual": {
+        "gate": 21,
+        "keyword": "Biting Through",
+        "hue": 105,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 33,
+          "y": 0
+        }
+      },
+      "audio": {
+        "frequency": 474,
+        "harmonic": 1,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L1C9G23H23",
+      "type": "input",
+      "start": 22.46,
+      "duration": 2.62,
+      "layer": 1,
+      "center": 9,
+      "visual": {
+        "gate": 23,
+        "keyword": "Splitting Apart",
+        "hue": 115,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 66,
+          "y": 0
+        }
+      },
+      "audio": {
+        "frequency": 478,
+        "harmonic": 1,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L2C1G52H52",
+      "type": "process",
+      "start": 25.08,
+      "duration": 3.12,
+      "layer": 2,
+      "center": 1,
+      "visual": {
+        "gate": 52,
+        "keyword": "Keeping Still",
+        "hue": 260,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 0,
+          "y": 20
+        }
+      },
+      "audio": {
+        "frequency": 536,
+        "harmonic": 2,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L2C2G50H50",
+      "type": "process",
+      "start": 28.19,
+      "duration": 3.12,
+      "layer": 2,
+      "center": 2,
+      "visual": {
+        "gate": 50,
+        "keyword": "The Cauldron",
+        "hue": 250,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 33,
+          "y": 20
+        }
+      },
+      "audio": {
+        "frequency": 532,
+        "harmonic": 2,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L2C3G51H51",
+      "type": "process",
+      "start": 31.31,
+      "duration": 3.5,
+      "layer": 2,
+      "center": 3,
+      "visual": {
+        "gate": 51,
+        "keyword": "Shock",
+        "hue": 255,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 66,
+          "y": 20
+        }
+      },
+      "audio": {
+        "frequency": 534,
+        "harmonic": 2,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L2C4G54H54",
+      "type": "process",
+      "start": 34.81,
+      "duration": 3.5,
+      "layer": 2,
+      "center": 4,
+      "visual": {
+        "gate": 54,
+        "keyword": "Marrying Maiden",
+        "hue": 270,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 0,
+          "y": 20
+        }
+      },
+      "audio": {
+        "frequency": 540,
+        "harmonic": 2,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L2C5G50H50",
+      "type": "process",
+      "start": 38.31,
+      "duration": 3.12,
+      "layer": 2,
+      "center": 5,
+      "visual": {
+        "gate": 50,
+        "keyword": "The Cauldron",
+        "hue": 250,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 33,
+          "y": 20
+        }
+      },
+      "audio": {
+        "frequency": 532,
+        "harmonic": 2,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L2C6G49H49",
+      "type": "process",
+      "start": 41.42,
+      "duration": 3.5,
+      "layer": 2,
+      "center": 6,
+      "visual": {
+        "gate": 49,
+        "keyword": "Revolution",
+        "hue": 245,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 66,
+          "y": 20
+        }
+      },
+      "audio": {
+        "frequency": 530,
+        "harmonic": 2,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L2C7G56H56",
+      "type": "process",
+      "start": 44.92,
+      "duration": 3.12,
+      "layer": 2,
+      "center": 7,
+      "visual": {
+        "gate": 56,
+        "keyword": "The Wanderer",
+        "hue": 280,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 0,
+          "y": 20
+        }
+      },
+      "audio": {
+        "frequency": 544,
+        "harmonic": 2,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L2C8G53H53",
+      "type": "process",
+      "start": 48.04,
+      "duration": 3.5,
+      "layer": 2,
+      "center": 8,
+      "visual": {
+        "gate": 53,
+        "keyword": "Development",
+        "hue": 265,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 33,
+          "y": 20
+        }
+      },
+      "audio": {
+        "frequency": 538,
+        "harmonic": 2,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L2C9G55H55",
+      "type": "process",
+      "start": 51.54,
+      "duration": 3.12,
+      "layer": 2,
+      "center": 9,
+      "visual": {
+        "gate": 55,
+        "keyword": "Abundance",
+        "hue": 275,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 66,
+          "y": 20
+        }
+      },
+      "audio": {
+        "frequency": 542,
+        "harmonic": 2,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L3C1G12H12",
+      "type": "transform",
+      "start": 54.65,
+      "duration": 3.26,
+      "layer": 3,
+      "center": 1,
+      "visual": {
+        "gate": 12,
+        "keyword": "Standstill",
+        "hue": 60,
+        "saturation": 63.0,
+        "brightness": 81.5,
+        "position": {
+          "x": 0,
+          "y": 40
+        }
+      },
+      "audio": {
+        "frequency": 456,
+        "harmonic": 3,
+        "amplitude": 0.63
+      }
+    },
+    {
+      "id": "clip_L3C3G11H11",
+      "type": "transform",
+      "start": 57.91,
+      "duration": 3.36,
+      "layer": 3,
+      "center": 3,
+      "visual": {
+        "gate": 11,
+        "keyword": "Peace",
+        "hue": 55,
+        "saturation": 68.0,
+        "brightness": 84.0,
+        "position": {
+          "x": 66,
+          "y": 40
+        }
+      },
+      "audio": {
+        "frequency": 454,
+        "harmonic": 3,
+        "amplitude": 0.68
+      }
+    },
+    {
+      "id": "clip_L3C4G14H14",
+      "type": "transform",
+      "start": 61.27,
+      "duration": 3.36,
+      "layer": 3,
+      "center": 4,
+      "visual": {
+        "gate": 14,
+        "keyword": "Great Possession",
+        "hue": 70,
+        "saturation": 68.0,
+        "brightness": 84.0,
+        "position": {
+          "x": 0,
+          "y": 40
+        }
+      },
+      "audio": {
+        "frequency": 460,
+        "harmonic": 3,
+        "amplitude": 0.68
+      }
+    },
+    {
+      "id": "clip_L3C6G9H9",
+      "type": "transform",
+      "start": 64.63,
+      "duration": 3.4,
+      "layer": 3,
+      "center": 6,
+      "visual": {
+        "gate": 9,
+        "keyword": "Small Taming",
+        "hue": 45,
+        "saturation": 69.80000000000001,
+        "brightness": 84.9,
+        "position": {
+          "x": 66,
+          "y": 40
+        }
+      },
+      "audio": {
+        "frequency": 450,
+        "harmonic": 3,
+        "amplitude": 0.6980000000000001
+      }
+    },
+    {
+      "id": "clip_L3C8G13H13",
+      "type": "transform",
+      "start": 68.03,
+      "duration": 3.36,
+      "layer": 3,
+      "center": 8,
+      "visual": {
+        "gate": 13,
+        "keyword": "Fellowship",
+        "hue": 65,
+        "saturation": 68.0,
+        "brightness": 84.0,
+        "position": {
+          "x": 33,
+          "y": 40
+        }
+      },
+      "audio": {
+        "frequency": 458,
+        "harmonic": 3,
+        "amplitude": 0.68
+      }
+    },
+    {
+      "id": "clip_L4C1G60H60",
+      "type": "filter",
+      "start": 71.39,
+      "duration": 3.62,
+      "layer": 4,
+      "center": 1,
+      "visual": {
+        "gate": 60,
+        "keyword": "Limitation",
+        "hue": 300,
+        "saturation": 55.99999999999999,
+        "brightness": 78.0,
+        "position": {
+          "x": 0,
+          "y": 60
+        }
+      },
+      "audio": {
+        "frequency": 552,
+        "harmonic": 4,
+        "amplitude": 0.5599999999999999
+      }
+    },
+    {
+      "id": "clip_L4C3G59H59",
+      "type": "filter",
+      "start": 75.01,
+      "duration": 3.86,
+      "layer": 4,
+      "center": 3,
+      "visual": {
+        "gate": 59,
+        "keyword": "Dispersion",
+        "hue": 295,
+        "saturation": 68.0,
+        "brightness": 84.0,
+        "position": {
+          "x": 66,
+          "y": 60
+        }
+      },
+      "audio": {
+        "frequency": 550,
+        "harmonic": 4,
+        "amplitude": 0.68
+      }
+    },
+    {
+      "id": "clip_L4C4G62H62",
+      "type": "filter",
+      "start": 78.87,
+      "duration": 3.86,
+      "layer": 4,
+      "center": 4,
+      "visual": {
+        "gate": 62,
+        "keyword": "Small Excess",
+        "hue": 310,
+        "saturation": 68.0,
+        "brightness": 84.0,
+        "position": {
+          "x": 0,
+          "y": 60
+        }
+      },
+      "audio": {
+        "frequency": 556,
+        "harmonic": 4,
+        "amplitude": 0.68
+      }
+    },
+    {
+      "id": "clip_L4C6G57H57",
+      "type": "filter",
+      "start": 82.73,
+      "duration": 3.89,
+      "layer": 4,
+      "center": 6,
+      "visual": {
+        "gate": 57,
+        "keyword": "Gentle",
+        "hue": 285,
+        "saturation": 69.60000000000001,
+        "brightness": 84.80000000000001,
+        "position": {
+          "x": 66,
+          "y": 60
+        }
+      },
+      "audio": {
+        "frequency": 546,
+        "harmonic": 4,
+        "amplitude": 0.6960000000000001
+      }
+    },
+    {
+      "id": "clip_L4C8G61H61",
+      "type": "filter",
+      "start": 86.62,
+      "duration": 3.86,
+      "layer": 4,
+      "center": 8,
+      "visual": {
+        "gate": 61,
+        "keyword": "Inner Truth",
+        "hue": 305,
+        "saturation": 68.0,
+        "brightness": 84.0,
+        "position": {
+          "x": 33,
+          "y": 60
+        }
+      },
+      "audio": {
+        "frequency": 554,
+        "harmonic": 4,
+        "amplitude": 0.68
+      }
+    },
+    {
+      "id": "clip_L5C1G28H28",
+      "type": "output",
+      "start": 90.48,
+      "duration": 4.62,
+      "layer": 5,
+      "center": 1,
+      "visual": {
+        "gate": 28,
+        "keyword": "Critical Mass",
+        "hue": 140,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 0,
+          "y": 80
+        }
+      },
+      "audio": {
+        "frequency": 488,
+        "harmonic": 5,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L5C2G26H26",
+      "type": "output",
+      "start": 95.09,
+      "duration": 4.62,
+      "layer": 5,
+      "center": 2,
+      "visual": {
+        "gate": 26,
+        "keyword": "Taming Power",
+        "hue": 130,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 33,
+          "y": 80
+        }
+      },
+      "audio": {
+        "frequency": 484,
+        "harmonic": 5,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L5C3G27H27",
+      "type": "output",
+      "start": 99.71,
+      "duration": 5.0,
+      "layer": 5,
+      "center": 3,
+      "visual": {
+        "gate": 27,
+        "keyword": "Nourishment",
+        "hue": 135,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 66,
+          "y": 80
+        }
+      },
+      "audio": {
+        "frequency": 486,
+        "harmonic": 5,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L5C4G30H30",
+      "type": "output",
+      "start": 104.71,
+      "duration": 5.0,
+      "layer": 5,
+      "center": 4,
+      "visual": {
+        "gate": 30,
+        "keyword": "Clinging",
+        "hue": 150,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 0,
+          "y": 80
+        }
+      },
+      "audio": {
+        "frequency": 492,
+        "harmonic": 5,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L5C5G26H26",
+      "type": "output",
+      "start": 109.71,
+      "duration": 4.62,
+      "layer": 5,
+      "center": 5,
+      "visual": {
+        "gate": 26,
+        "keyword": "Taming Power",
+        "hue": 130,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 33,
+          "y": 80
+        }
+      },
+      "audio": {
+        "frequency": 484,
+        "harmonic": 5,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L5C6G25H25",
+      "type": "output",
+      "start": 114.32,
+      "duration": 5.0,
+      "layer": 5,
+      "center": 6,
+      "visual": {
+        "gate": 25,
+        "keyword": "Innocence",
+        "hue": 125,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 66,
+          "y": 80
+        }
+      },
+      "audio": {
+        "frequency": 482,
+        "harmonic": 5,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L5C7G32H32",
+      "type": "output",
+      "start": 119.32,
+      "duration": 4.62,
+      "layer": 5,
+      "center": 7,
+      "visual": {
+        "gate": 32,
+        "keyword": "Duration",
+        "hue": 160,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 0,
+          "y": 80
+        }
+      },
+      "audio": {
+        "frequency": 496,
+        "harmonic": 5,
+        "amplitude": 0.8075
+      }
+    },
+    {
+      "id": "clip_L5C8G29H29",
+      "type": "output",
+      "start": 123.94,
+      "duration": 5.0,
+      "layer": 5,
+      "center": 8,
+      "visual": {
+        "gate": 29,
+        "keyword": "Abysmal",
+        "hue": 145,
+        "saturation": 100.0,
+        "brightness": 100.0,
+        "position": {
+          "x": 33,
+          "y": 80
+        }
+      },
+      "audio": {
+        "frequency": 490,
+        "harmonic": 5,
+        "amplitude": 1.0
+      }
+    },
+    {
+      "id": "clip_L5C9G31H31",
+      "type": "output",
+      "start": 128.94,
+      "duration": 4.62,
+      "layer": 5,
+      "center": 9,
+      "visual": {
+        "gate": 31,
+        "keyword": "Influence",
+        "hue": 155,
+        "saturation": 80.75,
+        "brightness": 90.375,
+        "position": {
+          "x": 66,
+          "y": 80
+        }
+      },
+      "audio": {
+        "frequency": 494,
+        "harmonic": 5,
+        "amplitude": 0.8075
+      }
+    }
+  ],
+  "transitions": [
+    {
+      "from": "clip_L1C1G20H20",
+      "to": "clip_L1C2G18H18",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L1C2G18H18",
+      "to": "clip_L1C3G19H19",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L1C3G19H19",
+      "to": "clip_L1C4G22H22",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L1C4G22H22",
+      "to": "clip_L1C5G18H18",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L1C5G18H18",
+      "to": "clip_L1C6G17H17",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L1C6G17H17",
+      "to": "clip_L1C7G24H24",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L1C7G24H24",
+      "to": "clip_L1C8G21H21",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L1C8G21H21",
+      "to": "clip_L1C9G23H23",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L1C9G23H23",
+      "to": "clip_L2C1G52H52",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L2C1G52H52",
+      "to": "clip_L2C2G50H50",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L2C2G50H50",
+      "to": "clip_L2C3G51H51",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L2C3G51H51",
+      "to": "clip_L2C4G54H54",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L2C4G54H54",
+      "to": "clip_L2C5G50H50",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L2C5G50H50",
+      "to": "clip_L2C6G49H49",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L2C6G49H49",
+      "to": "clip_L2C7G56H56",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L2C7G56H56",
+      "to": "clip_L2C8G53H53",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L2C8G53H53",
+      "to": "clip_L2C9G55H55",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L2C9G55H55",
+      "to": "clip_L3C1G12H12",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L3C1G12H12",
+      "to": "clip_L3C3G11H11",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L3C3G11H11",
+      "to": "clip_L3C4G14H14",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L3C4G14H14",
+      "to": "clip_L3C6G9H9",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L3C6G9H9",
+      "to": "clip_L3C8G13H13",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L3C8G13H13",
+      "to": "clip_L4C1G60H60",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L4C1G60H60",
+      "to": "clip_L4C3G59H59",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L4C3G59H59",
+      "to": "clip_L4C4G62H62",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L4C4G62H62",
+      "to": "clip_L4C6G57H57",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L4C6G57H57",
+      "to": "clip_L4C8G61H61",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L4C8G61H61",
+      "to": "clip_L5C1G28H28",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L5C1G28H28",
+      "to": "clip_L5C2G26H26",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L5C2G26H26",
+      "to": "clip_L5C3G27H27",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L5C3G27H27",
+      "to": "clip_L5C4G30H30",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L5C4G30H30",
+      "to": "clip_L5C5G26H26",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L5C5G26H26",
+      "to": "clip_L5C6G25H25",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L5C6G25H25",
+      "to": "clip_L5C7G32H32",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L5C7G32H32",
+      "to": "clip_L5C8G29H29",
+      "type": "morph_blend",
+      "duration": 0.5
+    },
+    {
+      "from": "clip_L5C8G29H29",
+      "to": "clip_L5C9G31H31",
+      "type": "morph_blend",
+      "duration": 0.5
+    }
+  ]
+}

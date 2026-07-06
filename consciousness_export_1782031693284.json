@@ -1,0 +1,79 @@
+{
+  "session": {
+    "auto_evolution": {
+      "reason": "Resonance 48% below threshold 70%",
+      "triggered": false
+    },
+    "birth_data": {},
+    "learned_preferences": {
+      "Being": 0.25,
+      "Design": 0.25,
+      "Evolution": 0.25,
+      "Movement": 0.25
+    },
+    "summary": {
+      "fields": {
+        "CONSCIOUS_EARTH": {
+          "base": 1,
+          "color": 1,
+          "gate": 33,
+          "line": 1,
+          "probabilities": {
+            "Being": 0.1428571428571428,
+            "Design": 0.1428571428571428,
+            "Evolution": 0.14285714285714282,
+            "Movement": 0.5714285714285713
+          },
+          "tone": 1
+        },
+        "CONSCIOUS_SUN": {
+          "base": 1,
+          "color": 1,
+          "gate": 1,
+          "line": 1,
+          "probabilities": {
+            "Being": 0.1428571428571428,
+            "Design": 0.1428571428571428,
+            "Evolution": 0.14285714285714282,
+            "Movement": 0.5714285714285713
+          },
+          "tone": 1
+        },
+        "DESIGN_EARTH": {
+          "base": 1,
+          "color": 1,
+          "gate": 49,
+          "line": 2,
+          "probabilities": {
+            "Being": 0.14285714285714282,
+            "Design": 0.14285714285714282,
+            "Evolution": 0.1428571428571428,
+            "Movement": 0.5714285714285713
+          },
+          "tone": 1
+        },
+        "DESIGN_SUN": {
+          "base": 1,
+          "color": 1,
+          "gate": 17,
+          "line": 2,
+          "probabilities": {
+            "Being": 0.14285714285714282,
+            "Design": 0.14285714285714282,
+            "Evolution": 0.1428571428571428,
+            "Movement": 0.5714285714285713
+          },
+          "tone": 1
+        }
+      },
+      "total_fields": 4
+    },
+    "user_id": "44136fa355b3"
+  },
+  "activeGates": [
+    1
+  ],
+  "resonance": 50,
+  "dimension": "auto",
+  "timestamp": "2026-06-21T08:48:13.282Z"
+}

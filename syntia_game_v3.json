@@ -1,0 +1,854 @@
+{
+  "version": "3.0",
+  "engine": "syntia-gnn-game",
+  "architecture_mode": "META_CONTROLLER",
+  "coherence": 0.6593,
+  "active_channels": [
+    20,
+    10,
+    57,
+    34
+  ],
+  "entities": [
+    {
+      "id": "L1C1G20H20",
+      "type": "input",
+      "layer": 1,
+      "center": 1,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 20,
+        "keyword": "Contemplation",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "input_receiver",
+          "trigger": "onTouch"
+        }
+      ]
+    },
+    {
+      "id": "L1C2G18H18",
+      "type": "input",
+      "layer": 1,
+      "center": 2,
+      "position": {
+        "x": 100,
+        "y": 0,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 18,
+        "keyword": "Work on Decay",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "input_receiver",
+          "trigger": "onTouch"
+        }
+      ]
+    },
+    {
+      "id": "L1C3G19H19",
+      "type": "input",
+      "layer": 1,
+      "center": 3,
+      "position": {
+        "x": 200,
+        "y": 0,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 19,
+        "keyword": "Approach",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "input_receiver",
+          "trigger": "onTouch"
+        }
+      ]
+    },
+    {
+      "id": "L1C4G22H22",
+      "type": "input",
+      "layer": 1,
+      "center": 4,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 22,
+        "keyword": "Grace",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "input_receiver",
+          "trigger": "onTouch"
+        }
+      ]
+    },
+    {
+      "id": "L1C5G18H18",
+      "type": "input",
+      "layer": 1,
+      "center": 5,
+      "position": {
+        "x": 100,
+        "y": 0,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 18,
+        "keyword": "Work on Decay",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "input_receiver",
+          "trigger": "onTouch"
+        }
+      ]
+    },
+    {
+      "id": "L1C6G17H17",
+      "type": "input",
+      "layer": 1,
+      "center": 6,
+      "position": {
+        "x": 200,
+        "y": 0,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 17,
+        "keyword": "Following",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "input_receiver",
+          "trigger": "onTouch"
+        }
+      ]
+    },
+    {
+      "id": "L1C7G24H24",
+      "type": "input",
+      "layer": 1,
+      "center": 7,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 24,
+        "keyword": "Return",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "input_receiver",
+          "trigger": "onTouch"
+        }
+      ]
+    },
+    {
+      "id": "L1C8G21H21",
+      "type": "input",
+      "layer": 1,
+      "center": 8,
+      "position": {
+        "x": 100,
+        "y": 0,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 21,
+        "keyword": "Biting Through",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "input_receiver",
+          "trigger": "onTouch"
+        }
+      ]
+    },
+    {
+      "id": "L1C9G23H23",
+      "type": "input",
+      "layer": 1,
+      "center": 9,
+      "position": {
+        "x": 200,
+        "y": 0,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 23,
+        "keyword": "Splitting Apart",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "input_receiver",
+          "trigger": "onTouch"
+        }
+      ]
+    },
+    {
+      "id": "L2C1G52H52",
+      "type": "process",
+      "layer": 2,
+      "center": 1,
+      "position": {
+        "x": 0,
+        "y": 100,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 52,
+        "keyword": "Keeping Still",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "evolution",
+          "rate": 0.8075
+        }
+      ]
+    },
+    {
+      "id": "L2C2G50H50",
+      "type": "process",
+      "layer": 2,
+      "center": 2,
+      "position": {
+        "x": 100,
+        "y": 100,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 50,
+        "keyword": "The Cauldron",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "evolution",
+          "rate": 0.8075
+        }
+      ]
+    },
+    {
+      "id": "L2C3G51H51",
+      "type": "process",
+      "layer": 2,
+      "center": 3,
+      "position": {
+        "x": 200,
+        "y": 100,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 51,
+        "keyword": "Shock",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "evolution",
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "id": "L2C4G54H54",
+      "type": "process",
+      "layer": 2,
+      "center": 4,
+      "position": {
+        "x": 0,
+        "y": 100,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 54,
+        "keyword": "Marrying Maiden",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "evolution",
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "id": "L2C5G50H50",
+      "type": "process",
+      "layer": 2,
+      "center": 5,
+      "position": {
+        "x": 100,
+        "y": 100,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 50,
+        "keyword": "The Cauldron",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "evolution",
+          "rate": 0.8075
+        }
+      ]
+    },
+    {
+      "id": "L2C6G49H49",
+      "type": "process",
+      "layer": 2,
+      "center": 6,
+      "position": {
+        "x": 200,
+        "y": 100,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 49,
+        "keyword": "Revolution",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "evolution",
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "id": "L2C7G56H56",
+      "type": "process",
+      "layer": 2,
+      "center": 7,
+      "position": {
+        "x": 0,
+        "y": 100,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 56,
+        "keyword": "The Wanderer",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "evolution",
+          "rate": 0.8075
+        }
+      ]
+    },
+    {
+      "id": "L2C8G53H53",
+      "type": "process",
+      "layer": 2,
+      "center": 8,
+      "position": {
+        "x": 100,
+        "y": 100,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 53,
+        "keyword": "Development",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "evolution",
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "id": "L2C9G55H55",
+      "type": "process",
+      "layer": 2,
+      "center": 9,
+      "position": {
+        "x": 200,
+        "y": 100,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 55,
+        "keyword": "Abundance",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "evolution",
+          "rate": 0.8075
+        }
+      ]
+    },
+    {
+      "id": "L3C1G12H12",
+      "type": "transform",
+      "layer": 3,
+      "center": 1,
+      "position": {
+        "x": 0,
+        "y": 200,
+        "z": 31.5
+      },
+      "properties": {
+        "gate": 12,
+        "keyword": "Standstill",
+        "activation": 0.63
+      },
+      "behaviors": [
+        {
+          "type": "morph",
+          "condition": "contradiction > 0.5"
+        }
+      ]
+    },
+    {
+      "id": "L3C3G11H11",
+      "type": "transform",
+      "layer": 3,
+      "center": 3,
+      "position": {
+        "x": 200,
+        "y": 200,
+        "z": 34.0
+      },
+      "properties": {
+        "gate": 11,
+        "keyword": "Peace",
+        "activation": 0.68
+      },
+      "behaviors": [
+        {
+          "type": "morph",
+          "condition": "contradiction > 0.5"
+        }
+      ]
+    },
+    {
+      "id": "L3C4G14H14",
+      "type": "transform",
+      "layer": 3,
+      "center": 4,
+      "position": {
+        "x": 0,
+        "y": 200,
+        "z": 34.0
+      },
+      "properties": {
+        "gate": 14,
+        "keyword": "Great Possession",
+        "activation": 0.68
+      },
+      "behaviors": [
+        {
+          "type": "morph",
+          "condition": "contradiction > 0.5"
+        }
+      ]
+    },
+    {
+      "id": "L3C6G9H9",
+      "type": "transform",
+      "layer": 3,
+      "center": 6,
+      "position": {
+        "x": 200,
+        "y": 200,
+        "z": 34.900000000000006
+      },
+      "properties": {
+        "gate": 9,
+        "keyword": "Small Taming",
+        "activation": 0.698
+      },
+      "behaviors": [
+        {
+          "type": "morph",
+          "condition": "contradiction > 0.5"
+        }
+      ]
+    },
+    {
+      "id": "L3C8G13H13",
+      "type": "transform",
+      "layer": 3,
+      "center": 8,
+      "position": {
+        "x": 100,
+        "y": 200,
+        "z": 34.0
+      },
+      "properties": {
+        "gate": 13,
+        "keyword": "Fellowship",
+        "activation": 0.68
+      },
+      "behaviors": [
+        {
+          "type": "morph",
+          "condition": "contradiction > 0.5"
+        }
+      ]
+    },
+    {
+      "id": "L4C1G60H60",
+      "type": "filter",
+      "layer": 4,
+      "center": 1,
+      "position": {
+        "x": 0,
+        "y": 300,
+        "z": 27.999999999999996
+      },
+      "properties": {
+        "gate": 60,
+        "keyword": "Limitation",
+        "activation": 0.56
+      },
+      "behaviors": [
+        {
+          "type": "filter",
+          "threshold": 0.5599999999999999
+        }
+      ]
+    },
+    {
+      "id": "L4C3G59H59",
+      "type": "filter",
+      "layer": 4,
+      "center": 3,
+      "position": {
+        "x": 200,
+        "y": 300,
+        "z": 34.0
+      },
+      "properties": {
+        "gate": 59,
+        "keyword": "Dispersion",
+        "activation": 0.68
+      },
+      "behaviors": [
+        {
+          "type": "filter",
+          "threshold": 0.68
+        }
+      ]
+    },
+    {
+      "id": "L4C4G62H62",
+      "type": "filter",
+      "layer": 4,
+      "center": 4,
+      "position": {
+        "x": 0,
+        "y": 300,
+        "z": 34.0
+      },
+      "properties": {
+        "gate": 62,
+        "keyword": "Small Excess",
+        "activation": 0.68
+      },
+      "behaviors": [
+        {
+          "type": "filter",
+          "threshold": 0.68
+        }
+      ]
+    },
+    {
+      "id": "L4C6G57H57",
+      "type": "filter",
+      "layer": 4,
+      "center": 6,
+      "position": {
+        "x": 200,
+        "y": 300,
+        "z": 34.800000000000004
+      },
+      "properties": {
+        "gate": 57,
+        "keyword": "Gentle",
+        "activation": 0.696
+      },
+      "behaviors": [
+        {
+          "type": "filter",
+          "threshold": 0.6960000000000001
+        }
+      ]
+    },
+    {
+      "id": "L4C8G61H61",
+      "type": "filter",
+      "layer": 4,
+      "center": 8,
+      "position": {
+        "x": 100,
+        "y": 300,
+        "z": 34.0
+      },
+      "properties": {
+        "gate": 61,
+        "keyword": "Inner Truth",
+        "activation": 0.68
+      },
+      "behaviors": [
+        {
+          "type": "filter",
+          "threshold": 0.68
+        }
+      ]
+    },
+    {
+      "id": "L5C1G28H28",
+      "type": "output",
+      "layer": 5,
+      "center": 1,
+      "position": {
+        "x": 0,
+        "y": 400,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 28,
+        "keyword": "Critical Mass",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "emitter",
+          "format": "json"
+        }
+      ]
+    },
+    {
+      "id": "L5C2G26H26",
+      "type": "output",
+      "layer": 5,
+      "center": 2,
+      "position": {
+        "x": 100,
+        "y": 400,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 26,
+        "keyword": "Taming Power",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "emitter",
+          "format": "json"
+        }
+      ]
+    },
+    {
+      "id": "L5C3G27H27",
+      "type": "output",
+      "layer": 5,
+      "center": 3,
+      "position": {
+        "x": 200,
+        "y": 400,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 27,
+        "keyword": "Nourishment",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "emitter",
+          "format": "json"
+        }
+      ]
+    },
+    {
+      "id": "L5C4G30H30",
+      "type": "output",
+      "layer": 5,
+      "center": 4,
+      "position": {
+        "x": 0,
+        "y": 400,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 30,
+        "keyword": "Clinging",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "emitter",
+          "format": "json"
+        }
+      ]
+    },
+    {
+      "id": "L5C5G26H26",
+      "type": "output",
+      "layer": 5,
+      "center": 5,
+      "position": {
+        "x": 100,
+        "y": 400,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 26,
+        "keyword": "Taming Power",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "emitter",
+          "format": "json"
+        }
+      ]
+    },
+    {
+      "id": "L5C6G25H25",
+      "type": "output",
+      "layer": 5,
+      "center": 6,
+      "position": {
+        "x": 200,
+        "y": 400,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 25,
+        "keyword": "Innocence",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "emitter",
+          "format": "json"
+        }
+      ]
+    },
+    {
+      "id": "L5C7G32H32",
+      "type": "output",
+      "layer": 5,
+      "center": 7,
+      "position": {
+        "x": 0,
+        "y": 400,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 32,
+        "keyword": "Duration",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "emitter",
+          "format": "json"
+        }
+      ]
+    },
+    {
+      "id": "L5C8G29H29",
+      "type": "output",
+      "layer": 5,
+      "center": 8,
+      "position": {
+        "x": 100,
+        "y": 400,
+        "z": 50.0
+      },
+      "properties": {
+        "gate": 29,
+        "keyword": "Abysmal",
+        "activation": 1.0
+      },
+      "behaviors": [
+        {
+          "type": "emitter",
+          "format": "json"
+        }
+      ]
+    },
+    {
+      "id": "L5C9G31H31",
+      "type": "output",
+      "layer": 5,
+      "center": 9,
+      "position": {
+        "x": 200,
+        "y": 400,
+        "z": 40.375
+      },
+      "properties": {
+        "gate": 31,
+        "keyword": "Influence",
+        "activation": 0.8075
+      },
+      "behaviors": [
+        {
+          "type": "emitter",
+          "format": "json"
+        }
+      ]
+    }
+  ],
+  "systems": [
+    {
+      "name": "coherence",
+      "type": "physics",
+      "formula": "mean - 4*variance"
+    },
+    {
+      "name": "morph",
+      "type": "state_machine",
+      "states": [
+        "init",
+        "flow",
+        "rebalance"
+      ]
+    },
+    {
+      "name": "channels",
+      "type": "orchestrator",
+      "channels": {
+        "20": "LSM",
+        "10": "DRN",
+        "57": "GNN",
+        "34": "META"
+      }
+    }
+  ]
+}

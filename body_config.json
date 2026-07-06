@@ -1,0 +1,126 @@
+{
+  "Spirit": {
+    "chart_system": "draconic",
+    "base_frequency": 1.0,
+    "waveform_type": "pulse",
+    "harmonic_ratios": {},
+    "phase_offset": 0.0,
+    "amplitude": 1.0,
+    "dimension": "Spirit",
+    "keynote": "I Define",
+    "crystal": "Magnetic Monopole"
+  },
+  "Mind": {
+    "chart_system": "sidereal",
+    "base_frequency": 2.0,
+    "waveform_type": "sine",
+    "harmonic_ratios": {
+      "Spirit": 2.0,
+      "Soul": 1.5
+    },
+    "phase_offset": 0.7853981633974483,
+    "amplitude": 0.9,
+    "dimension": "Evolution",
+    "keynote": "I Remember",
+    "crystal": "Personality"
+  },
+  "Soul": {
+    "chart_system": "draconic",
+    "base_frequency": 3.0,
+    "waveform_type": "sinc",
+    "harmonic_ratios": {
+      "Spirit": 3.0,
+      "Mind": 1.5
+    },
+    "phase_offset": 1.0471975511965976,
+    "amplitude": 0.85,
+    "dimension": "Design",
+    "keynote": "I Design",
+    "crystal": "Design"
+  },
+  "Body": {
+    "chart_system": "tropical",
+    "base_frequency": 2.0,
+    "waveform_type": "square",
+    "harmonic_ratios": {
+      "Mind": 1.0,
+      "Heart": 1.3333333333333333
+    },
+    "phase_offset": 1.5707963267948966,
+    "amplitude": 1.0,
+    "dimension": "Being",
+    "keynote": "I Am",
+    "crystal": "Design"
+  },
+  "Heart": {
+    "chart_system": "tropical",
+    "base_frequency": 1.3333333333333333,
+    "waveform_type": "triangle",
+    "harmonic_ratios": {
+      "Mind": 1.3333333333333333,
+      "Soul": 1.25,
+      "Body": 1.3333333333333333
+    },
+    "phase_offset": 0.5235987755982988,
+    "amplitude": 0.9,
+    "dimension": "Space",
+    "keynote": "I Think",
+    "crystal": "Personality"
+  },
+  "Will": {
+    "chart_system": "sidereal",
+    "base_frequency": 1.25,
+    "waveform_type": "sawtooth",
+    "harmonic_ratios": {
+      "Spirit": 1.25,
+      "Soul": 0.8333333333333334
+    },
+    "phase_offset": 0.0,
+    "amplitude": 0.8,
+    "dimension": "Movement",
+    "keynote": "I Define",
+    "crystal": "Magnetic Monopole"
+  },
+  "Shadow": {
+    "chart_system": "draconic",
+    "base_frequency": 1.75,
+    "waveform_type": "noise",
+    "harmonic_ratios": {
+      "Spirit": 1.75,
+      "Body": 0.875
+    },
+    "phase_offset": 3.141592653589793,
+    "amplitude": 0.6,
+    "dimension": "Evolution",
+    "keynote": "I Remember",
+    "crystal": "Personality"
+  },
+  "HigherSelf": {
+    "chart_system": "sidereal",
+    "base_frequency": 1.2,
+    "waveform_type": "gaussian",
+    "harmonic_ratios": {
+      "Spirit": 1.2,
+      "Soul": 0.8
+    },
+    "phase_offset": 0.39269908169872414,
+    "amplitude": 0.7,
+    "dimension": "Space",
+    "keynote": "I Think",
+    "crystal": "Magnetic Monopole"
+  },
+  "Ego": {
+    "chart_system": "tropical",
+    "base_frequency": 1.125,
+    "waveform_type": "exponential",
+    "harmonic_ratios": {
+      "Body": 0.5625,
+      "Will": 0.9
+    },
+    "phase_offset": 0.6283185307179586,
+    "amplitude": 0.75,
+    "dimension": "Design",
+    "keynote": "I Design",
+    "crystal": "Design"
+  }
+}

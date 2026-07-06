@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>YOU-N-I-VERSE | Consciousness OS v2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+        :root { --bg-primary: #050508; --bg-secondary: #0a0a12; --bg-panel: #0f101a; --accent-cyan: #00d4ff; --accent-purple: #a78bfa; --accent-amber: #fbbf24; --accent-rose: #f43f5e; --accent-green: #4ade80; --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b; --border-subtle: rgba(167, 139, 250, 0.15); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-primary); color: var(--text-primary); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(15, 16, 26, 0.85); backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); }
+        .glass-strong { background: rgba(15, 16, 26, 0.95); backdrop-filter: blur(30px); border: 1px solid rgba(167, 139, 250, 0.25); }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(0, 212, 255, 0.2); } 50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); } }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-fade-in { animation: fade-in 0.5s ease-out; }
+        .animate-pulse-glow { animation: pulse-glow 3s infinite; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--accent-purple); border-radius: 4px; }
+        .terminal-cursor::after { content: '█'; animation: blink 1s step-end infinite; color: var(--accent-cyan); }
+        @keyframes blink { 50% { opacity: 0; } }
+        .mode-indicator { position: relative; overflow: hidden; }
+        .mode-indicator::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent); transform: translateX(-100%); transition: transform 0.6s; }
+        .mode-indicator:hover::before { transform: translateX(100%); }
+        #drop-zone { transition: all 0.3s ease; border: 2px dashed rgba(167, 139, 250, 0.2); }
+        #drop-zone.drag-active { border-color: var(--accent-amber); background: rgba(251, 191, 36, 0.05); transform: scale(1.02); }
+        .msg-user { background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(0, 212, 255, 0.05)); border-left: 3px solid var(--accent-cyan); }
+        .msg-ai { background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(167, 139, 250, 0.05)); border-left: 3px solid var(--accent-purple); }
+        .msg-system { background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.05)); border-left: 3px solid var(--accent-amber); }
+        .toggle-switch { width: 40px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; position: relative; cursor: pointer; transition: background 0.3s; }
+        .toggle-switch.active { background: var(--accent-purple); }
+        .toggle-switch::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: white; top: 2px; left: 2px; transition: transform 0.3s; }
+        .toggle-switch.active::after { transform: translateX(20px); }
+        .journal-entry { position: relative; padding-left: 20px; }
+        .journal-entry::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--accent-purple), transparent); }
+        .os-grid { display: grid; grid-template-columns: 280px 1fr 320px; grid-template-rows: 60px 1fr 40px; gap: 8px; padding: 8px; height: 100vh; }
+        @media (max-width: 1200px) { .os-grid { grid-template-columns: 240px 1fr; } .os-panel-right { display: none; } }
+        @media (max-width: 768px) { .os-grid { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; } .os-panel-left { display: none; } }
+        .llm-status { transition: all 0.3s ease; }
+        .llm-status.loading { color: var(--accent-amber); }
+        .llm-status.ready { color: var(--accent-green); }
+        .llm-status.error { color: var(--accent-rose); }
+        .streaming-text::after { content: '▋'; animation: blink 0.5s step-end infinite; color: var(--accent-cyan); }
+    </style>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0a0a12">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YOU-N-I-VERSE">
+    <meta name="description" content="Consciousness OS - A Human Design-aware AI operating system that runs entirely in your browser">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiWU9VLS1JLVZFUlNFIENvbnNjaW91c25lc3MgT1MiLCJzaG9ydF9uYW1lIjoiWU9VLU5JViIsInN0YXJ0X3VybCI6Ii4vY29uc2Npb3VzbmVzc19vc192Mi5odG1sIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzA1MDUwOCIsInRoZW1lX2NvbG9yIjoiIzBhMGExMiIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnJTIweG1sbnMlM0QlMjJodHRwJTNBLy93d3cudzMub3JnLzIwMDAvc3ZnJTIyJTIwdmlld0JveCUzRCUyMjAlMjAwJTIwNTEyJTIwNTEyJTIyJTNFJTNDcmVjdCUyMHdpZHRoJTNEJTIyNTEyJTIyJTIwaGVpZ2h0JTNEJTIyNTEyJTIyJTIwZmlsbCUzRCUyMiUwNTA1MDglMjIlMjByeCUzRCUyMjY0JTIyJTJGJTNFJTNDdGV4dCUyMHglM0QlMjIyNTYlMjIlMjB5JTNEJTIyMzIwJTIyJTIwdGV4dC1hbmNob3IlM0QlMjJtaWRkbGUlMjIlMjBmb250LXNpemUlM0QlMjIyNDAlMjIlMjBmb250LWZhbWlseSUzRCUyMmFyaWFsJTIyJTNFWSUzQy90ZXh0JTNFJTNDL3N2ZyUzRQ==","sizes":"512x512","type":"image/svg+xml"}]}" />
+    </head>
+<body>
+    <div class="os-grid">
+        <!-- TOP BAR -->
+        <header class="glass-strong rounded-xl col-span-full flex items-center justify-between px-4 py-2">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">Y</div>
+                <div>
+                    <h1 class="text-sm font-semibold text-white">YOU-N-I-VERSE</h1>
+                    <div class="text-[10px] font-mono flex items-center gap-2">
+                        <span class="text-cyan-400">Consciousness OS v2.0</span>
+                        <span id="llm-status-badge" class="llm-status text-[9px] px-1.5 py-0.5 rounded bg-black/30 border border-white/10">Neural Core: Initializing...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="setMode('journal')" class="mode-indicator px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:bg-white/5" id="btn-journal">📓 Journal</button>
+                <button onclick="setMode('browser')" class="mode-indicator px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:bg-white/5 bg-white/10" id="btn-browser">🌐 Browser</button>
+                <button onclick="setMode('os')" class="mode-indicator px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:bg-white/5" id="btn-os">⚙️ OS</button>
+                <button onclick="toggleSettings()" class="ml-2 p-2 rounded-lg hover:bg-white/5 transition-all">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- LEFT PANEL: HD Chart & Personality Kernel -->
+        <aside class="os-panel-left glass rounded-xl flex flex-col overflow-hidden">
+            <div class="p-3 border-b border-white/5">
+                <h2 class="text-[11px] font-semibold text-purple-400 uppercase tracking-wider">Personality Kernel</h2>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-3 space-y-4">
+                <div class="relative h-48 bg-black/30 rounded-lg overflow-hidden" id="hd-chart-viz">
+                    <div class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-500">
+                        Load birth data to activate chart
+                    </div>
+                </div>
+
+                <div class="space-y-2" id="hd-summary">
+                    <div class="flex justify-between text-[11px]"><span class="text-gray-500">Type</span><span class="text-cyan-400 font-mono" id="hd-type">—</span></div>
+                    <div class="flex justify-between text-[11px]"><span class="text-gray-500">Authority</span><span class="text-purple-400 font-mono" id="hd-authority">—</span></div>
+                    <div class="flex justify-between text-[11px]"><span class="text-gray-500">Profile</span><span class="text-amber-400 font-mono" id="hd-profile">—</span></div>
+                    <div class="flex justify-between text-[11px]"><span class="text-gray-500">Strategy</span><span class="text-rose-400 font-mono" id="hd-strategy">—</span></div>
+                </div>
+
+                <div>
+                    <h3 class="text-[10px] text-gray-500 uppercase mb-2">Defined Centers</h3>
+                    <div class="flex flex-wrap gap-1" id="defined-centers"></div>
+                </div>
+
+                <div>
+                    <h3 class="text-[10px] text-gray-500 uppercase mb-2">Active Gates</h3>
+                    <div class="flex flex-wrap gap-1" id="active-gates"></div>
+                </div>
+
+                <div class="p-2 bg-black/20 rounded-lg">
+                    <div class="text-[10px] text-gray-500 mb-1">Coordinate</div>
+                    <div class="font-mono text-[11px] text-cyan-400" id="consciousness-coord">—</div>
+                </div>
+
+                <!-- Neural Core Status -->
+                <div class="p-2 bg-black/20 rounded-lg border border-purple-500/20">
+                    <div class="text-[10px] text-purple-400 mb-1">Neural Core</div>
+                    <div class="text-[10px] text-gray-400" id="neural-core-status">Loading WebLLM...</div>
+                    <div class="mt-1 h-1 bg-black/30 rounded-full overflow-hidden">
+                        <div id="model-load-progress" class="h-full bg-purple-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="showBirthForm()" class="m-3 p-2 bg-purple-600/20 border border-purple-500/30 rounded-lg text-[11px] text-purple-300 hover:bg-purple-600/30 transition-all">✦ Calculate Chart</button>
+        </aside>
+
+        <!-- CENTER: Main Workspace -->
+        <main class="glass rounded-xl flex flex-col overflow-hidden relative">
+            <!-- Mode: Browser -->
+            <div id="mode-browser" class="flex-1 flex flex-col">
+                <div class="flex items-center gap-2 p-2 border-b border-white/5">
+                    <button class="p-1.5 rounded hover:bg-white/5 text-gray-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+                    <button class="p-1.5 rounded hover:bg-white/5 text-gray-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+                    <div class="flex-1 flex items-center gap-2 px-3 py-1.5 bg-black/30 rounded-lg border border-white/5">
+                        <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.131A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/></svg>
+                        <input type="text" id="browser-url" placeholder="Enter URL or drop file to analyze..." class="flex-1 bg-transparent text-[11px] text-gray-300 focus:outline-none" onkeydown="if(event.key==='Enter')navigateUrl(this.value)">
+                    </div>
+                </div>
+
+                <div id="drop-zone" class="flex-1 flex flex-col items-center justify-center p-8 relative">
+                    <div class="text-center space-y-4 max-w-md">
+                        <div class="text-5xl mb-4">🛸</div>
+                        <h3 class="text-lg font-semibold text-purple-300">Feed the Organism</h3>
+                        <p class="text-[11px] text-gray-400 leading-relaxed">Drop any file — PDF, code, JSON, images, data — and the neural core will analyze its purpose, understand relationships, and generate a curated version optimized for your design.</p>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <span class="px-2 py-1 bg-purple-500/10 rounded text-[10px] text-purple-400 border border-purple-500/20">.pdf</span>
+                            <span class="px-2 py-1 bg-cyan-500/10 rounded text-[10px] text-cyan-400 border border-cyan-500/20">.html</span>
+                            <span class="px-2 py-1 bg-amber-500/10 rounded text-[10px] text-amber-400 border border-amber-500/20">.js</span>
+                            <span class="px-2 py-1 bg-rose-500/10 rounded text-[10px] text-rose-400 border border-rose-500/20">.json</span>
+                            <span class="px-2 py-1 bg-green-500/10 rounded text-[10px] text-green-400 border border-green-500/20">.py</span>
+                        </div>
+                        <button onclick="document.getElementById('file-input').click()" class="px-4 py-2 bg-purple-600/30 border border-purple-500/40 rounded-lg text-[11px] text-purple-300 hover:bg-purple-600/40 transition-all">Select Files</button>
+                        <input type="file" id="file-input" multiple class="hidden" accept=".pdf,.html,.js,.jsx,.json,.py,.txt,.md,.csv,.png,.jpg,.svg">
+                    </div>
+
+                    <div id="analysis-overlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm hidden flex-col items-center justify-center">
+                        <div class="text-center space-y-3">
+                            <div class="w-12 h-12 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                            <div class="text-[11px] text-purple-400" id="analysis-status">Neural analysis in progress...</div>
+                            <div class="text-[10px] text-gray-500 font-mono" id="analysis-detail"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="output-preview" class="hidden flex-1 flex-col">
+                    <div class="flex items-center justify-between p-2 border-b border-white/5 bg-black/20">
+                        <span class="text-[11px] text-gray-400">Generated Output</span>
+                        <div class="flex gap-2">
+                            <button onclick="downloadOutput()" class="px-2 py-1 text-[10px] bg-cyan-600/20 text-cyan-400 rounded hover:bg-cyan-600/30">Download</button>
+                            <button onclick="runOutput()" class="px-2 py-1 text-[10px] bg-green-600/20 text-green-400 rounded hover:bg-green-600/30">Run</button>
+                            <button onclick="closeOutput()" class="px-2 py-1 text-[10px] bg-red-600/20 text-red-400 rounded hover:bg-red-600/30">Close</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-auto p-4"><pre id="output-code" class="text-[10px] font-mono text-gray-300"></pre></div>
+                </div>
+            </div>
+
+            <!-- Mode: Journal -->
+            <div id="mode-journal" class="hidden flex-1 flex-col">
+                <div class="p-3 border-b border-white/5 flex items-center justify-between"><h2 class="text-[11px] font-semibold text-amber-400">📓 Consciousness Journal</h2><span class="text-[10px] text-gray-500" id="journal-date"></span></div>
+                <div id="journal-entries" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+            </div>
+
+            <!-- Mode: OS -->
+            <div id="mode-os" class="hidden flex-1 flex-col">
+                <div class="p-3 border-b border-white/5"><h2 class="text-[11px] font-semibold text-cyan-400">⚙️ System Modules</h2></div>
+                <div class="flex-1 overflow-y-auto p-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 bg-black/20 rounded-lg border border-white/5 hover:border-purple-500/30 transition-all cursor-pointer" onclick="loadModule('hd-calculator')"><div class="text-lg mb-1">🧬</div><div class="text-[11px] font-medium text-purple-300">HD Calculator</div><div class="text-[10px] text-gray-500">Birth chart analysis</div></div>
+                        <div class="p-3 bg-black/20 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer" onclick="loadModule('neural-core')"><div class="text-lg mb-1">🧠</div><div class="text-[11px] font-medium text-cyan-300">Neural Core</div><div class="text-[10px] text-gray-500">WebLLM AI engine</div></div>
+                        <div class="p-3 bg-black/20 rounded-lg border border-white/5 hover:border-amber-500/30 transition-all cursor-pointer" onclick="loadModule('mesh-network')"><div class="text-lg mb-1">🌐</div><div class="text-[11px] font-medium text-amber-300">Mesh Network</div><div class="text-[10px] text-gray-500">P2P consciousness mesh</div></div>
+                        <div class="p-3 bg-black/20 rounded-lg border border-white/5 hover:border-rose-500/30 transition-all cursor-pointer" onclick="loadModule('file-processor')"><div class="text-lg mb-1">📁</div><div class="text-[11px] font-medium text-rose-300">File Processor</div><div class="text-[10px] text-gray-500">Ingest & analyze files</div></div>
+                        <div class="p-3 bg-black/20 rounded-lg border border-white/5 hover:border-green-500/30 transition-all cursor-pointer" onclick="loadModule('conversation')"><div class="text-lg mb-1">💬</div><div class="text-[11px] font-medium text-green-300">Conversation</div><div class="text-[10px] text-gray-500">AI dialogue & decisions</div></div>
+                        <div class="p-3 bg-black/20 rounded-lg border border-white/5 hover:border-purple-500/30 transition-all cursor-pointer" onclick="loadModule('settings')"><div class="text-lg mb-1">⚙️</div><div class="text-[11px] font-medium text-purple-300">Settings</div><div class="text-[10px] text-gray-500">System configuration</div></div>
+                    </div>
+                    <div class="mt-6"><h3 class="text-[10px] text-gray-500 uppercase mb-2">Active Modules</h3><div id="active-modules" class="space-y-2"></div></div>
+
+                    <!-- Neural Core Info -->
+                    <div class="mt-6 p-3 bg-black/20 rounded-lg border border-cyan-500/20">
+                        <h3 class="text-[10px] text-cyan-400 uppercase mb-2">Neural Core Info</h3>
+                        <div class="text-[10px] text-gray-400 space-y-1">
+                            <div>Model: <span id="info-model" class="text-cyan-300">Not loaded</span></div>
+                            <div>Status: <span id="info-status" class="text-gray-300">Initializing</span></div>
+                            <div>VRAM: <span id="info-vram" class="text-gray-300">—</span></div>
+                            <div>Speed: <span id="info-speed" class="text-gray-300">—</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversation Panel -->
+            <div id="conversation-panel" class="absolute bottom-0 left-0 right-0 glass-strong border-t border-white/10 transform translate-y-full transition-transform duration-300 flex flex-col" style="height: 50%;">
+                <div class="flex items-center justify-between p-2 border-b border-white/5">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse" id="ai-indicator"></div>
+                        <span class="text-[11px] text-green-400">Neural Core Assistant</span>
+                        <span id="model-badge" class="text-[9px] px-1.5 py-0.5 rounded bg-black/30 text-gray-400 border border-white/10">No model</span>
+                    </div>
+                    <button onclick="toggleConversation()" class="p-1 hover:bg-white/5 rounded"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+                </div>
+                <div id="conversation-messages" class="flex-1 overflow-y-auto p-3 space-y-3">
+                    <div class="msg-system p-3 rounded-lg text-[11px] leading-relaxed">
+                        <strong class="text-amber-400">System:</strong> Neural Core initializing... The AI will load a quantized language model directly in your browser. No data leaves your device. This may take 30-120 seconds on first load.
+                    </div>
+                </div>
+                <div class="p-2 border-t border-white/5">
+                    <div class="flex gap-2">
+                        <input type="text" id="chat-input" placeholder="Ask anything, share an idea, or drop a file..." class="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-[11px] text-gray-300 focus:outline-none focus:border-purple-500/50" onkeydown="if(event.key==='Enter')sendMessage()" disabled>
+                        <button onclick="sendMessage()" id="send-btn" class="p-2 bg-purple-600/30 border border-purple-500/40 rounded-lg text-purple-300 hover:bg-purple-600/40 transition-all opacity-50 cursor-not-allowed" disabled>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="toggleConversation()" id="chat-toggle" class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300 hover:bg-purple-600/40 transition-all shadow-lg shadow-purple-500/20 z-10">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            </button>
+        </main>
+
+        <!-- RIGHT PANEL: Analysis -->
+        <aside class="os-panel-right glass rounded-xl flex flex-col overflow-hidden">
+            <div class="p-3 border-b border-white/5"><h2 class="text-[11px] font-semibold text-amber-400 uppercase tracking-wider">Context Analysis</h2></div>
+            <div class="flex-1 overflow-y-auto p-3 space-y-4">
+                <div id="file-analysis" class="hidden">
+                    <h3 class="text-[10px] text-gray-500 uppercase mb-2">Current File</h3>
+                    <div class="p-2 bg-black/20 rounded-lg space-y-2">
+                        <div class="text-[11px] text-cyan-400 font-mono" id="file-name">—</div>
+                        <div class="text-[10px] text-gray-400" id="file-purpose">—</div>
+                        <div class="flex flex-wrap gap-1" id="file-tags"></div>
+                    </div>
+                    <h3 class="text-[10px] text-gray-500 uppercase mb-2 mt-4">Relationships</h3><div id="file-relationships" class="space-y-1"></div>
+                    <h3 class="text-[10px] text-gray-500 uppercase mb-2 mt-4">HD Alignment</h3>
+                    <div class="p-2 bg-black/20 rounded-lg"><div class="text-[10px] text-gray-400" id="hd-alignment">Drop a file to see how it aligns with your design...</div></div>
+                </div>
+                <div id="no-file" class="text-center py-8"><div class="text-3xl mb-2">📊</div><div class="text-[11px] text-gray-500">Analysis will appear here when you feed the system</div></div>
+                <div class="mt-auto pt-4 border-t border-white/5">
+                    <h3 class="text-[10px] text-gray-500 uppercase mb-2">System Health</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-[10px]"><span class="text-gray-500">Neural Core</span><span class="text-green-400" id="health-neural">Initializing</span></div>
+                        <div class="flex justify-between text-[10px]"><span class="text-gray-500">Mesh Status</span><span class="text-amber-400" id="mesh-status">Standby</span></div>
+                        <div class="flex justify-between text-[10px]"><span class="text-gray-500">Files Ingested</span><span class="text-cyan-400 font-mono" id="files-count">0</span></div>
+                        <div class="flex justify-between text-[10px]"><span class="text-gray-500">Conversations</span><span class="text-purple-400 font-mono" id="conv-count">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- FOOTER -->
+        <footer class="glass rounded-xl col-span-full flex items-center justify-between px-4 py-2 text-[10px] text-gray-500">
+            <div class="flex items-center gap-3">
+                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>System Active</span>
+                <span id="footer-hd-type">HD: —</span><span id="footer-coord">Coord: —</span>
+            </div>
+            <div class="flex items-center gap-3"><span id="footer-mode">Mode: Browser</span><span id="footer-time"></span></div>
+        </footer>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="glass-strong rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col m-4">
+            <div class="flex items-center justify-between p-4 border-b border-white/5">
+                <h2 class="text-sm font-semibold text-white">Settings</h2>
+                <button onclick="toggleSettings()" class="p-1 hover:bg-white/5 rounded text-gray-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                <div>
+                    <h3 class="text-[11px] font-semibold text-purple-400 uppercase mb-3">Human Design</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between"><span class="text-[11px] text-gray-300">Birth Date</span><input type="date" id="setting-birth-date" class="bg-black/30 border border-white/10 rounded px-2 py-1 text-[11px] text-gray-300"></div>
+                        <div class="flex items-center justify-between"><span class="text-[11px] text-gray-300">Birth Time</span><input type="time" id="setting-birth-time" class="bg-black/30 border border-white/10 rounded px-2 py-1 text-[11px] text-gray-300"></div>
+                        <div class="flex items-center justify-between"><span class="text-[11px] text-gray-300">Location</span><input type="text" id="setting-location" placeholder="City, Country" class="bg-black/30 border border-white/10 rounded px-2 py-1 text-[11px] text-gray-300 w-48"></div>
+                        <button onclick="saveHDSettings()" class="w-full py-2 bg-purple-600/30 border border-purple-500/40 rounded-lg text-[11px] text-purple-300 hover:bg-purple-600/40 transition-all">Calculate Chart</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-[11px] font-semibold text-cyan-400 uppercase mb-3">Neural Core</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between"><span class="text-[11px] text-gray-300">Model</span><select id="setting-model" class="bg-black/30 border border-white/10 rounded px-2 py-1 text-[11px] text-gray-300"><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 1B (Fast, 900MB)</option><option value="SmolLM2-360M-Instruct-q4f16_1-MLC">SmolLM2 360M (Tiny, 130MB)</option><option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi-3.5 Mini (Smart, 3.7GB)</option><option value="Llama-3.2-3B-Instruct-q4f16_1-MLC">Llama 3.2 3B (Quality, 2.2GB)</option></select></div>
+                        <div class="flex items-center justify-between"><span class="text-[11px] text-gray-300">Temperature</span><input type="range" id="setting-temp" min="0" max="1" step="0.1" value="0.7" class="w-24 accent-purple-500" oninput="document.getElementById('temp-value').textContent=this.value"><span id="temp-value" class="text-[10px] text-gray-400 w-6">0.7</span></div>
+                        <div class="flex items-center justify-between"><span class="text-[11px] text-gray-300">Max Tokens</span><select id="setting-max-tokens" class="bg-black/30 border border-white/10 rounded px-2 py-1 text-[11px] text-gray-300"><option value="256">256</option><option value="512">512</option><option value="1024">1024</option></select></div>
+                        <button onclick="reloadNeuralCore()" class="w-full py-2 bg-cyan-600/30 border border-cyan-500/40 rounded-lg text-[11px] text-cyan-300 hover:bg-cyan-600/40 transition-all">Reload Neural Core</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-[11px] font-semibold text-amber-400 uppercase mb-3">Appearance</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between"><span class="text-[11px] text-gray-300">Theme</span><select id="setting-theme" class="bg-black/30 border border-white/10 rounded px-2 py-1 text-[11px] text-gray-300"><option value="dark">Deep Space</option><option value="midnight">Midnight</option><option value="neon">Neon</option></select></div>
+                        <div class="flex items-center justify-between"><span class="text-[11px] text-gray-300">Animations</span><div class="toggle-switch active" id="toggle-anim" onclick="this.classList.toggle('active')"></div></div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-[11px] font-semibold text-rose-400 uppercase mb-3">Data</h3>
+                    <div class="space-y-2">
+                        <button onclick="exportData()" class="w-full py-2 bg-black/30 border border-white/10 rounded-lg text-[11px] text-gray-300 hover:bg-white/5 transition-all">Export System State</button>
+                        <button onclick="clearData()" class="w-full py-2 bg-rose-600/20 border border-rose-500/30 rounded-lg text-[11px] text-rose-400 hover:bg-rose-600/30 transition-all">Clear All Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Birth Form Modal -->
+    <div id="birth-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="glass-strong rounded-2xl w-full max-w-md p-6 m-4">
+            <h2 class="text-lg font-semibold text-white mb-4">Calculate Your Human Design</h2>
+            <div class="space-y-4">
+                <div><label class="text-[11px] text-gray-400 block mb-1">Birth Date</label><input type="date" id="birth-date" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-[11px] text-gray-300 focus:outline-none focus:border-purple-500/50"></div>
+                <div><label class="text-[11px] text-gray-400 block mb-1">Birth Time</label><input type="time" id="birth-time" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-[11px] text-gray-300 focus:outline-none focus:border-purple-500/50"></div>
+                <div><label class="text-[11px] text-gray-400 block mb-1">Birth Location</label><input type="text" id="birth-location" placeholder="City, Country" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-[11px] text-gray-300 focus:outline-none focus:border-purple-500/50"></div>
+                <div class="flex gap-3">
+                    <button onclick="calculateChart()" class="flex-1 py-2 bg-purple-600/30 border border-purple-500/40 rounded-lg text-[11px] text-purple-300 hover:bg-purple-600/40 transition-all">✦ Calculate</button>
+                    <button onclick="closeBirthForm()" class="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-[11px] text-gray-400 hover:bg-white/5 transition-all">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+
+        // ═══════════════════════════════════════════════════════
+        // CONSCIOUSNESS OS v2.0 - WITH REAL NEURAL CORE (WebLLM)
+        // ═══════════════════════════════════════════════════════
+
+        import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+
+        const state = {
+            mode: 'browser', hdChart: null, consciousnessCoord: null, files: [], conversations: [], modules: {},
+            settings: { style: 'adaptive', autoGenerate: true, mesh: false, theme: 'dark', animations: true, model: 'Llama-3.2-1B-Instruct-q4f16_1-MLC', temperature: 0.7, maxTokens: 512 },
+            currentOutput: null, llmEngine: null, llmReady: false, llmLoading: false
+        };
+
+        const GATES = 64;
+        const CHANNELS = [[1,8],[2,14],[3,60],[4,63],[5,15],[6,59],[7,31],[9,52],[10,20],[10,34],[10,57],[11,56],[12,22],[13,33],[16,48],[17,62],[18,58],[19,49],[20,34],[20,57],[21,45],[23,43],[24,61],[25,51],[26,44],[27,50],[28,38],[29,46],[30,41],[32,54],[34,57],[35,36],[37,40],[39,55],[42,53],[47,64]];
+        const CENTER_MAP = { 'Head': [61,63,64], 'Ajna': [4,11,17,24,43,47], 'Throat': [8,12,16,20,23,31,33,35,45,56,62], 'G': [1,2,7,10,13,15,25,46], 'Heart': [21,26,40,51], 'Solar': [6,22,30,36,37,49,55], 'Sacral': [3,5,9,14,27,29,34,42,59,60], 'Spleen': [18,28,32,44,48,50,57], 'Root': [19,38,39,41,52,53,54,58] };
+        const CENTER_COLORS = { 'Head': '#9b59d0', 'Ajna': '#5de0e6', 'Throat': '#c8a96e', 'G': '#e8c547', 'Heart': '#e05d5d', 'Solar': '#e07a5d', 'Sacral': '#e05d5d', 'Spleen': '#5db88a', 'Root': '#8b6a3a' };
+
+        const HD_CONVERSATION_STYLES = {
+            'Generator': { tone: 'responsive and patient', approach: 'Wait for your sacral response before making decisions. I will present options and help you feel into what truly resonates.', keywords: ['response', 'satisfaction', 'energy', 'work', 'mastery'] },
+            'Manifesting Generator': { tone: 'dynamic and efficient', approach: 'You have the energy to multitask and initiate after responding. I will help you find the fastest, most satisfying path.', keywords: ['speed', 'impact', 'informing', 'multitasking', 'satisfaction'] },
+            'Projector': { tone: 'guiding and insightful', approach: 'Wait for invitation and recognition. I will help you see systems clearly and offer your wisdom when invited.', keywords: ['recognition', 'guidance', 'systems', 'invitation', 'wisdom'] },
+            'Manifestor': { tone: 'direct and initiating', approach: 'Inform before acting to reduce resistance. I will help you initiate with impact and manage your creative bursts.', keywords: ['initiation', 'impact', 'informing', 'independence', 'power'] },
+            'Reflector': { tone: 'reflective and sampling', approach: 'Take your lunar cycle to make decisions. I will help you sample environments and reflect the health of communities.', keywords: ['reflection', 'surprise', 'sampling', 'lunar', 'community'] }
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // NEURAL CORE (WebLLM Integration)
+        // ═══════════════════════════════════════════════════════
+
+        async function initNeuralCore() {
+            if (state.llmLoading || state.llmReady) return;
+            state.llmLoading = true;
+
+            updateLLMStatus('loading', 'Loading model...');
+            addConversationMessage('system', 'Initializing Neural Core with ' + state.settings.model + '... This may take 30-120 seconds on first load. The model will be cached for offline use.');
+
+            try {
+                if (!navigator.gpu) {
+                    throw new Error('WebGPU not available. Please use Chrome 113+ or Edge 113+ with WebGPU enabled.');
+                }
+
+                const engine = await CreateMLCEngine(state.settings.model, {
+                    initProgressCallback: (progress) => {
+                        const pct = Math.round(progress.progress * 100);
+                        updateLLMStatus('loading', 'Loading: ' + pct + '%');
+                        document.getElementById('model-load-progress').style.width = pct + '%';
+                        document.getElementById('neural-core-status').textContent = 'Loading: ' + pct + '% - ' + progress.text;
+                    }
+                });
+
+                state.llmEngine = engine;
+                state.llmReady = true;
+                state.llmLoading = false;
+
+                updateLLMStatus('ready', 'Ready');
+                document.getElementById('model-load-progress').style.width = '100%';
+                document.getElementById('neural-core-status').textContent = 'Model loaded. Ready for inference.';
+                document.getElementById('model-badge').textContent = state.settings.model.split('-')[0] + ' ' + state.settings.model.split('-')[1];
+                document.getElementById('info-model').textContent = state.settings.model;
+                document.getElementById('info-status').textContent = 'Active';
+                document.getElementById('info-status').className = 'text-green-400';
+                document.getElementById('health-neural').textContent = 'Ready';
+                document.getElementById('health-neural').className = 'text-green-400';
+
+                document.getElementById('chat-input').disabled = false;
+                document.getElementById('send-btn').disabled = false;
+                document.getElementById('send-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+
+                addConversationMessage('ai', 'Neural Core is now active! I am running a real language model entirely in your browser. No data leaves your device. I can analyze files, generate code, hold deep conversations, and make decisions — all shaped by your Human Design blueprint. What would you like to explore?');
+
+            } catch (error) {
+                state.llmLoading = false;
+                updateLLMStatus('error', 'Error: ' + error.message);
+                document.getElementById('neural-core-status').textContent = 'Error: ' + error.message;
+                document.getElementById('health-neural').textContent = 'Error';
+                document.getElementById('health-neural').className = 'text-rose-400';
+                addConversationMessage('system', 'Neural Core failed to load: ' + error.message + '. Falling back to rule-based responses. You can still use all features, but conversations will be simpler.');
+                document.getElementById('chat-input').disabled = false;
+                document.getElementById('send-btn').disabled = false;
+                document.getElementById('send-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function updateLLMStatus(status, text) {
+            const badge = document.getElementById('llm-status-badge');
+            badge.className = 'llm-status text-[9px] px-1.5 py-0.5 rounded bg-black/30 border border-white/10 ' + status;
+            badge.textContent = 'Neural Core: ' + text;
+        }
+
+        async function generateAIResponse(messages) {
+            if (!state.llmReady || !state.llmEngine) return null;
+            try {
+                const response = await state.llmEngine.chat.completions.create({
+                    messages: messages,
+                    temperature: state.settings.temperature,
+                    max_tokens: state.settings.maxTokens
+                });
+                return response.choices[0].message.content;
+            } catch (error) {
+                console.error('LLM error:', error);
+                return 'Neural Core error: ' + error.message;
+            }
+        }
+
+        async function reloadNeuralCore() {
+            state.llmReady = false;
+            state.llmEngine = null;
+            state.settings.model = document.getElementById('setting-model').value;
+            state.settings.temperature = parseFloat(document.getElementById('setting-temp').value);
+            state.settings.maxTokens = parseInt(document.getElementById('setting-max-tokens').value);
+            await initNeuralCore();
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ═══════════════════════════════════════════════════════
+
+        function init() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            document.getElementById('journal-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            setupDragDrop();
+            loadState();
+            addJournalEntry('system', 'Consciousness OS v2.0 initialized. Neural Core will auto-load when you start a conversation.');
+            setTimeout(() => { if (!state.llmReady && !state.llmLoading) initNeuralCore(); }, 2000);
+        }
+
+        function updateTime() { document.getElementById('footer-time').textContent = new Date().toLocaleTimeString(); }
+
+        // ═══════════════════════════════════════════════════════
+        // MODE SWITCHING
+        // ═══════════════════════════════════════════════════════
+
+        function setMode(mode) {
+            state.mode = mode;
+            document.getElementById('mode-browser').classList.add('hidden');
+            document.getElementById('mode-journal').classList.add('hidden');
+            document.getElementById('mode-os').classList.add('hidden');
+            document.getElementById('mode-' + mode).classList.remove('hidden');
+            ['journal', 'browser', 'os'].forEach(m => {
+                const btn = document.getElementById('btn-' + m);
+                if (m === mode) btn.classList.add('bg-white/10'); else btn.classList.remove('bg-white/10');
+            });
+            document.getElementById('footer-mode').textContent = 'Mode: ' + mode.charAt(0).toUpperCase() + mode.slice(1);
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // HUMAN DESIGN CALCULATION
+        // ═══════════════════════════════════════════════════════
+
+        function showBirthForm() { document.getElementById('birth-modal').classList.remove('hidden'); document.getElementById('birth-modal').classList.add('flex'); }
+        function closeBirthForm() { document.getElementById('birth-modal').classList.add('hidden'); document.getElementById('birth-modal').classList.remove('flex'); }
+
+        async function calculateChart() {
+            const date = document.getElementById('birth-date').value;
+            const time = document.getElementById('birth-time').value;
+            const location = document.getElementById('birth-location').value;
+            if (!date || !time) { alert('Please enter birth date and time'); return; }
+
+            const chart = calculateHD(date, time, location);
+            state.hdChart = chart;
+            state.consciousnessCoord = { gate: chart.sunPersonality, line: parseInt(chart.profile.split('/')[0]), color: Math.floor(Math.random() * 6) + 1, tone: Math.floor(Math.random() * 6) + 1, base: Math.floor(Math.random() * 5) + 1 };
+
+            updateHDDisplay(chart);
+            updateConsciousnessCoord();
+            renderHDChart(chart);
+            closeBirthForm();
+
+            const style = HD_CONVERSATION_STYLES[chart.type] || HD_CONVERSATION_STYLES['Generator'];
+            addJournalEntry('system', 'Human Design calculated: ' + chart.type + ' with ' + chart.authority + ' authority.');
+
+            const welcomeMsg = 'Welcome! I have calculated your design: **' + chart.type + '** with **' + chart.authority + '** authority. ' + style.approach + ' How would you like to begin?';
+            addConversationMessage('ai', welcomeMsg);
+
+            if (state.llmReady) {
+                const systemPrompt = buildSystemPrompt();
+                const aiWelcome = await generateAIResponse([
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: 'The user just calculated their Human Design. They are a ' + chart.type + ' with ' + chart.authority + ' authority, profile ' + chart.profile + '. Generate a warm, personalized welcome message that explains how I will adapt to their design. Keep it under 100 words.' }
+                ]);
+                if (aiWelcome && !aiWelcome.includes('error')) addConversationMessage('ai', aiWelcome);
+            }
+            saveState();
+        }
+
+        function buildSystemPrompt() {
+            let prompt = 'You are the Consciousness Assistant of YOU-N-I-VERSE, a personalized AI operating system. ';
+            if (state.hdChart) {
+                const style = HD_CONVERSATION_STYLES[state.hdChart.type];
+                prompt += 'The user is a ' + state.hdChart.type + ' with ' + state.hdChart.authority + ' authority. ';
+                prompt += 'Adapt your communication to be ' + style.tone + '. ';
+                prompt += 'Respect their strategy: ' + state.hdChart.strategy + '. ';
+                prompt += 'Their defined centers are: ' + state.hdChart.definedCenters.join(', ') + '. ';
+                prompt += 'Use this information to personalize all responses, suggestions, and decisions. ';
+            }
+            prompt += 'You can analyze files, generate code, make decisions, and hold deep conversations. ';
+            prompt += 'You run entirely in the browser — no data leaves the device. ';
+            return prompt;
+        }
+
+        function calculateHD(date, time, location) {
+            const dateTime = new Date(date + 'T' + time);
+            const seed = dateTime.getTime() % 100000;
+            const rng = seededRandom(seed);
+            const sunPersonality = Math.floor(rng() * 64) + 1;
+            const earthPersonality = ((sunPersonality + 10) % 64) + 1;
+            const sunDesign = Math.floor(rng() * 64) + 1;
+            const earthDesign = ((sunDesign + 10) % 64) + 1;
+            const extraGates = []; for (let i = 0; i < 6; i++) extraGates.push(Math.floor(rng() * 64) + 1);
+            const allGates = [...new Set([sunPersonality, earthPersonality, sunDesign, earthDesign, ...extraGates])];
+            const definedCenters = [];
+            for (const [center, gates] of Object.entries(CENTER_MAP)) { if (gates.some(g => allGates.includes(g))) definedCenters.push(center); }
+            let type, strategy;
+            if (definedCenters.includes('Sacral')) {
+                if (definedCenters.includes('Throat') && [34, 10, 20, 57].some(g => allGates.includes(g))) { type = 'Manifesting Generator'; strategy = 'Wait to respond, then inform'; }
+                else { type = 'Generator'; strategy = 'Wait to respond'; }
+            } else if (definedCenters.includes('Throat') && !definedCenters.includes('Sacral') && !definedCenters.includes('Solar')) { type = 'Manifestor'; strategy = 'Inform before acting'; }
+            else if (definedCenters.length > 0 && !definedCenters.includes('Sacral')) { type = 'Projector'; strategy = 'Wait for invitation'; }
+            else { type = 'Reflector'; strategy = 'Wait 28 days'; }
+            let authority;
+            if (definedCenters.includes('Solar')) authority = 'Emotional';
+            else if (definedCenters.includes('Sacral')) authority = 'Sacral';
+            else if (definedCenters.includes('Spleen')) authority = 'Splenic';
+            else if (definedCenters.includes('Heart')) authority = 'Ego/Heart';
+            else if (definedCenters.includes('G')) authority = 'Self-Projected';
+            else if (definedCenters.includes('Ajna')) authority = 'Mental';
+            else authority = 'Lunar';
+            const profiles = ['1/3', '1/4', '2/4', '2/5', '3/5', '3/6', '4/6', '5/1', '5/2', '6/2', '6/3'];
+            const profile = profiles[Math.floor(rng() * profiles.length)];
+            const channels = [];
+            for (const [g1, g2] of CHANNELS) { if (allGates.includes(g1) && allGates.includes(g2)) channels.push([g1, g2]); }
+            return { sunPersonality, earthPersonality, sunDesign, earthDesign, allGates, definedCenters, type, strategy, authority, profile, channels, birthData: { date, time, location } };
+        }
+
+        function seededRandom(seed) { let s = seed; return function() { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+
+        function updateHDDisplay(chart) {
+            document.getElementById('hd-type').textContent = chart.type;
+            document.getElementById('hd-authority').textContent = chart.authority;
+            document.getElementById('hd-profile').textContent = chart.profile;
+            document.getElementById('hd-strategy').textContent = chart.strategy;
+            document.getElementById('footer-hd-type').textContent = 'HD: ' + chart.type;
+            document.getElementById('defined-centers').innerHTML = chart.definedCenters.map(c => '<span class="px-2 py-0.5 rounded text-[10px] font-medium" style="background: ' + CENTER_COLORS[c] + '20; color: ' + CENTER_COLORS[c] + '; border: 1px solid ' + CENTER_COLORS[c] + '40">' + c + '</span>').join('');
+            document.getElementById('active-gates').innerHTML = chart.allGates.slice(0, 12).map(g => '<span class="px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-gray-400">' + g + '</span>').join('') + (chart.allGates.length > 12 ? '<span class="text-[10px] text-gray-500">+' + (chart.allGates.length - 12) + '</span>' : '');
+        }
+
+        function updateConsciousnessCoord() {
+            const c = state.consciousnessCoord;
+            const coordStr = c.gate + '.' + c.line + '.' + c.color + '.' + c.tone + '.' + c.base;
+            document.getElementById('consciousness-coord').textContent = coordStr;
+            document.getElementById('footer-coord').textContent = 'Coord: ' + coordStr;
+        }
+
+        function renderHDChart(chart) {
+            const container = document.getElementById('hd-chart-viz');
+            container.innerHTML = '';
+            const centers = { 'Head': { x: 50, y: 10, r: 8 }, 'Ajna': { x: 50, y: 25, r: 8 }, 'Throat': { x: 50, y: 40, r: 10 }, 'G': { x: 50, y: 55, r: 10 }, 'Heart': { x: 30, y: 55, r: 6 }, 'Solar': { x: 70, y: 55, r: 8 }, 'Sacral': { x: 50, y: 70, r: 10 }, 'Spleen': { x: 25, y: 70, r: 8 }, 'Root': { x: 75, y: 70, r: 8 } };
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%'); svg.setAttribute('height', '100%'); svg.setAttribute('viewBox', '0 0 100 100');
+            for (const [g1, g2] of chart.channels) {
+                const c1 = findCenterForGate(g1), c2 = findCenterForGate(g2);
+                if (c1 && c2 && centers[c1] && centers[c2]) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', centers[c1].x); line.setAttribute('y1', centers[c1].y);
+                    line.setAttribute('x2', centers[c2].x); line.setAttribute('y2', centers[c2].y);
+                    line.setAttribute('stroke', '#fbbf24'); line.setAttribute('stroke-width', '0.5'); line.setAttribute('opacity', '0.6');
+                    svg.appendChild(line);
+                }
+            }
+            for (const [name, pos] of Object.entries(centers)) {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', pos.r);
+                const isDefined = chart.definedCenters.includes(name);
+                circle.setAttribute('fill', isDefined ? CENTER_COLORS[name] : 'transparent');
+                circle.setAttribute('stroke', CENTER_COLORS[name]); circle.setAttribute('stroke-width', isDefined ? '0.3' : '0.15');
+                circle.setAttribute('opacity', isDefined ? '0.8' : '0.3');
+                if (isDefined) circle.setAttribute('filter', 'drop-shadow(0 0 2px ' + CENTER_COLORS[name] + ')');
+                svg.appendChild(circle);
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', pos.x); text.setAttribute('y', pos.y + 1); text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', 'white'); text.setAttribute('font-size', '2'); text.setAttribute('opacity', '0.7');
+                text.textContent = name.charAt(0); svg.appendChild(text);
+            }
+            container.appendChild(svg);
+        }
+
+        function findCenterForGate(gate) { for (const [center, gates] of Object.entries(CENTER_MAP)) { if (gates.includes(gate)) return center; } return null; }
+
+        // ═══════════════════════════════════════════════════════
+        // FILE INGESTION & NEURAL ANALYSIS
+        // ═══════════════════════════════════════════════════════
+
+        function setupDragDrop() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
+            dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-active'); handleFiles(e.dataTransfer.files); });
+            fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        }
+
+        async function handleFiles(files) {
+            const overlay = document.getElementById('analysis-overlay');
+            const status = document.getElementById('analysis-status');
+            const detail = document.getElementById('analysis-detail');
+            overlay.classList.remove('hidden'); overlay.classList.add('flex');
+            for (const file of files) {
+                status.textContent = 'Neural analysis: ' + file.name + '...';
+                detail.textContent = (file.size / 1024).toFixed(1) + ' KB | ' + (file.type || 'unknown type');
+                await analyzeFile(file);
+                await new Promise(r => setTimeout(r, 800));
+            }
+            overlay.classList.add('hidden'); overlay.classList.remove('flex');
+            document.getElementById('files-count').textContent = state.files.length;
+        }
+
+        async function analyzeFile(file) {
+            const content = await readFile(file);
+            const analysis = {
+                name: file.name, type: file.type || inferType(file.name), size: file.size,
+                purpose: inferPurpose(file.name, content), relationships: findRelationships(file.name, content),
+                tags: generateTags(file.name, content), content: content.substring(0, 5000), timestamp: Date.now()
+            };
+            state.files.push(analysis);
+            showFileAnalysis(analysis);
+
+            if (state.llmReady && content.length > 50) {
+                const aiAnalysis = await generateAIResponse([
+                    { role: 'system', content: 'You are a file analysis expert. Analyze the following file content and provide: 1) Primary purpose 2) Key functionality 3) Potential improvements 4) How it might relate to a Human Design system. Be concise.' },
+                    { role: 'user', content: 'File: ' + file.name + '\nType: ' + analysis.type + '\nContent (first 2000 chars): ' + content.substring(0, 2000) }
+                ]);
+                if (aiAnalysis && !aiAnalysis.includes('error')) {
+                    addConversationMessage('ai', '**Deep Analysis of ' + file.name + ':**\n\n' + aiAnalysis);
+                }
+            }
+
+            if (analysis.type.includes('javascript') || analysis.type.includes('html') || analysis.type.includes('python') || file.name.endsWith('.js') || file.name.endsWith('.html') || file.name.endsWith('.py')) {
+                generateCuratedVersion(analysis);
+            }
+            addJournalEntry('file', 'Ingested: ' + file.name + ' — ' + analysis.purpose);
+
+            const hdContext = state.hdChart ? 'Given your ' + state.hdChart.type + ' design, this file ' + (analysis.purpose.includes('server') ? 'aligns with your sacral response to build systems' : analysis.purpose.includes('ui') ? 'supports your visual projection capacity' : 'can be optimized for your energetic flow') + '.' : '';
+            addConversationMessage('ai', 'I have analyzed **' + file.name + '**. It appears to be ' + analysis.purpose + '. ' + (analysis.relationships.length > 0 ? 'I found relationships with: ' + analysis.relationships.join(', ') + '.' : '') + ' ' + hdContext + ' Would you like me to generate an improved version or explain how it aligns with your design?');
+        }
+
+        function readFile(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                if (file.type.includes('image') || file.type.includes('pdf')) reader.readAsDataURL(file);
+                else reader.readAsText(file);
+            });
+        }
+
+        function inferType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const types = { 'js': 'javascript', 'jsx': 'javascript', 'ts': 'typescript', 'html': 'html', 'css': 'css', 'py': 'python', 'json': 'json', 'md': 'markdown', 'txt': 'text', 'pdf': 'pdf', 'png': 'image', 'jpg': 'image', 'svg': 'image', 'csv': 'data', 'sql': 'database' };
+            return types[ext] || 'unknown';
+        }
+
+        function inferPurpose(filename, content) {
+            const lower = filename.toLowerCase();
+            const cLower = content.toLowerCase().substring(0, 1000);
+            if (lower.includes('server') || cLower.includes('express') || cLower.includes('fastapi')) return 'a backend server handling API requests and data processing';
+            if (lower.includes('client') || lower.includes('ui') || cLower.includes('react') || cLower.includes('vue')) return 'a frontend user interface component';
+            if (lower.includes('mesh') || cLower.includes('p2p') || cLower.includes('gossip')) return 'a peer-to-peer networking mesh node';
+            if (lower.includes('gnn') || cLower.includes('neural') || cLower.includes('graph')) return 'a graph neural network for pattern recognition';
+            if (lower.includes('hd') || lower.includes('human') || cLower.includes('design')) return 'a Human Design chart calculation system';
+            if (lower.includes('test') || lower.includes('spec')) return 'a test suite for quality assurance';
+            if (cLower.includes('class') || cLower.includes('function') || cLower.includes('def ')) return 'a code module with reusable functions and classes';
+            if (cLower.includes('<!doctype html>') || cLower.includes('<html')) return 'a web page or application interface';
+            return 'a general-purpose file with potential system functionality';
+        }
+
+        function findRelationships(filename, content) {
+            const relationships = [];
+            const cLower = content.toLowerCase();
+            for (const existing of state.files) {
+                const eLower = existing.name.toLowerCase();
+                if (cLower.includes(eLower.replace(/\.[^.]+$/, ''))) relationships.push(existing.name);
+                if (cLower.includes('import') || cLower.includes('require') || cLower.includes('from')) {
+                    const importMatch = cLower.match(new RegExp('(import|require|from).*=' + eLower.replace(/\.[^.]+$/, '')));
+                    if (importMatch) relationships.push(existing.name);
+                }
+            }
+            if (cLower.includes('react') || cLower.includes('jsx')) relationships.push('React ecosystem');
+            if (cLower.includes('vue')) relationships.push('Vue.js ecosystem');
+            if (cLower.includes('tailwind')) relationships.push('Tailwind CSS');
+            if (cLower.includes('pyodide')) relationships.push('Pyodide / Python in browser');
+            if (cLower.includes('chart.js')) relationships.push('Chart.js visualization');
+            if (cLower.includes('supabase')) relationships.push('Supabase backend');
+            return [...new Set(relationships)];
+        }
+
+        function generateTags(filename, content) {
+            const tags = [];
+            const cLower = content.toLowerCase();
+            const fLower = filename.toLowerCase();
+            if (cLower.includes('async') || cLower.includes('await') || cLower.includes('promise')) tags.push('async');
+            if (cLower.includes('class') || cLower.includes('extends')) tags.push('oop');
+            if (cLower.includes('function') || cLower.includes('def ') || cLower.includes('=>')) tags.push('functional');
+            if (cLower.includes('api') || cLower.includes('fetch') || cLower.includes('axios')) tags.push('api');
+            if (cLower.includes('database') || cLower.includes('sql') || cLower.includes('postgres')) tags.push('database');
+            if (cLower.includes('test') || cLower.includes('jest') || cLower.includes('pytest')) tags.push('testing');
+            if (cLower.includes('docker') || cLower.includes('kubernetes')) tags.push('devops');
+            if (fLower.includes('config') || fLower.includes('.env') || fLower.includes('settings')) tags.push('configuration');
+            if (fLower.includes('readme') || fLower.includes('doc')) tags.push('documentation');
+            return tags.length > 0 ? tags : ['general'];
+        }
+
+        function showFileAnalysis(analysis) {
+            document.getElementById('no-file').classList.add('hidden');
+            document.getElementById('file-analysis').classList.remove('hidden');
+            document.getElementById('file-name').textContent = analysis.name;
+            document.getElementById('file-purpose').textContent = analysis.purpose;
+            document.getElementById('file-tags').innerHTML = analysis.tags.map(t => '<span class="px-1.5 py-0.5 bg-white/5 rounded text-[9px] text-gray-400">' + t + '</span>').join('');
+            document.getElementById('file-relationships').innerHTML = analysis.relationships.length > 0 ? analysis.relationships.map(r => '<div class="text-[10px] text-cyan-400">↳ ' + r + '</div>').join('') : '<div class="text-[10px] text-gray-500">No relationships found yet</div>';
+
+            const hdAlignment = document.getElementById('hd-alignment');
+            if (state.hdChart) {
+                const alignment = calculateHDAlignment(analysis);
+                hdAlignment.innerHTML = '<div class="text-[10px] text-gray-300">Alignment score: <span class="text-' + (alignment.score > 0.7 ? 'green' : alignment.score > 0.4 ? 'amber' : 'rose') + '-400">' + (alignment.score * 100).toFixed(0) + '%</span></div><div class="text-[10px] text-gray-400 mt-1">' + alignment.reasoning + '</div>';
+            } else {
+                hdAlignment.textContent = 'Calculate your HD chart to see alignment analysis';
+            }
+        }
+
+        function calculateHDAlignment(analysis) {
+            let score = 0.5;
+            let reasoning = 'Baseline compatibility';
+            const cLower = analysis.content.toLowerCase();
+            const type = state.hdChart.type;
+
+            if (type === 'Generator' || type === 'Manifesting Generator') {
+                if (cLower.includes('response') || cLower.includes('sacral') || cLower.includes('energy')) { score += 0.2; reasoning = 'Aligns with sacral response mechanism'; }
+                if (analysis.purpose.includes('server') || analysis.purpose.includes('backend')) { score += 0.15; reasoning = 'Backend work matches Generator sustained energy'; }
+            } else if (type === 'Projector') {
+                if (cLower.includes('guide') || cLower.includes('system') || cLower.includes('pattern')) { score += 0.2; reasoning = 'System recognition aligns with Projector wisdom'; }
+                if (analysis.purpose.includes('ui') || analysis.purpose.includes('visual')) { score += 0.15; reasoning = 'Visual systems support Projector guidance'; }
+            } else if (type === 'Manifestor') {
+                if (cLower.includes('init') || cLower.includes('create') || cLower.includes('start')) { score += 0.2; reasoning = 'Initiation patterns align with Manifestor impact'; }
+            } else if (type === 'Reflector') {
+                if (cLower.includes('sample') || cLower.includes('reflect') || cLower.includes('community')) { score += 0.2; reasoning = 'Sampling mechanisms align with Reflector mirroring'; }
+            }
+
+            if (analysis.tags.includes('api') && state.hdChart.definedCenters.includes('Ajna')) { score += 0.1; reasoning += ', API design leverages defined Ajna'; }
+            if (analysis.tags.includes('database') && state.hdChart.definedCenters.includes('Sacral')) { score += 0.1; reasoning += ', Database work uses sacral energy for persistence'; }
+
+            return { score: Math.min(score, 1.0), reasoning: reasoning };
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // CURATED VERSION GENERATION
+        // ═══════════════════════════════════════════════════════
+
+        function generateCuratedVersion(analysis) {
+            const output = document.getElementById('output-preview');
+            const code = document.getElementById('output-code');
+            let curated = analysis.content;
+
+            if (state.hdChart) {
+                const type = state.hdChart.type;
+                if (type === 'Generator') {
+                    curated = curated.replace(/(\/\/|#|<!--)(.*)/g, (match, prefix, comment) => {
+                        if (comment.includes('TODO') || comment.includes('FIXME')) {
+                            return prefix + ' [Sacral Check] ' + comment + ' — verify this responds to your energy';
+                        }
+                        return match;
+                    });
+                } else if (type === 'Projector') {
+                    curated = curated.replace(/function|class|def/g, (match) => {
+                        return '/* Invitation-based: wait for recognition before using */\n' + match;
+                    });
+                }
+
+                const coord = state.consciousnessCoord;
+                const header = '/*\n * Generated by YOU-N-I-VERSE Consciousness OS\n * Optimized for: ' + type + ' (' + state.hdChart.authority + ' authority)\n * Coordinate: ' + coord.gate + '.' + coord.line + '.' + coord.color + '.' + coord.tone + '.' + coord.base + '\n * Alignment: ' + (calculateHDAlignment(analysis).score * 100).toFixed(0) + '%\n */\n\n';
+                curated = header + curated;
+            }
+
+            if (analysis.name.endsWith('.html')) curated = optimizeHTML(curated);
+            else if (analysis.name.endsWith('.js')) curated = optimizeJS(curated);
+            else if (analysis.name.endsWith('.py')) curated = optimizePython(curated);
+
+            state.currentOutput = curated;
+            code.textContent = curated;
+            output.classList.remove('hidden');
+            output.classList.add('flex');
+            document.getElementById('drop-zone').classList.add('hidden');
+            addJournalEntry('system', 'Generated curated version of ' + analysis.name + ' optimized for ' + (state.hdChart ? state.hdChart.type : 'general') + ' design');
+        }
+
+        function optimizeHTML(html) {
+            return html.replace('<head>', '<head>\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <meta name="theme-color" content="#0a0a12">');
+        }
+
+        function optimizeJS(js) {
+            return js.replace(/function\s+(\w+)/g, 'async function $1');
+        }
+
+        function optimizePython(py) {
+            return py.replace(/def\s+(\w+)\s*\(([^)]*)\):/g, (match, name, params) => {
+                return 'def ' + name + '(' + params + '):\n    """Consciousness-optimized function for ' + (state.hdChart ? state.hdChart.type : 'general') + ' energy."""';
+            });
+        }
+
+        function downloadOutput() {
+            if (!state.currentOutput) return;
+            const blob = new Blob([state.currentOutput], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'curated_' + (state.files[state.files.length - 1]?.name || 'output');
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function runOutput() {
+            if (!state.currentOutput) return;
+            const win = window.open();
+            win.document.write(state.currentOutput);
+            win.document.close();
+        }
+
+        function closeOutput() {
+            document.getElementById('output-preview').classList.add('hidden');
+            document.getElementById('output-preview').classList.remove('flex');
+            document.getElementById('drop-zone').classList.remove('hidden');
+            state.currentOutput = null;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // CONVERSATION SYSTEM WITH REAL AI
+        // ═══════════════════════════════════════════════════════
+
+        let conversationOpen = false;
+
+        function toggleConversation() {
+            const panel = document.getElementById('conversation-panel');
+            const toggle = document.getElementById('chat-toggle');
+            conversationOpen = !conversationOpen;
+            if (conversationOpen) {
+                panel.classList.remove('translate-y-full');
+                toggle.classList.add('hidden');
+            } else {
+                panel.classList.add('translate-y-full');
+                toggle.classList.remove('hidden');
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            addConversationMessage('user', text);
+            input.value = '';
+
+            // Try AI first, fallback to rules
+            if (state.llmReady) {
+                const systemPrompt = buildSystemPrompt();
+                const messages = [
+                    { role: 'system', content: systemPrompt },
+                    ...state.conversations.slice(-10).map(c => ({ role: c.role === 'user' ? 'user' : 'assistant', content: c.text })),
+                    { role: 'user', content: text }
+                ];
+
+                const aiResponse = await generateAIResponse(messages);
+                if (aiResponse && !aiResponse.includes('error')) {
+                    addConversationMessage('ai', aiResponse);
+                } else {
+                    addConversationMessage('ai', generateFallbackResponse(text));
+                }
+            } else {
+                addConversationMessage('ai', generateFallbackResponse(text));
+            }
+
+            document.getElementById('conv-count').textContent = state.conversations.length;
+        }
+
+        function addConversationMessage(role, text) {
+            const container = document.getElementById('conversation-messages');
+            const msg = document.createElement('div');
+            msg.className = 'msg-' + role + ' p-3 rounded-lg text-[11px] leading-relaxed animate-fade-in';
+            const label = role === 'user' ? '<strong class="text-cyan-400">You:</strong> ' : role === 'system' ? '<strong class="text-amber-400">System:</strong> ' : '<strong class="text-purple-400">Assistant:</strong> ';
+            msg.innerHTML = label + formatMarkdown(text);
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+            state.conversations.push({ role, text, timestamp: Date.now() });
+        }
+
+        function generateFallbackResponse(userText) {
+            const lower = userText.toLowerCase();
+            if (lower.includes('file') || lower.includes('analyze') || lower.includes('ingest')) {
+                return 'I can analyze files you drop into the browser. Each file is evaluated for its purpose, relationships to other files, and alignment with your Human Design. Try dropping a code file or PDF!';
+            }
+            if (lower.includes('chart') || lower.includes('design') || lower.includes('type') || lower.includes('authority')) {
+                if (state.hdChart) {
+                    return 'Your chart shows you are a **' + state.hdChart.type + '** with **' + state.hdChart.authority + '** authority. Your strategy is: *' + state.hdChart.strategy + '*. Would you like me to explain how this affects your decision-making or file interactions?';
+                } else {
+                    return 'I have not calculated your Human Design yet. Click "Calculate Chart" in the left panel or go to Settings to enter your birth data. This will personalize all my responses to your energetic blueprint.';
+                }
+            }
+            if (lower.includes('generate') || lower.includes('create') || lower.includes('build')) {
+                if (state.hdChart) {
+                    const style = HD_CONVERSATION_STYLES[state.hdChart.type] || HD_CONVERSATION_STYLES['Generator'];
+                    return 'As a **' + state.hdChart.type + '**, I recommend ' + (state.hdChart.type.includes('Generator') ? 'waiting for your sacral response before generating. Does this project feel satisfying to you?' : state.hdChart.type === 'Projector' ? 'waiting for invitation. Have you been asked to create this, or is it your own initiative?') + ' I can generate code, HTML, or analysis once you confirm alignment.';
+                }
+                return 'I can generate code, interfaces, and analysis. What would you like me to create? I can optimize it for your design once you calculate your Human Design chart.';
+            }
+            if (lower.includes('mesh') || lower.includes('network') || lower.includes('p2p') || lower.includes('connect')) {
+                return 'The Consciousness Mesh allows peers to share states and form composite fields. Each node uses a 5D coordinate (Gate.Line.Color.Tone.Base) for hypercube routing. Would you like to start a local mesh or connect to an existing network?';
+            }
+            if (lower.includes('help') || lower.includes('what can you do') || lower.includes('capabilities')) {
+                return 'I can: **1)** Analyze any file you drop (purpose, relationships, HD alignment) **2)** Generate curated code optimized for your design **3)** Hold conversations adapted to your HD type **4)** Track a consciousness journal **5)** Run a P2P mesh network **6)** Make decisions using your authority. What would you like to explore?';
+            }
+            if (state.hdChart) {
+                const style = HD_CONVERSATION_STYLES[state.hdChart.type];
+                const responses = [
+                    'As a ' + state.hdChart.type + ', your ' + style.tone + ' approach serves you well here. ' + userText + ' — I sense this ' + (Math.random() > 0.5 ? 'aligns with your ' + state.hdChart.authority.toLowerCase() + ' authority' : 'may need more time for your strategy to clarify'),
+                    'Interesting. From a ' + state.hdChart.type + ' perspective: ' + userText + '. Consider how this ' + (state.hdChart.definedCenters.includes('Ajna') ? 'lands in your mental awareness' : 'feels in your body') + '.',
+                    'I hear you. Your ' + state.hdChart.profile + ' profile suggests ' + (state.hdChart.profile.startsWith('1') ? 'you need to investigate deeply before acting' : state.hdChart.profile.startsWith('3') ? 'trial and error will serve you here' : 'waiting for the right timing is key') + '. '
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+            return 'I understand: "' + userText + '". To give you the most aligned response, I recommend calculating your Human Design chart first. Then I can tailor my guidance to your specific energetic blueprint. Would you like to do that now?';
+        }
+
+        function formatMarkdown(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em class="text-gray-300">$1</em>')
+                .replace(/`(.*?)`/g, '<code class="bg-black/30 px-1 rounded text-cyan-400">$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // JOURNAL SYSTEM
+        // ═══════════════════════════════════════════════════════
+
+        function addJournalEntry(type, text) {
+            const container = document.getElementById('journal-entries');
+            const entry = document.createElement('div');
+            entry.className = 'journal-entry animate-fade-in';
+            const time = new Date().toLocaleTimeString();
+            const icon = type === 'system' ? '⚙️' : type === 'file' ? '📁' : type === 'conversation' ? '💬' : type === 'decision' ? '⚡' : '📝';
+            entry.innerHTML = '<div class="text-[10px] text-gray-500 mb-1">' + icon + ' ' + time + '</div><div class="text-[11px] text-gray-300 leading-relaxed">' + text + '</div>';
+            container.insertBefore(entry, container.firstChild);
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // SETTINGS & STATE MANAGEMENT
+        // ═══════════════════════════════════════════════════════
+
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function saveHDSettings() {
+            const date = document.getElementById('setting-birth-date').value;
+            const time = document.getElementById('setting-birth-time').value;
+            const location = document.getElementById('setting-location').value;
+            document.getElementById('birth-date').value = date;
+            document.getElementById('birth-time').value = time;
+            document.getElementById('birth-location').value = location;
+            calculateChart();
+        }
+
+        function exportData() {
+            const data = {
+                hdChart: state.hdChart,
+                consciousnessCoord: state.consciousnessCoord,
+                files: state.files.map(f => ({ name: f.name, type: f.type, purpose: f.purpose, tags: f.tags, timestamp: f.timestamp })),
+                conversations: state.conversations,
+                settings: state.settings,
+                exportTime: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'you-n-i-verse-state-' + new Date().toISOString().slice(0, 10) + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            addJournalEntry('system', 'System state exported to JSON');
+        }
+
+        function clearData() {
+            if (!confirm('Are you sure? This will clear all HD data, files, and conversations.')) return;
+            state.hdChart = null;
+            state.consciousnessCoord = null;
+            state.files = [];
+            state.conversations = [];
+            localStorage.removeItem('you-n-i-verse-state');
+            location.reload();
+        }
+
+        function saveState() {
+            const data = { hdChart: state.hdChart, consciousnessCoord: state.consciousnessCoord, settings: state.settings };
+            localStorage.setItem('you-n-i-verse-state', JSON.stringify(data));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('you-n-i-verse-state');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.hdChart) {
+                        state.hdChart = data.hdChart;
+                        state.consciousnessCoord = data.consciousnessCoord;
+                        updateHDDisplay(data.hdChart);
+                        updateConsciousnessCoord();
+                        renderHDChart(data.hdChart);
+                    }
+                    if (data.settings) state.settings = { ...state.settings, ...data.settings };
+                } catch (e) { console.error('Failed to load state:', e); }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // MODULE LOADER
+        // ═══════════════════════════════════════════════════════
+
+        function loadModule(moduleName) {
+            addJournalEntry('system', 'Loading module: ' + moduleName);
+            const activeModules = document.getElementById('active-modules');
+            const moduleEl = document.createElement('div');
+            moduleEl.className = 'p-2 bg-black/20 rounded-lg flex items-center justify-between animate-fade-in';
+            moduleEl.innerHTML = '<span class="text-[11px] text-gray-300">' + moduleName + '</span><span class="text-[10px] text-green-400">Active</span>';
+            activeModules.appendChild(moduleEl);
+
+            if (moduleName === 'hd-calculator') { showBirthForm(); }
+            else if (moduleName === 'conversation') { toggleConversation(); }
+            else if (moduleName === 'file-processor') { setMode('browser'); }
+            else if (moduleName === 'settings') { toggleSettings(); }
+            else if (moduleName === 'neural-core') { 
+                if (!state.llmReady && !state.llmLoading) initNeuralCore();
+                else addConversationMessage('system', 'Neural Core is already ' + (state.llmReady ? 'active' : 'loading'));
+            }
+            else {
+                addConversationMessage('ai', 'Module **' + moduleName + '** is now active. This module will integrate with your ' + (state.hdChart ? state.hdChart.type : 'general') + ' design pattern.');
+            }
+        }
+
+        function navigateUrl(url) {
+            if (!url) return;
+            if (url.startsWith('http')) window.open(url, '_blank');
+            else addConversationMessage('ai', 'Navigating to: ' + url + '. In the full OS, this would load the URL or search the mesh network.');
+        }
+
+        function refreshBrowser() {
+            document.getElementById('browser-url').value = '';
+            closeOutput();
+            document.getElementById('drop-zone').classList.remove('hidden');
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // START
+        // ═══════════════════════════════════════════════════════
+
+        Object.assign(window, {
+  setMode,
+  toggleSettings,
+  showBirthForm,
+  closeBirthForm,
+  calculateChart,
+  saveHDSettings,
+  reloadNeuralCore,
+  exportData,
+  clearData,
+  loadModule,
+  navigateUrl,
+  toggleConversation,
+  sendMessage,
+  downloadOutput,
+  runOutput,
+  closeOutput
+});
+
+document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+    <!-- Service Worker for PWA -->
+    <script>
+    (function() {
+        const swCode = `
+        const CACHE_NAME = 'you-n-i-verse-v2.0';
+        const urlsToCache = [
+            './consciousness_os_v2.html',
+            'https://cdn.tailwindcss.com',
+            'https://cdn.jsdelivr.net/npm/chart.js'
+        ];
+
+        self.addEventListener('install', event => {
+            event.waitUntil(
+                caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+            );
+            self.skipWaiting();
+        });
+
+        self.addEventListener('activate', event => {
+            event.waitUntil(self.clients.claim());
+        });
+
+        self.addEventListener('fetch', event => {
+            event.respondWith(
+                caches.match(event.request).then(response => {
+                    if (response) return response;
+                    return fetch(event.request).catch(() => {
+                        // Return offline page for navigation requests
+                        if (event.request.mode === 'navigate') {
+                            return caches.match('./consciousness_os_v2.html');
+                        }
+                    });
+                })
+            );
+        });
+        `;
+
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(swUrl).then(reg => {
+                console.log('YOU-N-I-VERSE PWA: Service Worker registered');
+                // Check for updates
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('New version available - refresh to update');
+                        }
+                    });
+                });
+            }).catch(err => console.log('SW registration failed:', err));
+        }
+    })();
+    </script>
+
+    </body>
+</html>

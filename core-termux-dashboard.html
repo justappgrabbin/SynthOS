@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Core-Termux Dashboard</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --bg-card: #161b22;
+  --bg-hover: #21262d;
+  --border: #30363d;
+  --text: #c9d1d9;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --accent2: #a371f7;
+  --accent3: #3fb950;
+  --accent4: #f0883e;
+  --accent5: #f85149;
+  --font: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* Layout */
+.app { display: flex; height: 100vh; width: 100vw; }
+.sidebar {
+  width: 64px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 4px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.sidebar .logo {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 18px;
+  color: #fff;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+.nav-item {
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-dim);
+  font-size: 20px;
+  position: relative;
+}
+.nav-item:hover, .nav-item.active {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+.nav-item .badge {
+  position: absolute; top: 6px; right: 6px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent5);
+  display: none;
+}
+.nav-item .badge.show { display: block; }
+.nav-label {
+  position: absolute; left: 56px;
+  background: var(--bg-hover);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+  border: 1px solid var(--border);
+}
+.nav-item:hover .nav-label { opacity: 1; }
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Top Bar */
+.topbar {
+  height: 52px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.topbar .title {
+  font-size: 15px; font-weight: 600;
+  color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.topbar .title .version {
+  font-size: 10px; color: var(--text-dim);
+  background: var(--bg-hover);
+  padding: 2px 8px; border-radius: 4px;
+}
+.search-box {
+  flex: 1; max-width: 400px;
+  position: relative;
+}
+.search-box input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px 8px 32px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box input:focus { border-color: var(--accent); }
+.search-box::before {
+  content: "🔍"; position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%); font-size: 12px; opacity: 0.5;
+}
+.status-bar {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 11px; color: var(--text-dim);
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent3);
+  box-shadow: 0 0 6px var(--accent3);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Content Area */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  scroll-behavior: smooth;
+}
+.content::-webkit-scrollbar { width: 6px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(88,166,255,0.08);
+}
+.card-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.card-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.card-title {
+  font-size: 14px; font-weight: 600;
+  color: var(--text);
+}
+.card-desc {
+  font-size: 12px; color: var(--text-dim);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.card-meta {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.tag {
+  font-size: 10px; padding: 3px 8px;
+  border-radius: 4px; background: var(--bg-hover);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.tag.installed { background: rgba(63,185,80,0.1); color: var(--accent3); border-color: rgba(63,185,80,0.3); }
+.tag.available { background: rgba(88,166,255,0.1); color: var(--accent); border-color: rgba(88,166,255,0.3); }
+
+/* Section Headers */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 24px 0 12px 0;
+}
+.section-title {
+  font-size: 13px; font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.section-count {
+  font-size: 11px; color: var(--text-dim);
+  background: var(--bg-hover);
+  padding: 2px 8px; border-radius: 4px;
+}
+
+/* Terminal Panel */
+.terminal-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+.terminal-header {
+  display: flex; align-items: center;
+  padding: 10px 16px;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.term-btn {
+  width: 12px; height: 12px; border-radius: 50%;
+  cursor: pointer;
+}
+.term-btn.red { background: #ff5f56; }
+.term-btn.yel { background: #ffbd2e; }
+.term-btn.grn { background: #27c93f; }
+.terminal-title {
+  flex: 1; text-align: center;
+  font-size: 11px; color: var(--text-dim);
+}
+.terminal-body {
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  min-height: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.terminal-line {
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.terminal-line .prompt { color: var(--accent3); }
+.terminal-line .cmd { color: var(--accent); }
+.terminal-line .output { color: var(--text-dim); }
+.terminal-line .error { color: var(--accent5); }
+.terminal-line .success { color: var(--accent3); }
+.terminal-input-line {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+}
+.terminal-input-line .prompt { color: var(--accent3); font-size: 12px; }
+.terminal-input-line input {
+  flex: 1; background: transparent; border: none;
+  color: var(--text); font-family: var(--font); font-size: 12px;
+  outline: none;
+}
+
+/* Module Detail View */
+.module-detail {
+  display: none;
+}
+.module-detail.active { display: block; }
+.tool-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.tool-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex; flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.tool-item:hover { border-color: var(--accent); }
+.tool-item-header {
+  display: flex; align-items: center; gap: 10px;
+}
+.tool-item-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.tool-item-name {
+  font-size: 13px; font-weight: 600;
+}
+.tool-item-desc {
+  font-size: 11px; color: var(--text-dim);
+  line-height: 1.4;
+}
+.tool-item-actions {
+  display: flex; gap: 8px; margin-top: 4px;
+}
+.btn {
+  padding: 6px 14px; border-radius: 6px;
+  font-family: var(--font); font-size: 11px;
+  cursor: pointer; border: 1px solid var(--border);
+  background: var(--bg-hover); color: var(--text);
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.btn.primary:hover { background: #79b8ff; }
+.btn.danger {
+  background: rgba(248,81,73,0.1); color: var(--accent5); border-color: rgba(248,81,73,0.3);
+}
+.btn.danger:hover { background: rgba(248,81,73,0.2); }
+.btn.success {
+  background: rgba(63,185,80,0.1); color: var(--accent3); border-color: rgba(63,185,80,0.3);
+}
+
+/* Brain Section */
+.brain-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.brain-editor {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.brain-editor-header {
+  padding: 12px 16px;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 600;
+}
+.brain-editor textarea {
+  width: 100%; min-height: 300px;
+  background: var(--bg-card);
+  border: none; padding: 16px;
+  color: var(--text); font-family: var(--font); font-size: 12px;
+  line-height: 1.6; outline: none; resize: vertical;
+}
+.brain-sidebar {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.brain-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+.brain-stat-value {
+  font-size: 28px; font-weight: 700;
+  color: var(--accent);
+}
+.brain-stat-label {
+  font-size: 11px; color: var(--text-dim);
+  margin-top: 4px;
+}
+.memory-list {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  flex: 1;
+}
+.memory-list-header {
+  padding: 12px 16px;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 600;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.memory-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.memory-item:hover { background: var(--bg-hover); }
+.memory-item-title {
+  font-size: 12px; font-weight: 600;
+  color: var(--text);
+}
+.memory-item-meta {
+  font-size: 10px; color: var(--text-dim);
+  margin-top: 4px; display: flex; gap: 8px;
+}
+
+/* Voice Panel */
+.voice-panel {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px;
+  padding: 40px;
+  min-height: 300px;
+}
+.voice-circle {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.voice-circle:hover { border-color: var(--accent); }
+.voice-circle.listening {
+  border-color: var(--accent5);
+  animation: voice-pulse 1s infinite;
+}
+@keyframes voice-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(248,81,73,0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(248,81,73,0); }
+  100% { box-shadow: 0 0 0 0 rgba(248,81,73,0); }
+}
+.voice-text {
+  font-size: 14px; color: var(--text-dim);
+  text-align: center;
+}
+.voice-agents {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Env Manager */
+.env-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.env-table th {
+  text-align: left; padding: 10px 16px;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim); font-weight: 600;
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.env-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.env-table tr:hover td { background: var(--bg-hover); }
+.env-value {
+  font-family: var(--font);
+  color: var(--accent2);
+  background: var(--bg);
+  padding: 4px 8px; border-radius: 4px;
+  font-size: 11px;
+}
+.env-value.hidden {
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 90%; max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: modal-in 0.3s ease;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-close { cursor: pointer; font-size: 18px; color: var(--text-dim); }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 20px; }
+.modal-body label {
+  display: block; font-size: 11px; color: var(--text-dim);
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.modal-body input, .modal-body select, .modal-body textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+  color: var(--text); font-family: var(--font); font-size: 12px;
+  outline: none; margin-bottom: 16px;
+}
+.modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus {
+  border-color: var(--accent);
+}
+.modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+
+/* Toast */
+.toast-container {
+  position: fixed; bottom: 20px; right: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 1001;
+}
+.toast {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  animation: toast-in 0.3s ease;
+  max-width: 320px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.toast-icon { font-size: 18px; }
+.toast-text { font-size: 12px; }
+.toast.success { border-color: rgba(63,185,80,0.3); }
+.toast.error { border-color: rgba(248,81,73,0.3); }
+.toast.info { border-color: rgba(88,166,255,0.3); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { width: 52px; }
+  .nav-item { width: 40px; height: 40px; font-size: 16px; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .brain-grid { grid-template-columns: 1fr; }
+  .tool-list { grid-template-columns: 1fr; }
+  .topbar { padding: 0 12px; gap: 8px; }
+  .search-box { max-width: 200px; }
+  .content { padding: 12px; }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.3s ease; }
+
+/* Scrollbar for terminal */
+.terminal-body::-webkit-scrollbar { width: 4px; }
+.terminal-body::-webkit-scrollbar-track { background: transparent; }
+.terminal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo" onclick="showView('dashboard')">C</div>
+    <div class="nav-item active" onclick="showView('dashboard')" data-view="dashboard">
+      <span>🏠</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showView('modules')" data-view="modules">
+      <span>📦</span>
+      <span class="nav-label">Modules</span>
+      <span class="badge show" id="update-badge"></span>
+    </div>
+    <div class="nav-item" onclick="showView('ai')" data-view="ai">
+      <span>🤖</span>
+      <span class="nav-label">AI Agents</span>
+    </div>
+    <div class="nav-item" onclick="showView('brain')" data-view="brain">
+      <span>🧠</span>
+      <span class="nav-label">Brain</span>
+    </div>
+    <div class="nav-item" onclick="showView('voice')" data-view="voice">
+      <span>🎙️</span>
+      <span class="nav-label">Voice</span>
+    </div>
+    <div class="nav-item" onclick="showView('env')" data-view="env">
+      <span>⚙️</span>
+      <span class="nav-label">Environment</span>
+    </div>
+    <div class="nav-item" onclick="showView('terminal')" data-view="terminal">
+      <span>💻</span>
+      <span class="nav-label">Terminal</span>
+    </div>
+    <div style="flex:1"></div>
+    <div class="nav-item" onclick="showView('settings')" data-view="settings">
+      <span>🔧</span>
+      <span class="nav-label">Settings</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="topbar">
+      <div class="title">
+        <span id="page-title">Core-Termux</span>
+        <span class="version">v4.5.3</span>
+      </div>
+      <div class="search-box">
+        <input type="text" placeholder="Search commands, modules, tools..." id="global-search">
+      </div>
+      <div class="status-bar">
+        <span class="status-dot"></span>
+        <span>Termux Ready</span>
+        <span id="clock">14:44</span>
+      </div>
+    </div>
+
+    <div class="content" id="content-area">
+      <!-- Views will be injected here -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal" id="modal-content">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Title</span>
+      <span class="modal-close" onclick="closeModal()">✕</span>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ==================== DATA ====================
+const modules = {
+  lang: {
+    name: 'Languages', icon: '🔤', color: '#58a6ff',
+    desc: 'Programming languages and runtimes',
+    tools: [
+      { name: 'Node.js LTS', flag: 'nodejs', desc: 'Long-term support release of Node.js', installed: true },
+      { name: 'Python', flag: 'python', desc: 'Python 3 interpreter', installed: true },
+      { name: 'Perl', flag: 'perl', desc: 'Perl scripting language', installed: false },
+      { name: 'PHP', flag: 'php', desc: 'PHP interpreter', installed: false },
+      { name: 'Rust', flag: 'rust', desc: 'Rust compiler and Cargo', installed: false },
+      { name: 'C/C++', flag: 'clang', desc: 'LLVM C/C++ compiler', installed: false },
+      { name: 'Go', flag: 'golang', desc: 'Go programming language', installed: false }
+    ]
+  },
+  db: {
+    name: 'Databases', icon: '🗄️', color: '#a371f7',
+    desc: 'Database servers and clients',
+    tools: [
+      { name: 'PostgreSQL', flag: 'postgresql', desc: 'Advanced relational database', installed: true },
+      { name: 'MariaDB', flag: 'mariadb', desc: 'MySQL-compatible database', installed: false },
+      { name: 'SQLite', flag: 'sqlite', desc: 'Lightweight embedded database', installed: true },
+      { name: 'MongoDB', flag: 'mongodb', desc: 'Document-oriented NoSQL database', installed: false }
+    ]
+  },
+  ai: {
+    name: 'AI Agents', icon: '🤖', color: '#f0883e',
+    desc: 'AI-powered coding assistants and agents',
+    tools: [
+      { name: 'Qwen Code', flag: 'qwen-code', desc: "Alibaba's AI coding assistant", installed: false },
+      { name: 'Gemini CLI', flag: 'gemini-cli', desc: "Google's AI assistant with Gemini", installed: false },
+      { name: 'Claude Code', flag: 'claude-code', desc: "Anthropic's CLI tool with Claude AI", installed: false },
+      { name: 'Mistral Vibe', flag: 'mistral-vibe', desc: 'Coding assistant powered by Mistral', installed: false },
+      { name: 'OpenClaude', flag: 'openclaude', desc: 'Open source Claude Code alternative', installed: false },
+      { name: 'Ollama', flag: 'ollama', desc: 'Run open-source LLMs locally', installed: true },
+      { name: 'Codex CLI', flag: 'codex', desc: 'OpenAI coding agent', installed: false },
+      { name: 'OpenCode', flag: 'opencode', desc: 'Open-source terminal coding agent', installed: true },
+      { name: 'Kimi Code', flag: 'kimi-code', desc: 'Kimi Code CLI for next-gen agents', installed: false },
+      { name: 'MiMoCode', flag: 'mimocode', desc: "Xiaomi's fast local AI coding agent", installed: false }
+    ]
+  },
+  editor: {
+    name: 'Editor', icon: '✏️', color: '#3fb950',
+    desc: 'Code editor and IDE components',
+    tools: [
+      { name: 'Neovim', flag: 'neovim', desc: 'Fast, extensible code editor', installed: true },
+      { name: 'NvChad', flag: 'nvchad', desc: 'Modern Neovim configuration', installed: true },
+      { name: 'GitHub Copilot', flag: 'copilot', desc: 'AI-powered code completion', installed: false },
+      { name: 'CodeCompanion', flag: 'codecompanion', desc: 'AI chat assistant for code', installed: false }
+    ]
+  },
+  dev: {
+    name: 'Dev Tools', icon: '🛠️', color: '#58a6ff',
+    desc: 'Development utilities and CLI tools',
+    tools: [
+      { name: 'GitHub CLI', flag: 'gh', desc: 'Official GitHub command-line tool', installed: true },
+      { name: 'Wget', flag: 'wget', desc: 'File downloader', installed: true },
+      { name: 'Curl', flag: 'curl', desc: 'HTTP client and transfer tool', installed: true },
+      { name: 'LSD', flag: 'lsd', desc: 'Modern ls replacement with icons', installed: true },
+      { name: 'Bat', flag: 'bat', desc: 'Modern cat replacement with syntax highlighting', installed: true },
+      { name: 'Fzf', flag: 'fzf', desc: 'Command-line fuzzy finder', installed: true },
+      { name: 'jq', flag: 'jq', desc: 'Lightweight JSON processor', installed: true },
+      { name: 'Tree', flag: 'tree', desc: 'Recursive directory listing', installed: false },
+      { name: 'ImageMagick', flag: 'imagemagick', desc: 'Image manipulation suite', installed: false },
+      { name: 'Cloudflared', flag: 'cloudflared', desc: 'Cloudflare Tunnel client', installed: false }
+    ]
+  },
+  npm: {
+    name: 'NPM Global', icon: '📦', color: '#f85149',
+    desc: 'Global Node.js packages',
+    tools: [
+      { name: 'TypeScript', flag: 'typescript', desc: 'TypeScript compiler', installed: true },
+      { name: 'Prettier', flag: 'prettier', desc: 'Code formatter', installed: true },
+      { name: 'Vercel CLI', flag: 'vercel', desc: 'Vercel deployment CLI', installed: false },
+      { name: 'Ngrok', flag: 'ngrok', desc: 'Secure tunnel to localhost', installed: false },
+      { name: 'Localtunnel', flag: 'localtunnel', desc: 'Expose localhost to internet', installed: false }
+    ]
+  },
+  shell: {
+    name: 'Shell', icon: '🐚', color: '#a371f7',
+    desc: 'ZSH shell configuration and plugins',
+    tools: [
+      { name: 'ZSH', flag: 'zsh', desc: 'Z shell with plugins', installed: true },
+      { name: 'Powerlevel10k', flag: 'p10k', desc: 'Modern fast theme', installed: true },
+      { name: 'zsh-autosuggestions', flag: 'autosuggestions', desc: 'Smart autocompletion', installed: true },
+      { name: 'zsh-syntax-highlighting', flag: 'syntax-highlight', desc: 'Syntax highlighting', installed: true },
+      { name: 'fzf-tab', flag: 'fzf-tab', desc: 'Fuzzy navigation in completions', installed: true }
+    ]
+  },
+  ui: {
+    name: 'UI', icon: '🎨', color: '#f0883e',
+    desc: 'Termux UI components and enhancements',
+    tools: [
+      { name: 'Termux:API', flag: 'termux-api', desc: 'Termux API access', installed: true },
+      { name: 'Termux:GUI', flag: 'termux-gui', desc: 'GUI plugin for Termux', installed: false },
+      { name: 'Termux:Widget', flag: 'termux-widget', desc: 'Home screen widgets', installed: false }
+    ]
+  },
+  auto: {
+    name: 'Automation', icon: '⚡', color: '#3fb950',
+    desc: 'Automation and workflow tools',
+    tools: [
+      { name: 'n8n', flag: 'n8n', desc: 'Workflow automation platform', installed: false },
+      { name: 'Tasker', flag: 'tasker', desc: 'Android automation app', installed: false }
+    ]
+  }
+};
+
+const envVars = [
+  { name: 'OPENAI_API_KEY', value: 'sk-...', hidden: true },
+  { name: 'DATABASE_URL', value: 'postgresql://localhost:5432/core', hidden: false },
+  { name: 'CORE_DEBUG', value: '1', hidden: false },
+  { name: 'GH_TOKEN', value: 'ghp_...', hidden: true },
+  { name: 'NODE_ENV', value: 'development', hidden: false }
+];
+
+const memories = [
+  { title: 'React Hook Form + Zod validation', category: 'frontend', tags: ['react','forms','zod'], date: '2026-06-23', slug: 'react-hook-form-zod' },
+  { title: 'PostgreSQL connection pooling', category: 'devops', tags: ['postgres','performance'], date: '2026-06-20', slug: 'postgres-pooling' },
+  { title: 'Termux API voice capture', category: 'android', tags: ['termux','voice'], date: '2026-06-18', slug: 'termux-voice' },
+  { title: 'Next.js Turbopack on ARM', category: 'frontend', tags: ['nextjs','turbopack','arm'], date: '2026-06-15', slug: 'nextjs-turbopack-arm' },
+  { title: 'ZSH persistent sessions', category: 'shell', tags: ['zsh','termux'], date: '2026-06-10', slug: 'zsh-sessions' }
+];
+
+const terminalHistory = [
+  { type: 'prompt', text: 'core --version' },
+  { type: 'output', text: '4.5.3' },
+  { type: 'prompt', text: 'core list ai' },
+  { type: 'output', text: 'Available AI tools:
+  ✓ Ollama (installed)
+  ✓ OpenCode (installed)
+  ○ Qwen Code
+  ○ Gemini CLI
+  ○ Claude Code
+  ○ Mistral Vibe
+  ○ Codex CLI
+  ○ Kimi Code
+  ○ MiMoCode' },
+  { type: 'prompt', text: 'core brain save' },
+  { type: 'output', text: '✔ Memory saved to frontend/2026-06-23_react-hook-form-zod-patterns.md' },
+  { type: 'prompt', text: 'core pg status' },
+  { type: 'output', text: 'PostgreSQL: running (PID 28471)
+Data directory: /data/data/com.termux/files/usr/var/lib/postgresql
+Log: ~/.cache/core-termux/postgresql.log' }
+];
+
+let currentView = 'dashboard';
+let terminalLines = [...terminalHistory];
+
+// ==================== VIEWS ====================
+function showView(view) {
+  currentView = view;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-view="${view}"]`)?.classList.add('active');
+
+  const content = document.getElementById('content-area');
+  content.innerHTML = '';
+  content.className = 'content fade-in';
+
+  const titles = {
+    dashboard: 'Core-Termux',
+    modules: 'Modules',
+    ai: 'AI Agents',
+    brain: 'Second Brain',
+    voice: 'Voice Commands',
+    env: 'Environment Variables',
+    terminal: 'Terminal',
+    settings: 'Settings'
+  };
+  document.getElementById('page-title').textContent = titles[view] || 'Core-Termux';
+
+  switch(view) {
+    case 'dashboard': renderDashboard(); break;
+    case 'modules': renderModules(); break;
+    case 'ai': renderAI(); break;
+    case 'brain': renderBrain(); break;
+    case 'voice': renderVoice(); break;
+    case 'env': renderEnv(); break;
+    case 'terminal': renderTerminal(); break;
+    case 'settings': renderSettings(); break;
+  }
+}
+
+function renderDashboard() {
+  const content = document.getElementById('content-area');
+  let html = '<div class="dashboard-grid">';
+
+  Object.entries(modules).forEach(([key, mod]) => {
+    const installed = mod.tools.filter(t => t.installed).length;
+    const total = mod.tools.length;
+    html += `
+      <div class="card" onclick="showModuleDetail('${key}')">
+        <div class="card-header">
+          <div class="card-icon" style="background:${mod.color}20;color:${mod.color}">${mod.icon}</div>
+          <div>
+            <div class="card-title">${mod.name}</div>
+            <div style="font-size:10px;color:var(--text-dim)">${installed}/${total} installed</div>
+          </div>
+        </div>
+        <div class="card-desc">${mod.desc}</div>
+        <div class="card-meta">
+          <span class="tag installed">${installed} installed</span>
+          <span class="tag available">${total - installed} available</span>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+
+  // Terminal preview
+  html += `
+    <div class="section-header">
+      <span class="section-title">Recent Terminal</span>
+      <span class="section-count">${terminalLines.length} lines</span>
+    </div>
+    <div class="terminal-panel">
+      <div class="terminal-header">
+        <div class="term-btn red" onclick="clearTerminal()"></div>
+        <div class="term-btn yel"></div>
+        <div class="term-btn grn"></div>
+        <span class="terminal-title">bash — core-termux</span>
+      </div>
+      <div class="terminal-body" id="term-preview">
+        ${terminalLines.slice(-6).map(l => {
+          if (l.type === 'prompt') return `<div class="terminal-line"><span class="prompt">$</span> <span class="cmd">${l.text}</span></div>`;
+          return `<div class="terminal-line"><span class="output">${l.text.replace(/
+/g,'<br>')}</span></div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  content.innerHTML = html;
+}
+
+function renderModules() {
+  const content = document.getElementById('content-area');
+  let html = '<div class="dashboard-grid">';
+
+  Object.entries(modules).forEach(([key, mod]) => {
+    const installed = mod.tools.filter(t => t.installed).length;
+    const total = mod.tools.length;
+    html += `
+      <div class="card" onclick="showModuleDetail('${key}')">
+        <div class="card-header">
+          <div class="card-icon" style="background:${mod.color}20;color:${mod.color}">${mod.icon}</div>
+          <div>
+            <div class="card-title">${mod.name}</div>
+            <div style="font-size:10px;color:var(--text-dim)">${installed}/${total} installed</div>
+          </div>
+        </div>
+        <div class="card-desc">${mod.desc}</div>
+        <div class="card-meta">
+          <span class="tag installed">${installed} installed</span>
+          <span class="tag available">${total - installed} available</span>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+function showModuleDetail(key) {
+  const mod = modules[key];
+  if (!mod) return;
+
+  const content = document.getElementById('content-area');
+  let html = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="font-size:32px">${mod.icon}</div>
+      <div>
+        <div style="font-size:18px;font-weight:600">${mod.name}</div>
+        <div style="font-size:12px;color:var(--text-dim)">${mod.desc}</div>
+      </div>
+      <div style="flex:1"></div>
+      <button class="btn" onclick="showView('modules')">← Back</button>
+      <button class="btn primary" onclick="installModule('${key}')">Install All</button>
+    </div>
+    <div class="tool-list">
+  `;
+
+  mod.tools.forEach(tool => {
+    html += `
+      <div class="tool-item">
+        <div class="tool-item-header">
+          <div class="tool-item-icon" style="background:${mod.color}20;color:${mod.color}">${tool.name[0]}</div>
+          <div class="tool-item-name">${tool.name}</div>
+        </div>
+        <div class="tool-item-desc">${tool.desc}</div>
+        <div class="tool-item-actions">
+          ${tool.installed 
+            ? `<button class="btn danger" onclick="uninstallTool('${key}','${tool.flag}')">Uninstall</button>
+               <button class="btn success" disabled>✓ Installed</button>`
+            : `<button class="btn primary" onclick="installTool('${key}','${tool.flag}')">Install</button>`
+          }
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+function renderAI() {
+  showModuleDetail('ai');
+}
+
+function renderBrain() {
+  const content = document.getElementById('content-area');
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="font-size:18px;font-weight:600">🧠 Second Brain</div>
+        <div style="font-size:12px;color:var(--text-dim)">Save and search personal learnings</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" onclick="syncBrain()">🔄 Sync</button>
+        <button class="btn primary" onclick="newMemory()">+ New Memory</button>
+      </div>
+    </div>
+    <div class="brain-grid">
+      <div class="brain-editor">
+        <div class="brain-editor-header">
+          <span>📝</span> New Memory
+        </div>
+        <textarea id="brain-text" placeholder="---
+title: 
+tags: []
+created: ${new Date().toISOString().split('T')[0]}
+category: 
+---
+
+# Title
+
+Your content here..."></textarea>
+        <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
+          <button class="btn" onclick="document.getElementById('brain-text').value=''">Clear</button>
+          <button class="btn primary" onclick="saveMemory()" style="margin-left:auto;">Save Memory</button>
+        </div>
+      </div>
+      <div class="brain-sidebar">
+        <div class="brain-stat">
+          <div class="brain-stat-value">${memories.length}</div>
+          <div class="brain-stat-label">Total Memories</div>
+        </div>
+        <div class="brain-stat">
+          <div class="brain-stat-value">${new Set(memories.map(m => m.category)).size}</div>
+          <div class="brain-stat-label">Categories</div>
+        </div>
+        <div class="memory-list">
+          <div class="memory-list-header">
+            <span>Recent Memories</span>
+            <span style="font-size:10px;color:var(--text-dim)">${memories.length} total</span>
+          </div>
+          ${memories.map(m => `
+            <div class="memory-item" onclick="showMemory('${m.slug}')">
+              <div class="memory-item-title">${m.title}</div>
+              <div class="memory-item-meta">
+                <span>📁 ${m.category}</span>
+                <span>🏷️ ${m.tags.join(', ')}</span>
+                <span>📅 ${m.date}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderVoice() {
+  const content = document.getElementById('content-area');
+  content.innerHTML = `
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:18px;font-weight:600">🎙️ Voice Commands</div>
+      <div style="font-size:12px;color:var(--text-dim)">Capture voice and launch AI agents</div>
+    </div>
+    <div class="voice-panel">
+      <div class="voice-circle" id="voice-btn" onclick="toggleVoice()">
+        🎤
+      </div>
+      <div class="voice-text" id="voice-status">Tap to start listening...</div>
+      <div class="voice-agents">
+        <button class="btn" onclick="setVoiceAgent('opencode')">OpenCode</button>
+        <button class="btn" onclick="setVoiceAgent('claude-code')">Claude</button>
+        <button class="btn" onclick="setVoiceAgent('codex')">Codex</button>
+        <button class="btn" onclick="setVoiceAgent('gemini-cli')">Gemini</button>
+        <button class="btn" onclick="setVoiceAgent('kimi-code')">Kimi</button>
+        <button class="btn" onclick="setVoiceAgent('text')">Text Only</button>
+      </div>
+      <div class="terminal-panel" style="width:100%;max-width:600px;margin-top:20px;">
+        <div class="terminal-header">
+          <div class="term-btn red"></div>
+          <div class="term-btn yel"></div>
+          <div class="term-btn grn"></div>
+          <span class="terminal-title">voice transcript</span>
+        </div>
+        <div class="terminal-body" id="voice-transcript" style="min-height:80px;">
+          <div class="terminal-line"><span class="output" style="color:var(--text-dim)">Voice transcripts will appear here...</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderEnv() {
+  const content = document.getElementById('content-area');
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="font-size:18px;font-weight:600">⚙️ Environment Variables</div>
+        <div style="font-size:12px;color:var(--text-dim)">Manage shell environment variables</div>
+      </div>
+      <button class="btn primary" onclick="newEnvVar()">+ New Variable</button>
+    </div>
+    <div class="terminal-panel">
+      <div class="terminal-header">
+        <div class="term-btn red"></div>
+        <div class="term-btn yel"></div>
+        <div class="term-btn grn"></div>
+        <span class="terminal-title">.zshrc — environment variables</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="env-table">
+          <thead>
+            <tr><th>Variable</th><th>Value</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            ${envVars.map((v, i) => `
+              <tr>
+                <td><span style="color:var(--accent);font-weight:600">${v.name}</span></td>
+                <td><span class="env-value ${v.hidden ? 'hidden' : ''}">${v.hidden ? '●●●●●●●●●●●●●●' : v.value}</span></td>
+                <td>
+                  <button class="btn" style="padding:4px 10px;font-size:10px;" onclick="editEnvVar(${i})">Edit</button>
+                  <button class="btn danger" style="padding:4px 10px;font-size:10px;" onclick="deleteEnvVar(${i})">Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderTerminal() {
+  const content = document.getElementById('content-area');
+  content.innerHTML = `
+    <div class="terminal-panel" style="height:calc(100vh - 120px);display:flex;flex-direction:column;">
+      <div class="terminal-header">
+        <div class="term-btn red" onclick="clearTerminal()"></div>
+        <div class="term-btn yel"></div>
+        <div class="term-btn grn"></div>
+        <span class="terminal-title">bash — core-termux</span>
+      </div>
+      <div class="terminal-body" id="terminal-body" style="flex:1;max-height:none;">
+        ${terminalLines.map(l => {
+          if (l.type === 'prompt') return `<div class="terminal-line"><span class="prompt">$</span> <span class="cmd">${l.text}</span></div>`;
+          if (l.type === 'error') return `<div class="terminal-line"><span class="error">${l.text}</span></div>`;
+          return `<div class="terminal-line"><span class="output">${l.text.replace(/
+/g,'<br>')}</span></div>`;
+        }).join('')}
+      </div>
+      <div class="terminal-input-line">
+        <span class="prompt">$</span>
+        <input type="text" id="terminal-input" placeholder="Type a command..." onkeydown="handleTerminalInput(event)">
+      </div>
+    </div>
+  `;
+  setTimeout(() => {
+    document.getElementById('terminal-input')?.focus();
+    scrollTerminal();
+  }, 50);
+}
+
+function renderSettings() {
+  const content = document.getElementById('content-area');
+  content.innerHTML = `
+    <div style="font-size:18px;font-weight:600;margin-bottom:20px;">🔧 Settings</div>
+    <div class="dashboard-grid" style="grid-template-columns:1fr;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(88,166,255,0.1);color:var(--accent)">📦</div>
+          <div class="card-title">Core-Termux Framework</div>
+        </div>
+        <div class="card-desc">Current version: 4.5.3. Check for updates and manage framework settings.</div>
+        <div class="card-meta">
+          <button class="btn primary" onclick="checkUpdate()">Check for Updates</button>
+          <button class="btn" onclick="showToast('Framework settings saved', 'success')">Save Settings</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(163,113,247,0.1);color:var(--accent2)">🐚</div>
+          <div class="card-title">Shell Configuration</div>
+        </div>
+        <div class="card-desc">ZSH plugins, theme, and persistent session settings.</div>
+        <div class="card-meta">
+          <button class="btn" onclick="showToast('Shell config reloaded', 'success')">Reload Config</button>
+          <button class="btn" onclick="showToast('Persistent sessions enabled', 'info')">Toggle Sessions</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(63,185,80,0.1);color:var(--accent3)">🧹</div>
+          <div class="card-title">Maintenance</div>
+        </div>
+        <div class="card-desc">Clear cache, logs, and temporary files.</div>
+        <div class="card-meta">
+          <button class="btn danger" onclick="showToast('Cache cleared', 'success')">Clear Cache</button>
+          <button class="btn danger" onclick="showToast('Logs cleared', 'success')">Clear Logs</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==================== ACTIONS ====================
+function installTool(moduleKey, toolFlag) {
+  const tool = modules[moduleKey].tools.find(t => t.flag === toolFlag);
+  if (tool) {
+    tool.installed = true;
+    addTerminalLine(`core install ${moduleKey} --${toolFlag}`, 'prompt');
+    addTerminalLine(`Installing ${tool.name}...`, 'output');
+    setTimeout(() => {
+      addTerminalLine(`✔ ${tool.name} installed successfully`, 'success');
+      showToast(`${tool.name} installed`, 'success');
+      showModuleDetail(moduleKey);
+    }, 800);
+  }
+}
+
+function uninstallTool(moduleKey, toolFlag) {
+  const tool = modules[moduleKey].tools.find(t => t.flag === toolFlag);
+  if (tool) {
+    tool.installed = false;
+    addTerminalLine(`core uninstall ${moduleKey} --${toolFlag}`, 'prompt');
+    addTerminalLine(`Removing ${tool.name}...`, 'output');
+    setTimeout(() => {
+      addTerminalLine(`✔ ${tool.name} uninstalled`, 'success');
+      showToast(`${tool.name} uninstalled`, 'info');
+      showModuleDetail(moduleKey);
+    }, 600);
+  }
+}
+
+function installModule(key) {
+  const mod = modules[key];
+  addTerminalLine(`core install ${key}`, 'prompt');
+  addTerminalLine(`Installing ${mod.name} module...`, 'output');
+  setTimeout(() => {
+    mod.tools.forEach(t => t.installed = true);
+    addTerminalLine(`✔ ${mod.name} module installed (${mod.tools.length} tools)`, 'success');
+    showToast(`${mod.name} module installed`, 'success');
+    showModuleDetail(key);
+  }, 1200);
+}
+
+function handleTerminalInput(e) {
+  if (e.key !== 'Enter') return;
+  const input = e.target;
+  const cmd = input.value.trim();
+  if (!cmd) return;
+
+  addTerminalLine(cmd, 'prompt');
+  input.value = '';
+
+  // Simple command simulation
+  setTimeout(() => {
+    if (cmd === 'core --version') {
+      addTerminalLine('4.5.3', 'output');
+    } else if (cmd.startsWith('core install')) {
+      addTerminalLine('Installing packages...', 'output');
+      addTerminalLine('✔ Installation complete', 'success');
+    } else if (cmd.startsWith('core brain')) {
+      addTerminalLine('Brain command executed', 'output');
+    } else if (cmd === 'clear') {
+      terminalLines = [];
+      renderTerminal();
+    } else if (cmd === 'help') {
+      addTerminalLine('Available commands:
+  core --version
+  core install <module>
+  core brain
+  core env
+  core voice
+  core pg
+  clear
+  help', 'output');
+    } else {
+      addTerminalLine(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
+    }
+    scrollTerminal();
+  }, 300);
+}
+
+function addTerminalLine(text, type) {
+  terminalLines.push({ type, text });
+  if (currentView === 'terminal') {
+    const body = document.getElementById('terminal-body');
+    if (body) {
+      const line = document.createElement('div');
+      line.className = 'terminal-line';
+      if (type === 'prompt') line.innerHTML = `<span class="prompt">$</span> <span class="cmd">${text}</span>`;
+      else if (type === 'error') line.innerHTML = `<span class="error">${text}</span>`;
+      else if (type === 'success') line.innerHTML = `<span class="success">${text}</span>`;
+      else line.innerHTML = `<span class="output">${text.replace(/
+/g, '<br>')}</span>`;
+      body.appendChild(line);
+      scrollTerminal();
+    }
+  }
+  if (currentView === 'dashboard') {
+    renderDashboard();
+  }
+}
+
+function scrollTerminal() {
+  const body = document.getElementById('terminal-body');
+  if (body) body.scrollTop = body.scrollHeight;
+}
+
+function clearTerminal() {
+  terminalLines = [];
+  if (currentView === 'terminal') renderTerminal();
+  else renderDashboard();
+  showToast('Terminal cleared', 'info');
+}
+
+// Voice
+let voiceListening = false;
+let voiceAgent = 'opencode';
+function toggleVoice() {
+  const btn = document.getElementById('voice-btn');
+  const status = document.getElementById('voice-status');
+  voiceListening = !voiceListening;
+  if (voiceListening) {
+    btn.classList.add('listening');
+    status.textContent = 'Listening... tap to stop';
+    showToast('Voice capture started', 'info');
+    setTimeout(() => {
+      if (voiceListening) {
+        const transcript = document.getElementById('voice-transcript');
+        transcript.innerHTML = `<div class="terminal-line"><span class="output">"Create a React component with TypeScript that fetches data from an API and displays it in a table with sorting and pagination."</span></div>`;
+        status.textContent = 'Review in editor, then launch agent';
+      }
+    }, 3000);
+  } else {
+    btn.classList.remove('listening');
+    status.textContent = 'Tap to start listening...';
+  }
+}
+function setVoiceAgent(agent) {
+  voiceAgent = agent;
+  showToast(`Voice agent set to ${agent}`, 'info');
+}
+
+// Brain
+function saveMemory() {
+  const text = document.getElementById('brain-text').value;
+  if (!text.trim()) {
+    showToast('Memory content is empty', 'error');
+    return;
+  }
+  memories.unshift({
+    title: 'New Memory',
+    category: 'general',
+    tags: ['new'],
+    date: new Date().toISOString().split('T')[0],
+    slug: 'new-memory-' + Date.now()
+  });
+  showToast('Memory saved successfully', 'success');
+  addTerminalLine('core brain save', 'prompt');
+  addTerminalLine('✔ Memory saved to general/' + new Date().toISOString().split('T')[0] + '_new-memory.md', 'success');
+  renderBrain();
+}
+function syncBrain() {
+  showToast('Syncing brain to GitHub...', 'info');
+  setTimeout(() => showToast('Brain synced successfully', 'success'), 1500);
+}
+function newMemory() {
+  document.getElementById('brain-text')?.focus();
+  showToast('Fill in the memory editor and click Save', 'info');
+}
+function showMemory(slug) {
+  showToast(`Opening memory: ${slug}`, 'info');
+}
+
+// Env
+function newEnvVar() {
+  openModal('New Environment Variable', `
+    <label>Variable Name</label>
+    <input type="text" id="env-name" placeholder="e.g. API_KEY">
+    <label>Value</label>
+    <input type="password" id="env-value" placeholder="Enter value">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="checkbox" id="env-hidden" checked style="width:auto;">
+      <span>Hide value (sensitive)</span>
+    </label>
+  `, `
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn primary" onclick="saveEnvVar()">Save Variable</button>
+  `);
+}
+function saveEnvVar() {
+  const name = document.getElementById('env-name').value;
+  const value = document.getElementById('env-value').value;
+  const hidden = document.getElementById('env-hidden').checked;
+  if (name && value) {
+    envVars.push({ name, value, hidden });
+    showToast(`Variable ${name} saved`, 'success');
+    closeModal();
+    renderEnv();
+  }
+}
+function editEnvVar(index) {
+  const v = envVars[index];
+  openModal('Edit Environment Variable', `
+    <label>Variable Name</label>
+    <input type="text" id="env-name" value="${v.name}" readonly>
+    <label>Value</label>
+    <input type="${v.hidden ? 'password' : 'text'}" id="env-value" value="${v.value}">
+  `, `
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn primary" onclick="updateEnvVar(${index})">Update</button>
+  `);
+}
+function updateEnvVar(index) {
+  envVars[index].value = document.getElementById('env-value').value;
+  showToast('Variable updated', 'success');
+  closeModal();
+  renderEnv();
+}
+function deleteEnvVar(index) {
+  envVars.splice(index, 1);
+  showToast('Variable deleted', 'info');
+  renderEnv();
+}
+
+// Modal
+function openModal(title, body, footer) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-footer').innerHTML = footer;
+  document.getElementById('modal').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+// Toast
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-text">${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function checkUpdate() {
+  showToast('Checking for updates...', 'info');
+  setTimeout(() => {
+    showToast('You are on the latest version (4.5.3)', 'success');
+  }, 1200);
+}
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = 
+    now.getHours().toString().padStart(2,'0') + ':' + 
+    now.getMinutes().toString().padStart(2,'0');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Global search
+document.getElementById('global-search').addEventListener('input', function(e) {
+  const q = e.target.value.toLowerCase();
+  if (!q) return;
+  // Simple search - could filter current view
+});
+
+// Init
+showView('dashboard');
+</script>
+</body>
+</html>

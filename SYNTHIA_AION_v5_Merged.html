@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SYNTHIA OS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0a0a0c;--s1:#111114;--s2:#18181d;--s3:#1e1e25;--border:#2a2a35;--border-light:#3a3a48;--text:#e8e8f0;--text-dim:#9a9aaf;--text-faint:#5a5a6e;--accent:#d4a853;--accent-dim:#8a7340;--accent-glow:rgba(212,168,83,0.12);--rose:#c97b8a;--rose-glow:rgba(201,123,138,0.12);--sage:#8fb896;--sage-glow:rgba(143,184,150,0.12);--wine:#a67b8a;--wine-glow:rgba(166,123,138,0.12);--ochre:#c9a96e;--ochre-glow:rgba(201,169,110,0.12);--cyan:#5fb8c9;--cyan-glow:rgba(95,184,201,0.12);--status-h:28px;--bottom-h:52px;--screen-w:390px;--screen-h:844px}
+html,body{background:#050505;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Inter',sans-serif;overflow:hidden}
+.device{width:var(--screen-w);height:var(--screen-h);background:var(--bg);border-radius:44px;border:1px solid var(--border);position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 1px #08080a,0 0 80px rgba(212,168,83,0.04),0 50px 140px rgba(0,0,0,0.85),inset 0 1px 0 rgba(255,255,255,0.03)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:32px;background:#000;border-radius:0 0 18px 18px;z-index:1000;display:flex;align-items:center;justify-content:center;gap:6px}
+.notch-cam{width:8px;height:8px;background:#15151e;border-radius:50%;border:1px solid #252530}
+.notch-sensor{width:3px;height:3px;background:#15151e;border-radius:50%}
+.status{height:var(--status-h);display:flex;align-items:center;padding:0 22px;padding-top:4px;flex-shrink:0;position:relative;z-index:900}
+.status-left{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;color:var(--text);flex:1}
+.status-center{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.12em;color:var(--text-faint);text-transform:uppercase}
+.status-right{flex:1;display:flex;align-items:center;justify-content:flex-end;gap:7px;font-size:9px;color:var(--text-faint)}
+.screen{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.splash{position:absolute;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.8s ease,visibility 0.8s}
+.splash.hidden{opacity:0;visibility:hidden}
+.splash-logo{font-family:'Inter',sans-serif;font-size:32px;font-weight:800;color:var(--accent);letter-spacing:-0.02em;margin-bottom:12px}
+.splash-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-faint);letter-spacing:0.15em;text-transform:uppercase}
+.splash-bar{width:120px;height:2px;background:var(--s3);border-radius:1px;margin-top:24px;overflow:hidden}
+.splash-bar-fill{height:100%;width:0%;background:var(--accent);border-radius:1px;animation:splashLoad 1.5s ease forwards}
+@keyframes splashLoad{0%{width:0%}60%{width:70%}100%{width:100%}}
+.home{flex:1;display:flex;flex-direction:column;padding:0 20px;overflow:hidden;position:absolute;inset:0;z-index:10}
+.clock-widget{padding:24px 0 14px;text-align:center}
+.cw-time{font-family:'Inter',sans-serif;font-size:56px;font-weight:300;line-height:1;color:var(--text);letter-spacing:-0.03em}
+.cw-date{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:0.15em;text-transform:uppercase;margin-top:8px}
+.cw-gate{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);margin-top:10px;letter-spacing:0.08em}
+.widget-strip{display:flex;gap:10px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
+.widget-strip::-webkit-scrollbar{display:none}
+.widget-card{min-width:140px;background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:12px;flex-shrink:0}
+.widget-title{font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px}
+.widget-val{font-family:'Inter',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.widget-sub{font-size:9px;color:var(--text-dim);margin-top:2px}
+.home-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:4px 0;flex:1;align-content:start;position:relative}
+.home-icon{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;position:relative;transition:transform 0.15s}
+.home-icon.wiggle{animation:wiggle 0.3s ease infinite}
+.home-icon-face{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--s2);transition:all 0.15s ease;position:relative;overflow:hidden}
+.home-icon-face::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.04) 0%,transparent 60%)}
+.home-icon-face:hover{border-color:var(--border-light)}
+.home-icon-face:active{transform:scale(0.94)}
+.home-icon-label{font-size:8px;color:var(--text-dim);text-align:center;letter-spacing:0.01em;line-height:1.3;font-weight:500;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes wiggle{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
+.view-window{position:absolute;inset:0;background:var(--bg);transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;z-index:500}
+.view-window.active{transform:translateX(0);z-index:600}
+.win-header{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);gap:14px;flex-shrink:0}
+.win-back{width:32px;height:32px;border-radius:8px;background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-dim);cursor:pointer;font-size:16px;transition:all 0.12s}
+.win-back:hover{background:var(--s3);color:var(--text)}
+.win-title{font-family:'Inter',sans-serif;font-size:16px;font-weight:600;color:var(--text);flex:1;letter-spacing:-0.01em}
+.win-title-sub{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text-faint);letter-spacing:0.1em;text-transform:uppercase}
+.win-body{flex:1;overflow-y:auto;padding:20px}
+.win-body::-webkit-scrollbar{width:2px}
+.win-body::-webkit-scrollbar-thumb{background:var(--s3)}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.card-title{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px}
+.pill{display:inline-block;padding:3px 10px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.row-label{font-size:10px;color:var(--text-dim);flex:1;letter-spacing:0.02em;font-weight:400}
+.row-val{font-size:11px;font-weight:600;color:var(--text)}
+.bar-wrap{background:var(--s3);border-radius:3px;height:4px;flex:1;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1)}
+.app-tray{position:absolute;left:0;right:0;bottom:var(--bottom-h);height:calc(var(--screen-h) - var(--status-h) - var(--bottom-h) - 60px);background:rgba(10,10,12,0.98);backdrop-filter:blur(30px);border-top:1px solid var(--border);border-radius:24px 24px 0 0;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);z-index:800;padding:24px;display:flex;flex-direction:column}
+.app-tray.open{transform:translateY(0)}
+.tray-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.tray-title{font-family:'Inter',sans-serif;font-size:14px;font-weight:600;color:var(--text)}
+.tray-close{width:28px;height:28px;border-radius:8px;background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-dim);cursor:pointer;font-size:14px}
+.tray-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-content:start;flex:1;overflow-y:auto}
+.tray-grid::-webkit-scrollbar{width:2px}
+.tray-grid::-webkit-scrollbar-thumb{background:var(--s3)}
+.tray-icon{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;position:relative}
+.tray-icon-face{width:56px;height:56px;border-radius:16px;background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all 0.12s;position:relative;overflow:hidden}
+.tray-icon-face::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.04) 0%,transparent 60%)}
+.tray-icon-face:active{transform:scale(0.92)}
+.tray-icon-label{font-size:8px;color:var(--text-dim);text-align:center;letter-spacing:0.01em;line-height:1.3;font-weight:500;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hardware-nav{height:var(--bottom-h);background:var(--s1);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;z-index:950;position:relative}
+.nav-btn{background:none;border:none;color:var(--text-faint);font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;padding:8px 20px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:color 0.15s;position:relative}
+.nav-btn:active{color:var(--accent)}
+.nav-btn.active{color:var(--accent)}
+.nav-btn svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nav-indicator{position:absolute;bottom:6px;width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity 0.2s}
+.nav-btn.active .nav-indicator{opacity:1}
+.browser-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--s2);border-bottom:1px solid var(--border)}
+.browser-bar input{flex:1;background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:10px;outline:none}
+.browser-bar input:focus{border-color:var(--accent)}
+.browser-bar button{padding:8px 14px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;cursor:pointer}
+.browser-frame{flex:1;border:none;width:100%;background:#fff}
+.ingest-zone{border:2px dashed var(--border);border-radius:16px;padding:32px 20px;text-align:center;background:rgba(255,255,255,0.01);cursor:pointer;transition:all 0.2s;margin-bottom:16px}
+.ingest-zone:hover{border-color:var(--accent);background:var(--accent-glow)}
+.ingest-zone.dragover{border-color:var(--sage);background:var(--sage-glow)}
+.ingest-zone svg{width:32px;height:32px;stroke:var(--text-faint);stroke-width:1.5;fill:none;margin-bottom:10px}
+.ingest-zone-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.ingest-zone-sub{font-size:9px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
+.ingest-input{display:none}
+.paste-area{width:100%;height:80px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:10px;padding:10px;resize:none;outline:none;margin-bottom:12px}
+.paste-area:focus{border-color:var(--accent)}
+.ingest-btn{width:100%;padding:10px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.12s}
+.ingest-btn:hover{opacity:0.9}
+.ingest-btn:active{transform:scale(0.98)}
+.ingest-btn.secondary{background:var(--s3);color:var(--text)}
+.log-stream{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--sage);height:140px;overflow-y:auto;line-height:1.6}
+.log-stream::-webkit-scrollbar{width:2px}
+.log-stream::-webkit-scrollbar-thumb{background:var(--s3)}
+.file-viewer{position:absolute;inset:0;background:var(--bg);z-index:700;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column}
+.file-viewer.open{transform:translateY(0)}
+.fv-header{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);gap:14px}
+.fv-back{width:32px;height:32px;border-radius:8px;background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-dim);cursor:pointer;font-size:16px}
+.fv-title{font-size:13px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fv-type{font-size:8px;padding:3px 8px;border-radius:6px;background:var(--s3);color:var(--text-faint);font-family:'JetBrains Mono',monospace;text-transform:uppercase}
+.fv-body{flex:1;overflow:auto;padding:20px}
+.code-block{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);line-height:1.7;overflow-x:auto;white-space:pre}
+.img-viewer{max-width:100%;border-radius:10px;border:1px solid var(--border)}
+.video-player{width:100%;border-radius:10px;border:1px solid var(--border)}
+.audio-player{width:100%;margin-top:20px}
+.archive-list{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);line-height:1.8}
+.archive-list li{padding:4px 0;border-bottom:1px solid var(--border);list-style:none}
+.gate-grid-mini{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin-bottom:14px}
+.gm{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all 0.12s;background:var(--s2);color:var(--text-dim)}
+.gm:hover{background:var(--s3);color:var(--text)}
+.gm:active{transform:scale(0.92)}
+.gm.active-gate{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
+.comp-canvas{width:100%;height:200px;border-radius:12px;border:1px solid var(--border);background:var(--s2);display:block}
+.spin-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;margin-bottom:10px;border-left:2px solid}
+.spin-bar.stable{border-color:var(--sage);background:var(--sage-glow)}
+.spin-bar.changing{border-color:var(--ochre);background:var(--ochre-glow);animation:spinPulse 1.6s ease-in-out infinite alternate}
+.spin-bar.flip{border-color:var(--rose);background:var(--rose-glow)}
+@keyframes spinPulse{from{box-shadow:0 0 0 0 rgba(201,169,110,0)}to{box-shadow:0 0 12px 1px rgba(201,169,110,0.15)}}
+.hmm-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;padding:10px 0}
+.hmm-cell{padding:10px;border-radius:10px;border:1px solid;text-align:center;font-size:10px;line-height:1.5}
+.hmm-arrow-cell{color:var(--text-faint);font-size:14px;text-align:center;font-family:'JetBrains Mono',monospace}
+input[type="range"]{-webkit-appearance:none;width:100%;height:4px;background:var(--s3);border-radius:2px;outline:none;margin:10px 0}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);cursor:pointer;box-shadow:0 0 8px rgba(212,168,83,0.3)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:11px;color:var(--text-dim)}
+.toggle-switch{position:relative;width:44px;height:24px;background:var(--s3);border-radius:12px;cursor:pointer;transition:background 0.2s}
+.toggle-switch.on{background:var(--accent)}
+.toggle-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;background:var(--text);border-radius:50%;transition:transform 0.2s}
+.toggle-switch.on .toggle-knob{transform:translateX(20px)}
+.select-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.select-row:last-child{border-bottom:none}
+.select-label{font-size:11px;color:var(--text-dim)}
+.select-dropdown{background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:6px 10px;outline:none;cursor:pointer}
+.select-dropdown:focus{border-color:var(--accent)}
+.notebook-editor{width:100%;min-height:300px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;padding:12px;resize:vertical;outline:none;line-height:1.7}
+.notebook-editor:focus{border-color:var(--accent)}
+.notebook-list{display:flex;flex-direction:column;gap:8px}
+.note-item{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.12s}
+.note-item:hover{border-color:var(--border-light)}
+.note-item-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.note-item-date{font-size:8px;color:var(--text-faint);font-family:'JetBrains Mono',monospace}
+.note-item-preview{font-size:10px;color:var(--text-dim);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.body-tracker{display:flex;flex-direction:column;gap:12px}
+.body-metric{display:flex;align-items:center;gap:12px;padding:12px;background:var(--s2);border:1px solid var(--border);border-radius:12px}
+.body-metric-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--s3)}
+.body-metric-info{flex:1}
+.body-metric-label{font-size:10px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em}
+.body-metric-value{font-size:18px;font-weight:700;color:var(--text)}
+.body-metric-unit{font-size:10px;color:var(--text-dim)}
+.body-chart{height:120px;background:var(--s2);border:1px solid var(--border);border-radius:10px;position:relative;overflow:hidden}
+.body-chart-bar{position:absolute;bottom:0;background:var(--accent);border-radius:3px 3px 0 0;transition:height 0.5s ease}
+.mode-badge{position:absolute;top:8px;right:16px;z-index:1000;padding:4px 10px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;transition:all 0.15s}
+.mode-badge.os{background:rgba(212,168,83,0.15);color:var(--accent);border:1px solid rgba(212,168,83,0.3)}
+.mode-badge.notebook{background:rgba(143,184,150,0.15);color:var(--sage);border:1px solid rgba(143,184,150,0.3)}
+.mode-badge.body{background:rgba(201,123,138,0.15);color:var(--rose);border:1px solid rgba(201,123,138,0.3)}
+.store-app{display:flex;align-items:center;gap:12px;padding:12px;background:var(--s2);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;cursor:pointer;transition:all 0.12s}
+.store-app:hover{border-color:var(--accent)}
+.store-app-icon{width:44px;height:44px;border-radius:12px;background:var(--s3);display:flex;align-items:center;justify-content:center}
+.store-app-info{flex:1}
+.store-app-name{font-size:12px;font-weight:600;color:var(--text)}
+.store-app-desc{font-size:9px;color:var(--text-dim);margin-top:2px}
+.store-app-btn{padding:6px 12px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;font-size:10px;font-weight:600;cursor:pointer}
+/* MORPH APP STYLES */
+.morph-drop-zone{border:2px dashed var(--border);border-radius:16px;padding:24px;text-align:center;background:rgba(95,184,201,0.02);cursor:pointer;transition:all 0.2s;margin-bottom:12px}
+.morph-drop-zone:hover{border-color:var(--cyan);background:var(--cyan-glow)}
+.morph-drop-zone.dragover{border-color:var(--sage);background:var(--sage-glow)}
+.morph-drop-zone-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.morph-drop-zone-sub{font-size:9px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
+.morph-code-editor{width:100%;min-height:200px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:10px;padding:12px;resize:vertical;outline:none;line-height:1.7}
+.morph-code-editor:focus{border-color:var(--cyan)}
+.morph-result{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-dim);line-height:1.6;overflow-x:auto;white-space:pre;max-height:300px;overflow-y:auto}
+.morph-mode-btn{padding:6px 12px;border-radius:8px;font-size:9px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--s2);color:var(--text-dim);transition:all 0.12s}
+.morph-mode-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.morph-mode-btn.active{background:var(--cyan);color:var(--bg);border-color:var(--cyan)}
+.morph-memory-graph{display:flex;flex-wrap:wrap;gap:4px;padding:8px}
+.morph-node{padding:4px 8px;border-radius:6px;font-size:8px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all 0.12s;border:1px solid}
+.morph-node:hover{transform:scale(1.05)}
+/* VIDEO MORPH STYLES */
+.video-morph-zone{border:2px dashed var(--border);border-radius:16px;padding:24px;text-align:center;background:rgba(201,123,138,0.02);cursor:pointer;transition:all 0.2s;margin-bottom:12px}
+.video-morph-zone:hover{border-color:var(--rose);background:var(--rose-glow)}
+.video-morph-zone.dragover{border-color:var(--sage);background:var(--sage-glow)}
+.video-morph-preview{width:100%;border-radius:10px;border:1px solid var(--border);margin-bottom:12px}
+.video-frame-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 0;margin-bottom:12px}
+.video-frame-strip::-webkit-scrollbar{height:2px}
+.video-frame-strip::-webkit-scrollbar-thumb{background:var(--s3)}
+.video-frame-thumb{width:80px;height:60px;border-radius:6px;border:1px solid var(--border);cursor:pointer;object-fit:cover;transition:all 0.12s}
+.video-frame-thumb:hover{border-color:var(--accent);transform:scale(1.05)}
+.video-frame-thumb.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow)}
+.video-morph-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.video-morph-controls button{padding:6px 12px;border-radius:8px;font-size:9px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--s2);color:var(--text-dim);transition:all 0.12s}
+.video-morph-controls button:hover{border-color:var(--rose);color:var(--rose)}
+.video-morph-controls button.active{background:var(--rose);color:var(--bg);border-color:var(--rose)}
+.video-analysis-result{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:10px;color:var(--text-dim);line-height:1.7}
+/* AUTONOVEL MESH STYLES */
+.mesh-canvas{width:100%;height:250px;border-radius:12px;border:1px solid var(--border);background:var(--s2);display:block}
+.triple-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:10px}
+.triple-row:last-child{border-bottom:none}
+.triple-obj{color:var(--accent);font-weight:600}
+.triple-rel{color:var(--cyan);font-weight:500}
+.triple-time{color:var(--text-faint);font-size:8px;font-family:'JetBrains Mono',monospace}
+.agent-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.12s}
+.agent-card:hover{border-color:var(--accent)}
+.agent-card-name{font-size:12px;font-weight:600;color:var(--text)}
+.agent-card-state{font-size:9px;color:var(--text-dim);margin-top:2px}
+.agent-card-gates{font-size:8px;color:var(--text-faint);margin-top:4px;font-family:'JetBrains Mono',monospace}
+.sim-btn{padding:8px 14px;border-radius:8px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--s2);color:var(--text-dim);transition:all 0.12s}
+.sim-btn:hover{border-color:var(--accent);color:var(--accent)}
+.sim-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.sim-log{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--sage);height:120px;overflow-y:auto;line-height:1.6}
+.sim-log::-webkit-scrollbar{width:2px}
+.sim-log::-webkit-scrollbar-thumb{background:var(--s3)}
+@media(max-width:440px){html,body{align-items:flex-start;background:var(--bg)}.device{width:100vw;height:100dvh;border-radius:0;border:none;box-shadow:none}.notch{display:none}}
+
+
+/* ═══════════════════════════════════════════════════════════
+   AION DIMENSIONAL ENGINE CSS (injected)
+   ═══════════════════════════════════════════════════════════ */
+
+/* AION Ingest App */
+.aion-ingest{padding:0;height:100%;display:flex;flex-direction:column}
+.aion-header{padding:10px 14px;background:var(--s2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.aion-header h3{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1px}
+.aion-dim-badge{padding:2px 8px;border-radius:10px;font-size:8px;font-family:'JetBrains Mono',monospace;border:1px solid var(--border);flex-shrink:0}
+.aion-dim-badge.mov{background:rgba(212,168,83,.1);color:var(--accent);border-color:var(--accent)}
+.aion-dim-badge.evo{background:rgba(201,123,138,.1);color:var(--rose);border-color:var(--rose)}
+.aion-dim-badge.bei{background:rgba(143,184,150,.1);color:var(--sage);border-color:var(--sage)}
+.aion-dim-badge.des{background:rgba(166,123,138,.1);color:var(--wine);border-color:var(--wine)}
+.aion-dim-badge.spc{background:rgba(201,169,110,.1);color:var(--ochre);border-color:var(--ochre)}
+.aion-dim-badge.syn{background:rgba(95,184,201,.1);color:var(--cyan);border-color:var(--cyan)}
+.aion-body{flex:1;display:flex;overflow:hidden}
+.aion-sidebar{width:160px;background:var(--s1);border-right:1px solid var(--border);padding:8px;overflow-y:auto;flex-shrink:0}
+.aion-sidebar h4{font-size:8px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1px;margin:10px 0 4px}
+.aion-sidebar h4:first-child{margin-top:0}
+.aion-tool-row{padding:5px 6px;border-radius:6px;font-size:10px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;transition:.1s;margin-bottom:1px}
+.aion-tool-row:hover{background:var(--s2);color:var(--text)}
+.aion-tool-row.active{background:rgba(166,123,138,.15);color:var(--wine)}
+.aion-tool-row .tt-icon{font-size:12px}
+.aion-tool-row .tt-name{flex:1}
+.aion-tool-row .tt-dim{font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--text-faint)}
+.aion-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.aion-drop-zone{border:2px dashed var(--border);border-radius:12px;margin:10px;padding:20px;text-align:center;cursor:pointer;transition:.2s;background:var(--s2);flex-shrink:0;position:relative}
+.aion-drop-zone.over{border-color:var(--accent);background:var(--accent-glow)}
+.aion-drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.aion-drop-zone .dz-icon{font-size:24px;margin-bottom:4px;display:block}
+.aion-drop-zone h3{font-size:12px;margin-bottom:3px}
+.aion-drop-zone p{font-size:9px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
+.aion-pipeline{flex:1;overflow-y:auto;padding:0 10px 10px}
+.aion-phase{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:6px;display:flex;flex-direction:column;gap:4px;transition:.3s;opacity:.5}
+.aion-phase.active{opacity:1;border-color:var(--wine);background:rgba(166,123,138,.1)}
+.aion-phase.complete{opacity:1;border-color:var(--sage);background:rgba(143,184,150,.1)}
+.aion-phase.error{opacity:1;border-color:var(--rose);background:rgba(201,123,138,.1)}
+.ap-header{display:flex;align-items:center;gap:6px}
+.ap-num{width:18px;height:18px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0;color:var(--text-dim)}
+.ap-num.done{background:var(--sage);color:var(--bg)}
+.ap-num.active{background:var(--wine);color:var(--bg)}
+.ap-name{font-size:10px;font-weight:600;flex:1}
+.ap-dim{font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--text-faint);padding:2px 5px;border-radius:4px;background:var(--s2)}
+.ap-tools{font-size:9px;color:var(--wine);font-family:'JetBrains Mono',monospace}
+.ap-output{font-size:9px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;padding:5px 6px;background:var(--s2);border-radius:4px;line-height:1.5;max-height:60px;overflow-y:auto}
+.aion-actions{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--border);flex-shrink:0}
+.aion-actions button{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--s2);color:var(--text-dim);font-size:10px;cursor:pointer;transition:.15s;font-family:'JetBrains Mono',monospace}
+.aion-actions button:hover{border-color:var(--wine);color:var(--wine)}
+.aion-actions button.primary{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
+.aion-actions button.primary:hover{background:var(--accent);color:var(--bg)}
+
+/* AION Mesh Substrate (beneath device) */
+.aion-mesh-substrate{position:fixed;bottom:0;left:0;right:0;height:140px;z-index:0;background:linear-gradient(to top,rgba(10,10,12,.98) 0%,rgba(10,10,12,.85) 60%,transparent 100%);border-top:1px solid var(--border);backdrop-filter:blur(6px);display:flex;flex-direction:column;transition:transform .3s ease;transform:translateY(0)}
+.aion-mesh-substrate.collapsed{transform:translateY(calc(140px - 24px))}
+.aion-mesh-toggle{position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:40px;height:12px;background:var(--s2);border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--text-faint)}
+.aion-mesh-toggle:hover{color:var(--accent)}
+.aion-mesh-header{display:flex;align-items:center;gap:10px;padding:5px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.aion-mesh-title{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);letter-spacing:2px}
+.aion-mesh-pulse{width:5px;height:5px;border-radius:50%;background:var(--sage);animation:pulse 2s infinite}
+.aion-mesh-body{flex:1;display:flex;gap:6px;padding:6px 10px;overflow-x:auto;overflow-y:hidden}
+.aion-mesh-node{min-width:120px;max-width:150px;background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:3px;flex-shrink:0;transition:.2s;cursor:pointer}
+.aion-mesh-node:hover{border-color:var(--border-light);transform:translateY(-2px)}
+.aion-mesh-node.active{border-color:var(--wine);background:rgba(166,123,138,.1)}
+.aion-mesh-node .mn-title{font-size:9px;font-weight:600;color:var(--text)}
+.aion-mesh-node .mn-dim{font-size:8px;color:var(--text-faint);font-family:'JetBrains Mono',monospace}
+.aion-mesh-node .mn-tools{font-size:8px;color:var(--wine);margin-top:1px}
+.aion-mesh-node .mn-status{font-size:8px;color:var(--sage);margin-top:auto}
+
+/* AION Gate Overlay on home icons */
+.aion-gate-overlay{position:absolute;top:-2px;right:-2px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:var(--bg);font-family:'JetBrains Mono',monospace;font-size:7px;font-weight:600;display:flex;align-items:center;justify-content:center;border:1px solid var(--bg)}
+
+/* AION Terminal additions */
+.term-line.accent{color:var(--accent)}
+.term-line.wine{color:var(--wine)}
+.term-line.sage{color:var(--sage)}
+.term-line.rose{color:var(--rose)}
+.term-line.ochre{color:var(--ochre)}
+.term-line.cyan{color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="device">
+<div class="notch"><div class="notch-sensor"></div><div class="notch-cam"></div><div class="notch-sensor"></div></div>
+<div class="status"><div class="status-left" id="statusTime">02:32</div><div class="status-center">SYNTHIA</div><div class="status-right" id="statusRight"></div></div>
+<div class="screen" id="screen">
+
+<!-- Mode Badge -->
+<div class="mode-badge os" id="modeBadge" onclick="cycleMode()">OS Mode</div>
+
+<!-- Splash -->
+<div class="splash" id="splash"><div class="splash-logo">SYNTHIA</div><div class="splash-sub">Operating System</div><div class="splash-bar"><div class="splash-bar-fill"></div></div></div>
+
+<!-- HOME SCREEN -->
+<div class="home" id="homeScreen">
+<div class="clock-widget"><div class="cw-time" id="clockTime">02:32</div><div class="cw-date" id="clockDate">Monday, June 22</div><div class="cw-gate" id="clockGate">Gate 20 &middot; Brainwave &middot; ESN Active</div></div>
+<div class="widget-strip">
+<div class="widget-card"><div class="widget-title">Being Vector</div><div class="widget-val" id="widgetBeing">144.0&deg;</div><div class="widget-sub">Gate <span id="widgetGate">20</span></div></div>
+<div class="widget-card"><div class="widget-title">Active Channels</div><div class="widget-val" id="widgetChannels">0</div><div class="widget-sub">Live pipes</div></div>
+<div class="widget-card"><div class="widget-title">Field State</div><div class="widget-val" id="widgetField">Open</div><div class="widget-sub">Integration</div></div>
+</div>
+<div class="home-grid" id="homeGrid">
+<div class="home-icon" data-app="codex" data-id="app-codex-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--wine)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="home-icon-label">Codex</div></div>
+<div class="home-icon" data-app="browser" data-id="app-browser-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div><div class="home-icon-label">Browser</div></div>
+<div class="home-icon" data-app="appcenter" data-id="app-appcenter-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><div class="home-icon-label">App Center</div></div>
+<div class="home-icon" data-app="settings" data-id="app-settings-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div><div class="home-icon-label">Settings</div></div>
+<div class="home-icon" data-app="appstore" data-id="app-appstore-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ochre)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="home-icon-label">App Store</div></div>
+<div class="home-icon" data-app="field" data-id="app-field-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div><div class="home-icon-label">Field</div></div>
+<div class="home-icon" data-app="ego" data-id="app-ego-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="home-icon-label">Ego</div></div>
+<div class="home-icon" data-app="address" data-id="app-address-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-dim)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="home-icon-label">Address</div></div>
+<div class="home-icon" data-app="morph" data-id="app-morph-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/><circle cx="12" cy="12" r="3"/></svg></div><div class="home-icon-label">Morph</div></div>
+<div class="home-icon" data-app="videomorph" data-id="app-videomorph-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg></div><div class="home-icon-label">Video Morph</div></div>
+<div class="home-icon" data-app="autonovel" data-id="app-autonovel-0"><div class="home-icon-face"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div><div class="home-icon-label">AutoNovel</div></div>
+</div>
+</div>
+<!-- NOTEBOOK SCREEN -->
+<div class="home" id="notebookScreen" style="display:none;z-index:5">
+<div class="clock-widget" style="padding:16px 0 10px"><div class="cw-time" style="font-size:32px">Notebook</div><div class="cw-date" style="margin-top:4px">Local-First Notes</div></div>
+<div class="win-body" style="padding:0 20px 20px;flex:1;overflow-y:auto">
+<div class="card" id="noteEditorCard">
+<div class="card-title" id="noteEditorTitle">New Note</div>
+<input type="text" id="noteTitleInput" placeholder="Note title..." style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;outline:none;margin-bottom:8px">
+<textarea class="notebook-editor" id="noteBodyInput" placeholder="Write your note here..."></textarea>
+<div style="display:flex;gap:8px;margin-top:8px">
+<button class="ingest-btn" onclick="saveNote()" style="flex:1">Save Note</button>
+<button class="ingest-btn" onclick="clearNoteEditor()" style="flex:1;background:var(--s3);color:var(--text)">Clear</button>
+</div>
+</div>
+<div class="card">
+<div class="card-title">Saved Notes (<span id="noteCount">0</span>)</div>
+<div class="notebook-list" id="notebookList"></div>
+</div>
+</div>
+</div>
+
+<!-- BODY SCREEN -->
+<div class="home" id="bodyScreen" style="display:none;z-index:5">
+<div class="clock-widget" style="padding:16px 0 10px"><div class="cw-time" style="font-size:32px">Body</div><div class="cw-date" style="margin-top:4px">Somatic Tracking</div></div>
+<div class="win-body" style="padding:0 20px 20px;flex:1;overflow-y:auto">
+<div class="card">
+<div class="card-title">Vitals</div>
+<div class="body-tracker">
+<div class="body-metric">
+<div class="body-metric-icon" style="background:var(--rose-glow)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+<div class="body-metric-info"><div class="body-metric-label">Heart Rate</div><div class="body-metric-value"><span id="hrValue">72</span><span class="body-metric-unit"> bpm</span></div></div>
+</div>
+<div class="body-metric">
+<div class="body-metric-icon" style="background:var(--sage-glow)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5"><path d="M12 2v20M2 12h20"/></svg></div>
+<div class="body-metric-info"><div class="body-metric-label">Respiration</div><div class="body-metric-value"><span id="respValue">16</span><span class="body-metric-unit"> /min</span></div></div>
+</div>
+<div class="body-metric">
+<div class="body-metric-icon" style="background:var(--accent-glow)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+<div class="body-metric-info"><div class="body-metric-label">Energy</div><div class="body-metric-value"><span id="energyValue">85</span><span class="body-metric-unit">%</span></div></div>
+</div>
+<div class="body-metric">
+<div class="body-metric-icon" style="background:var(--ochre-glow)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ochre)" stroke-width="1.5"><path d="M12 3v1m0 16v1m-9-9h1m16 0h1M5.6 5.6l.7.7m12.1 12.1l.7.7M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/></svg></div>
+<div class="body-metric-info"><div class="body-metric-label">Stress</div><div class="body-metric-value"><span id="stressValue">Low</span></div></div>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="card-title">Hourly Energy</div>
+<div class="body-chart" id="bodyChart"></div>
+</div>
+<div class="card">
+<div class="card-title">Gate Resonance</div>
+<div id="bodyGateResonance"></div>
+</div>
+</div>
+</div>
+
+<!-- APP: CODEX -->
+<div class="view-window" id="app-codex"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">Codex</div><div class="win-title-sub">64 Gates &middot; 36 Channels &middot; 5 Circuits</div></div></div><div class="win-body" id="codexBody"><div class="card"><div class="card-title">Gate Spectrum</div><div class="gate-grid-mini" id="codexGateGrid"></div></div><div class="card" id="codexGateCard"><div style="font-size:11px;color:var(--text-dim)">Select a gate to inspect its architecture, channel, and spin state.</div></div><div class="card" id="codexArchCard" style="display:none"><div class="card-title" id="codexArchTitle">Architecture</div><div id="codexArchLayers"></div><div style="font-size:10px;color:var(--text-dim);margin-top:12px;line-height:1.7" id="codexArchDesc"></div></div><div class="card"><div class="card-title">Computation Graph</div><canvas class="comp-canvas" id="codexCanvas"></canvas></div><div class="card"><div class="card-title">Channel Registry</div><div id="codexChannels"></div></div><div class="card"><div class="card-title">Integration Clique</div><canvas class="comp-canvas" id="codexIntegCanvas" style="height:180px"></canvas></div><div class="card"><div class="card-title">Spin States</div><div id="codexSpin"></div></div></div></div>
+
+<!-- APP: BROWSER -->
+<div class="view-window" id="app-browser"><div class="browser-bar"><input type="text" id="browserUrl" placeholder="Enter address..." value="https://example.com" onkeydown="if(event.key==='Enter')loadBrowser()"><button onclick="loadBrowser()">Go</button></div><iframe class="browser-frame" id="browserFrame" src="about:blank"></iframe></div>
+
+<!-- APP: APP CENTER -->
+<div class="view-window" id="app-appcenter"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">App Center</div><div class="win-title-sub">Ingest &middot; Compile &middot; Mount</div></div></div><div class="win-body"><div class="card"><div class="card-title">Drop or Paste</div><div class="ingest-zone" id="ingestZone" onclick="document.getElementById('fileInput').click()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div class="ingest-zone-title">Tap to upload file</div><div class="ingest-zone-sub">ZIP &middot; TAR &middot; GZ &middot; JS &middot; TS &middot; PY &middot; JSX &middot; TSX &middot; HTML &middot; CSS &middot; JSON &middot; XML &middot; JPG &middot; PNG &middot; MP4 &middot; MP3 &middot; WEBM &middot; Any</div></div><input type="file" class="ingest-input" id="fileInput" onchange="handleFileUpload(event)" multiple><div class="card-title" style="margin-top:16px">Or paste code</div><textarea class="paste-area" id="pasteArea" placeholder="Paste code, text, or data here..."></textarea><button class="ingest-btn" onclick="handlePasteIngest()">Ingest &amp; Mount</button></div><div class="card"><div class="card-title">Pipeline Log</div><div class="log-stream" id="ingestLog">System ready. Waiting for ingestion...</div></div><div class="card"><div class="card-title">Mounted Apps</div><div id="mountedApps"></div></div></div></div>
+
+<!-- APP: SETTINGS -->
+<div class="view-window" id="app-settings"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">Settings</div><div class="win-title-sub">System Configuration</div></div></div><div class="win-body" id="settingsBody"><div class="card"><div class="card-title">Substrate</div><div class="row"><span class="row-label">Local-First Execution</span><span class="row-val" style="color:var(--sage)">Active</span></div><div class="row"><span class="row-label">Zero-Backend Architecture</span><span class="row-val" style="color:var(--sage)">True</span></div><div class="row"><span class="row-label">MorphBus Broker</span><span class="row-val" style="color:var(--accent)">Running</span></div></div><div class="card"><div class="card-title">Display</div><div class="toggle-row"><span class="toggle-label">Show Gate Overlay</span><div class="toggle-switch on" id="toggleGate" onclick="toggleSetting(this,'gateOverlay')"><div class="toggle-knob"></div></div></div><div class="toggle-row"><span class="toggle-label">Animations</span><div class="toggle-switch on" id="toggleAnim" onclick="toggleSetting(this,'animations')"><div class="toggle-knob"></div></div></div><div class="toggle-row"><span class="toggle-label">Dark Mode</span><div class="toggle-switch on" id="toggleDark" onclick="toggleSetting(this,'darkMode')"><div class="toggle-knob"></div></div></div></div><div class="card"><div class="card-title">Mode</div><div class="select-row"><span class="select-label">Default Mode</span><select class="select-dropdown" id="modeSelect" onchange="setMode(this.value)"><option value="os">OS</option><option value="notebook">Notebook</option><option value="body">Body</option></select></div></div><div class="card"><div class="card-title">Storage</div><div class="row"><span class="row-label">Local Vault</span><span class="row-val" id="storageUsed">0 KB</span></div><div class="row"><span class="row-label">Mounted Apps</span><span class="row-val" id="mountedCount">0</span></div><div class="row"><span class="row-label">Notes</span><span class="row-val" id="notesCount">0</span></div><div class="row"><span class="row-label">Body Logs</span><span class="row-val" id="bodyLogsCount">0</span></div><div class="row"><span class="row-label">Morph Nodes</span><span class="row-val" id="morphNodesCount">0</span></div><div class="row"><span class="row-label">Mesh Triples</span><span class="row-val" id="meshTriplesCount">0</span></div></div><div class="card"><div class="card-title">System</div><div class="row"><span class="row-label">Version</span><span class="row-val">SYNTHIA 5.0</span></div><div class="row"><span class="row-label">Build</span><span class="row-val">2026.06.24</span></div><div class="row"><span class="row-label">Uptime</span><span class="row-val" id="uptimeVal">0m</span></div></div></div></div>
+
+<!-- APP: APP STORE -->
+<div class="view-window" id="app-appstore"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">App Store</div><div class="win-title-sub">Verified Primitives</div></div></div><div class="win-body"><div class="card" style="border-color:var(--accent)"><div class="card-title">Lattice Applications</div><div style="font-size:10px;color:var(--text-dim);line-height:1.6">All verified applications execute within client sandboxes. No remote tracking.</div></div><div class="card"><div class="card-title">Available</div><div id="storeApps"></div></div></div></div>
+
+<!-- APP: FIELD -->
+<div class="view-window" id="app-field"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">Field State</div><div class="win-title-sub">5D Mesh &middot; Active Circuits</div></div></div><div class="win-body"><div class="card"><div class="card-title">FUSE Weights</div><div id="fieldFuse"></div></div><div class="card"><div class="card-title">Circuit Modes</div><div id="fieldCircuits"></div></div><div class="card"><div class="card-title">9 Centers</div><div id="fieldCenters"></div></div></div></div>
+
+<!-- APP: EGO -->
+<div class="view-window" id="app-ego"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">Ego &middot; HMM</div><div class="win-title-sub">Trust Ledger</div></div></div><div class="win-body"><div class="card" style="border-color:var(--rose)"><div class="card-title">Architecture</div><div style="font-size:10px;color:var(--text-dim);line-height:1.8">Hidden = <span style="color:var(--rose)">actual will</span><br>Observable = <span style="color:var(--sage)">deal / promise</span><br>Transitions = <span style="color:var(--accent)">track record</span><br>Emissions = <span style="color:var(--wine)">delivered vs stated</span></div></div><div id="egoChannels"></div></div></div>
+
+<!-- APP: ADDRESS -->
+<div class="view-window" id="app-address"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">Address Engine</div><div class="win-title-sub">&Pi;(&theta;) Decomposition</div></div></div><div class="win-body"><div class="card"><div class="card-title">Ecliptic Longitude &theta;</div><input id="addrSlider" type="range" min="0" max="359.999" step="0.001" value="25.992" oninput="runAddr(this.value)"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-faint)"><span>0&deg;</span><span id="addrVal" style="color:var(--accent)">25.992&deg;</span><span>360&deg;</span></div></div><div class="card"><div class="card-title">Decomposition</div><div id="addrDecomp"></div></div><div class="card"><div class="card-title">Semantic Vector</div><div id="addrVec"></div></div><div class="card"><div class="card-title">Address String</div><div id="addrStr" style="font-size:10px;color:var(--ochre);word-break:break-all;line-height:1.7;font-family:'JetBrains Mono',monospace"></div></div></div></div>
+
+<!-- APP: MORPH -->
+<div class="view-window" id="app-morph"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">Morph</div><div class="win-title-sub">MIR &middot; GNN &middot; Regeneration</div></div></div><div class="win-body"><div class="card" style="border-color:var(--cyan)"><div class="card-title">Morph Memory Engine</div><div style="font-size:10px;color:var(--text-dim);line-height:1.6">Analyze code into MIR contracts. Store in GNN memory. Regenerate in 4 modes: exact, equivalent, morph_runtime, improved.</div></div><div class="card"><div class="card-title">Ingest Artifact</div><div class="morph-drop-zone" id="morphDropZone" onclick="document.getElementById('morphFileInput').click()"><div class="morph-drop-zone-title">Drop code file or tap to upload</div><div class="morph-drop-zone-sub">JS &middot; TS &middot; JSX &middot; TSX &middot; PY &middot; JSON &middot; Any text</div></div><input type="file" class="ingest-input" id="morphFileInput" onchange="handleMorphFile(event)" accept=".js,.ts,.jsx,.tsx,.py,.json,.txt,.md"><div class="card-title" style="margin-top:12px">Or paste code directly</div><textarea class="morph-code-editor" id="morphCodeInput" placeholder="Paste your code here to analyze..."></textarea><div style="display:flex;gap:8px;margin-top:12px"><button class="ingest-btn" onclick="morphAnalyze()" style="flex:1">Analyze</button><button class="ingest-btn secondary" onclick="morphClear()" style="flex:1">Clear</button></div></div><div class="card"><div class="card-title">Regeneration Mode</div><div style="display:flex;gap:8px;margin-bottom:12px"><button class="morph-mode-btn active" id="modeExact" onclick="setMorphMode('exact')">Exact</button><button class="morph-mode-btn" id="modeEquivalent" onclick="setMorphMode('equivalent')">Equivalent</button><button class="morph-mode-btn" id="modeMorph" onclick="setMorphMode('morph_runtime')">Morph</button><button class="morph-mode-btn" id="modeImproved" onclick="setMorphMode('improved')">Improved</button></div><button class="ingest-btn" onclick="morphRegenerate()">Regenerate</button></div><div class="card" id="morphResultCard" style="display:none"><div class="card-title">Result</div><div class="morph-result" id="morphResult"></div></div><div class="card"><div class="card-title">MIR Contract</div><div id="morphContract"></div></div><div class="card"><div class="card-title">Memory Graph (<span id="morphNodeCount">0</span> nodes)</div><div class="morph-memory-graph" id="morphMemoryGraph"></div></div><div class="card"><div class="card-title">Operations Log</div><div class="log-stream" id="morphLog">Morph engine ready. Waiting for artifact...</div></div></div></div>
+
+<!-- APP: VIDEO MORPH -->
+<div class="view-window" id="app-videomorph"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">Video Morph</div><div class="win-title-sub">Frame Extraction &middot; Analysis</div></div></div><div class="win-body"><div class="card" style="border-color:var(--rose)"><div class="card-title">Video Morph Engine</div><div style="font-size:10px;color:var(--text-dim);line-height:1.6">Extract frames from video. Analyze visual structure. Generate frame-level MIR contracts. Compare sequences.</div></div><div class="card"><div class="card-title">Upload Video</div><div class="video-morph-zone" id="videoMorphZone" onclick="document.getElementById('videoFileInput').click()"><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">Tap to upload video</div><div style="font-size:9px;color:var(--text-dim);font-family:'JetBrains Mono',monospace">MP4 &middot; WEBM &middot; MOV &middot; OGG</div></div><input type="file" class="ingest-input" id="videoFileInput" accept="video/*" onchange="handleVideoUpload(event)"></div><div class="card" id="videoPreviewCard" style="display:none"><div class="card-title">Preview</div><video class="video-morph-preview" id="videoMorphPreview" controls></video></div><div class="card" id="videoControlsCard" style="display:none"><div class="card-title">Frame Extraction</div><div class="video-morph-controls"><button onclick="extractFrames(5)">5 Frames</button><button onclick="extractFrames(10)">10 Frames</button><button onclick="extractFrames(20)">20 Frames</button><button onclick="extractFrames(30)">30 Frames</button><button onclick="clearVideoFrames()">Clear</button></div><div class="video-frame-strip" id="videoFrameStrip"></div></div><div class="card" id="videoAnalysisCard" style="display:none"><div class="card-title">Frame Analysis</div><div class="video-analysis-result" id="videoAnalysisResult"></div></div><div class="card"><div class="card-title">Pipeline Log</div><div class="log-stream" id="videoMorphLog">Video Morph ready. Upload a video to begin...</div></div></div></div>
+
+<!-- APP: AUTONOVEL MESH -->
+<div class="view-window" id="app-autonovel"><div class="win-header"><button class="win-back" onclick="goBack()">&#8592;</button><div><div class="win-title">AutoNovel</div><div class="win-title-sub">Mesh &middot; O-R-O &middot; Gate Relations</div></div></div><div class="win-body"><div class="card" style="border-color:var(--accent)"><div class="card-title">AutoNovel Mesh Engine</div><div style="font-size:10px;color:var(--text-dim);line-height:1.6">Sheldon Klein 1973 semantic triples (O-R-O) mapped through I Ching/Human Design gates. Local-first mesh with private semantic universes, meta-compiling, and recursive self-reference.</div></div><div class="card"><div class="card-title">Mesh Visualization</div><canvas class="mesh-canvas" id="meshCanvas"></canvas></div><div class="card"><div class="card-title">Active Agents (<span id="agentCount">0</span>)</div><div id="agentList"></div></div><div class="card"><div class="card-title">Simulation Clock</div><div class="row"><span class="row-label">Now</span><span class="row-val" id="simClock">0</span></div><div class="row"><span class="row-label">Active Gate</span><span class="row-val" id="simActiveGate">—</span></div><div class="row"><span class="row-label">Triples</span><span class="row-val" id="simTripleCount">0</span></div></div><div class="card"><div class="card-title">Controls</div><div style="display:flex;gap:8px;margin-bottom:12px"><button class="sim-btn" id="btnInitMesh" onclick="initMesh()">Init Mesh</button><button class="sim-btn" id="btnStepSim" onclick="stepSimulation()">Step</button><button class="sim-btn" id="btnRunSim" onclick="toggleSimulation()">Run</button><button class="sim-btn" id="btnAddAgent" onclick="addAgent()">+ Agent</button><button class="sim-btn" id="btnMetaCompile" onclick="metaCompile()">Meta</button></div></div><div class="card"><div class="card-title">Semantic Triples</div><div id="tripleList"></div></div><div class="card"><div class="card-title">Narrative Output</div><div id="narrativeOutput" style="font-size:10px;color:var(--text-dim);line-height:1.7;font-family:'JetBrains Mono',monospace;min-height:60px"></div></div><div class="card"><div class="card-title">Simulation Log</div><div class="sim-log" id="simLog">AutoNovel mesh ready. Initialize to begin...</div></div></div></div>
+
+<!-- FILE VIEWER -->
+<div class="file-viewer" id="fileViewer"><div class="fv-header"><div class="fv-back" onclick="closeFileViewer()">&#8592;</div><div class="fv-title" id="fvTitle">File</div><div class="fv-type" id="fvType">TXT</div></div><div class="fv-body" id="fvBody"></div></div>
+
+<!-- APP TRAY -->
+<div class="app-tray" id="appTray"><div class="tray-head"><div class="tray-title">App Tray</div><div class="tray-close" onclick="toggleTray()">&#10005;</div></div><div class="tray-grid" id="trayGrid">
+<div class="tray-icon" onclick="launchApp('codex')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--wine)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="tray-icon-label">Codex</div></div>
+<div class="tray-icon" onclick="launchApp('browser')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div><div class="tray-icon-label">Browser</div></div>
+<div class="tray-icon" onclick="launchApp('appcenter')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><div class="tray-icon-label">App Center</div></div>
+<div class="tray-icon" onclick="launchApp('settings')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div><div class="tray-icon-label">Settings</div></div>
+<div class="tray-icon" onclick="launchApp('appstore')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ochre)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="tray-icon-label">App Store</div></div>
+<div class="tray-icon" onclick="launchApp('field')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div><div class="tray-icon-label">Field</div></div>
+<div class="tray-icon" onclick="launchApp('ego')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tray-icon-label">Ego</div></div>
+<div class="tray-icon" onclick="launchApp('address')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-dim)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="tray-icon-label">Address</div></div>
+<div class="tray-icon" onclick="launchApp('morph')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/><circle cx="12" cy="12" r="3"/></svg></div><div class="tray-icon-label">Morph</div></div>
+<div class="tray-icon" onclick="launchApp('videomorph')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg></div><div class="tray-icon-label">Video Morph</div></div>
+<div class="tray-icon" onclick="launchApp('autonovel')"><div class="tray-icon-face"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div><div class="tray-icon-label">AutoNovel</div></div>
+</div></div>
+
+</div>
+
+<!-- HARDWARE NAV -->
+<div class="hardware-nav">
+<button class="nav-btn" onclick="goBack()"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>Back<div class="nav-indicator"></div></button>
+<button class="nav-btn" onclick="toggleTray()" id="trayBtn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Tray<div class="nav-indicator"></div></button>
+<button class="nav-btn" onclick="goHome()"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home<div class="nav-indicator"></div></button>
+</div>
+</div>

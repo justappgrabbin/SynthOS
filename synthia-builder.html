@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Synthia Autonomous Builder</title>
+<style>
+:root {
+  --d1:#ff3366; --d2:#00e5ff; --d3:#a855f7; --d4:#22c55e; --d5:#f59e0b;
+  --bg-0:#050508; --bg-1:#0a0a12; --bg-2:#11111a; --bg-3:#1a1a28;
+  --text:#e2e2f0; --text-dim:#8888a0; --accent:#00e5ff;
+  --success:#22c55e; --warn:#f59e0b; --error:#ef4444; --info:#3b82f6;
+  --fm:'SF Mono',Monaco,'Cascadia Code',monospace;
+  --fs:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:100%; height:100%; overflow:hidden; background:var(--bg-0); color:var(--text); font-family:var(--fs); -webkit-font-smoothing:antialiased; }
+#bg-canvas { position:fixed; inset:0; z-index:0; opacity:0.6; }
+.bg-gradient { position:fixed; inset:0; z-index:0; background:radial-gradient(ellipse at 20% 50%,rgba(168,85,247,0.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(0,229,255,0.06) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(255,51,102,0.05) 0%,transparent 50%); }
+.app-shell { position:relative; z-index:1; display:flex; height:100vh; width:100vw; }
+.sidebar { width:72px; min-width:72px; background:var(--bg-1); border-right:1px solid rgba(255,255,255,0.04); display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:8px; transition:width 0.3s ease; overflow:hidden; }
+.sidebar.expanded { width:240px; }
+.sidebar .logo { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,var(--d1),var(--d3)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:#fff; margin-bottom:24px; box-shadow:0 0 20px rgba(168,85,247,0.3); flex-shrink:0; }
+.sidebar .nav-item { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); cursor:pointer; transition:all 0.2s; position:relative; flex-shrink:0; }
+.sidebar .nav-item:hover,.sidebar .nav-item.active { background:var(--bg-2); color:var(--text); }
+.sidebar .nav-item.active::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:24px; border-radius:0 4px 4px 0; background:var(--accent); }
+.sidebar .nav-item .label { display:none; margin-left:12px; font-size:13px; font-weight:500; white-space:nowrap; }
+.sidebar.expanded .nav-item { width:calc(100% - 24px); justify-content:flex-start; padding-left:14px; }
+.sidebar.expanded .nav-item .label { display:block; }
+.sidebar .spacer { flex:1; }
+.sidebar .nav-item .badge { position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%; background:var(--d1); box-shadow:0 0 6px var(--d1); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.topbar { height:56px; background:var(--bg-1); border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:space-between; padding:0 20px; flex-shrink:0; }
+.topbar .title { font-size:15px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px; }
+.topbar .title .dim { color:var(--text-dim); font-weight:400; }
+.topbar .actions { display:flex; gap:8px; align-items:center; }
+.btn { height:36px; padding:0 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:var(--bg-2); color:var(--text); font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.2s; font-family:var(--fs); }
+.btn:hover { border-color:rgba(255,255,255,0.15); background:var(--bg-3); }
+.btn.primary { background:var(--accent); color:var(--bg-0); border:none; font-weight:600; }
+.btn.primary:hover { background:#33eaff; box-shadow:0 0 20px rgba(0,229,255,0.3); }
+.btn.d1 { background:var(--d1); color:#fff; border:none; }
+.btn.d2 { background:var(--d2); color:var(--bg-0); border:none; }
+.btn.d3 { background:var(--d3); color:#fff; border:none; }
+.btn.d4 { background:var(--d4); color:var(--bg-0); border:none; }
+.btn.d5 { background:var(--d5); color:var(--bg-0); border:none; }
+.btn.sm { height:28px; padding:0 10px; font-size:11px; }
+.status-pill { display:flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; background:var(--bg-2); border:1px solid rgba(255,255,255,0.06); font-size:12px; }
+.status-pill .dot { width:6px; height:6px; border-radius:50%; }
+.status-pill .dot.online { background:var(--success); box-shadow:0 0 6px var(--success); }
+.status-pill .dot.building { background:var(--warn); box-shadow:0 0 6px var(--warn); animation:pulse 1s infinite; }
+.status-pill .dot.error { background:var(--error); box-shadow:0 0 6px var(--error); }
+.content { flex:1; overflow-y:auto; overflow-x:hidden; padding:20px; }
+.content::-webkit-scrollbar { width:6px; }
+.content::-webkit-scrollbar-track { background:transparent; }
+.content::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:3px; }
+.card { background:var(--bg-1); border:1px solid rgba(255,255,255,0.05); border-radius:16px; padding:20px; margin-bottom:16px; transition:all 0.3s; position:relative; overflow:hidden; }
+.card:hover { border-color:rgba(255,255,255,0.1); transform:translateY(-1px); }
+.card .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+.card .card-title { font-size:15px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px; }
+.card .card-subtitle { font-size:12px; color:var(--text-dim); margin-top:2px; }
+.card .card-body { font-size:13px; color:var(--text-dim); line-height:1.6; }
+.dim-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+.dim-badge.d1 { background:rgba(255,51,102,0.15); color:var(--d1); }
+.dim-badge.d2 { background:rgba(0,229,255,0.15); color:var(--d2); }
+.dim-badge.d3 { background:rgba(168,85,247,0.15); color:var(--d3); }
+.dim-badge.d4 { background:rgba(34,197,94,0.15); color:var(--d4); }
+.dim-badge.d5 { background:rgba(245,158,11,0.15); color:var(--d5); }
+.grid { display:grid; gap:16px; }
+.grid-2 { grid-template-columns:repeat(2,1fr); }
+.grid-3 { grid-template-columns:repeat(3,1fr); }
+.grid-4 { grid-template-columns:repeat(4,1fr); }
+@media (max-width:1024px) { .grid-4 { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:768px) { .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; } }
+.progress-track { height:4px; background:var(--bg-2); border-radius:2px; overflow:hidden; margin-top:8px; }
+.progress-fill { height:100%; border-radius:2px; transition:width 0.5s ease; }
+.progress-fill.d1 { background:var(--d1); } .progress-fill.d2 { background:var(--d2); }
+.progress-fill.d3 { background:var(--d3); } .progress-fill.d4 { background:var(--d4); }
+.progress-fill.d5 { background:var(--d5); }
+.terminal { background:var(--bg-0); border:1px solid rgba(255,255,255,0.06); border-radius:12px; font-family:var(--fm); font-size:12px; line-height:1.6; overflow:hidden; }
+.terminal-header { height:36px; background:var(--bg-2); border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; padding:0 12px; gap:6px; }
+.terminal-header .dot { width:10px; height:10px; border-radius:50%; }
+.terminal-body { padding:12px; max-height:300px; overflow-y:auto; color:var(--text-dim); }
+.terminal-body .line { margin-bottom:2px; }
+.terminal-body .line .ts { color:var(--text-dim); opacity:0.5; margin-right:8px; }
+.terminal-body .line .info { color:var(--info); }
+.terminal-body .line .success { color:var(--success); }
+.terminal-body .line .warn { color:var(--warn); }
+.terminal-body .line .error { color:var(--error); }
+.terminal-body .line .cmd { color:var(--accent); }
+.file-tree { font-family:var(--fm); font-size:12px; }
+.file-tree .node { display:flex; align-items:center; gap:6px; padding:4px 0; cursor:pointer; }
+.file-tree .node:hover { color:var(--text); }
+.file-tree .node .icon { width:16px; text-align:center; opacity:0.6; }
+.file-tree .node .name { color:var(--text-dim); }
+.file-tree .node .name.active { color:var(--accent); }
+.file-tree .children { padding-left:20px; border-left:1px solid rgba(255,255,255,0.04); margin-left:8px; }
+.code-block { background:var(--bg-0); border:1px solid rgba(255,255,255,0.06); border-radius:10px; font-family:var(--fm); font-size:11px; line-height:1.5; overflow-x:auto; padding:16px; color:var(--text-dim); white-space:pre; }
+.code-block .kw { color:var(--d3); } .code-block .str { color:var(--d4); }
+.code-block .num { color:var(--d5); } .code-block .cmt { color:var(--text-dim); opacity:0.5; }
+.code-block .fn { color:var(--d2); }
+.toast-container { position:fixed; bottom:20px; right:20px; z-index:1000; display:flex; flex-direction:column; gap:8px; }
+.toast { background:var(--bg-2); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px 18px; max-width:360px; animation:slideIn 0.3s ease; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+.toast .toast-title { font-size:13px; font-weight:600; margin-bottom:4px; }
+.toast .toast-body { font-size:12px; color:var(--text-dim); }
+@keyframes slideIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px); }
+.modal-overlay.active { display:flex; }
+.modal { background:var(--bg-1); border:1px solid rgba(255,255,255,0.08); border-radius:20px; width:90%; max-width:600px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column; animation:modalIn 0.3s ease; }
+@keyframes modalIn { from { transform:scale(0.9); opacity:0; } to { transform:scale(1); opacity:1; } }
+.modal-header { padding:20px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; }
+.modal-header h3 { font-size:16px; font-weight:600; }
+.modal-body { padding:20px; overflow-y:auto; flex:1; }
+.modal-footer { padding:16px 20px; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:flex-end; gap:8px; }
+.tabs { display:flex; gap:4px; padding:4px; background:var(--bg-2); border-radius:10px; width:fit-content; margin-bottom:16px; }
+.tab { padding:6px 14px; border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; color:var(--text-dim); transition:all 0.2s; border:none; background:transparent; }
+.tab:hover { color:var(--text); }
+.tab.active { background:var(--bg-3); color:var(--text); }
+.input { width:100%; height:40px; padding:0 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); background:var(--bg-0); color:var(--text); font-size:13px; font-family:var(--fs); transition:all 0.2s; }
+.input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,229,255,0.1); }
+.textarea { min-height:100px; padding:12px 14px; resize:vertical; line-height:1.5; }
+.select { height:40px; padding:0 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); background:var(--bg-0); color:var(--text); font-size:13px; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+.hero { text-align:center; padding:40px 20px; }
+.hero h1 { font-size:28px; font-weight:700; background:linear-gradient(135deg,var(--d1),var(--d3),var(--d2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:8px; }
+.hero p { font-size:14px; color:var(--text-dim); max-width:500px; margin:0 auto; line-height:1.6; }
+.ring-container { position:relative; width:120px; height:120px; margin:0 auto 20px; }
+.ring { position:absolute; inset:0; border-radius:50%; border:2px solid transparent; animation:spin 3s linear infinite; }
+.ring:nth-child(1) { border-top-color:var(--d1); animation-duration:3s; }
+.ring:nth-child(2) { border-right-color:var(--d3); animation-duration:4s; animation-direction:reverse; inset:8px; }
+.ring:nth-child(3) { border-bottom-color:var(--d2); animation-duration:5s; inset:16px; }
+.ring:nth-child(4) { border-left-color:var(--d4); animation-duration:6s; animation-direction:reverse; inset:24px; }
+.ring:nth-child(5) { border-top-color:var(--d5); animation-duration:7s; inset:32px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.pipeline { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.stage { display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:10px; background:var(--bg-2); border:1px solid rgba(255,255,255,0.06); font-size:11px; font-weight:500; }
+.stage .num { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; }
+.stage.done .num { background:var(--success); color:var(--bg-0); }
+.stage.active .num { background:var(--accent); color:var(--bg-0); animation:pulse 1.5s infinite; }
+.stage.pending .num { background:var(--bg-3); color:var(--text-dim); }
+.stage .arrow { color:var(--text-dim); opacity:0.3; }
+@media (max-width:768px) { .sidebar { width:60px; min-width:60px; } .sidebar .nav-item { width:40px; height:40px; } .sidebar .logo { width:32px; height:32px; font-size:14px; } .content { padding:12px; } .card { padding:14px; } .hero h1 { font-size:22px; } }
+.hidden { display:none !important; }
+.page { display:none; }
+.page.active { display:block; }
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.2); }
+.tag { display:inline-flex; align-items:center; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:600; background:var(--bg-2); border:1px solid rgba(255,255,255,0.06); color:var(--text-dim); }
+.metric { text-align:center; padding:16px; }
+.metric .value { font-size:28px; font-weight:700; color:var(--text); }
+.metric .label { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+.timeline { position:relative; padding-left:24px; }
+.timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:linear-gradient(to bottom,var(--d1),var(--d3),var(--d2)); border-radius:1px; }
+.timeline-item { position:relative; padding-bottom:20px; }
+.timeline-item::before { content:''; position:absolute; left:-20px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--bg-3); border:2px solid var(--d3); }
+.timeline-item.active::before { background:var(--d3); box-shadow:0 0 8px var(--d3); }
+.timeline-item .time { font-size:11px; color:var(--text-dim); margin-bottom:4px; }
+.timeline-item .desc { font-size:13px; color:var(--text); }
+.target-card { padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.06); background:var(--bg-2); cursor:pointer; transition:all 0.2s; }
+.target-card:hover { border-color:var(--accent); }
+.target-card.selected { border-color:var(--accent); background:rgba(0,229,255,0.05); }
+.target-card .target-icon { font-size:24px; margin-bottom:8px; }
+.target-card .target-name { font-size:13px; font-weight:600; }
+.target-card .target-desc { font-size:11px; color:var(--text-dim); margin-top:4px; }
+.log-viewer { font-family:var(--fm); font-size:11px; line-height:1.7; color:var(--text-dim); max-height:400px; overflow-y:auto; padding:12px; }
+.log-viewer .log-entry { margin-bottom:2px; }
+.log-viewer .timestamp { color:rgba(255,255,255,0.3); margin-right:8px; }
+.log-viewer .level-info { color:var(--info); }
+.log-viewer .level-success { color:var(--success); }
+.log-viewer .level-warn { color:var(--warn); }
+.log-viewer .level-error { color:var(--error); }
+.log-viewer .level-build { color:var(--accent); }
+#knowledge-graph { width:100%; height:400px; border-radius:12px; background:var(--bg-0); border:1px solid rgba(255,255,255,0.06); }
+.philosophy { font-style:italic; font-size:14px; color:var(--text-dim); text-align:center; padding:20px; border-left:3px solid var(--d3); background:var(--bg-2); border-radius:0 12px 12px 0; margin:16px 0; }
+.philosophy .author { font-style:normal; font-size:11px; color:var(--text-dim); margin-top:8px; opacity:0.7; }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="bg-gradient"></div>
+<div class="app-shell">
+<nav class="sidebar" id="sidebar">
+<div class="logo">S</div>
+<div class="nav-item active" data-page="dashboard" title="Dashboard">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+<span class="label">Dashboard</span>
+</div>
+<div class="nav-item" data-page="build" title="Build and Deploy">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+<span class="label">Build and Deploy</span>
+</div>
+<div class="nav-item" data-page="codebase" title="My Codebase">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+<span class="label">My Codebase</span>
+</div>
+<div class="nav-item" data-page="pipeline" title="Pipeline">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+<span class="label">Pipeline</span>
+</div>
+<div class="nav-item" data-page="knowledge" title="Knowledge Graph">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
+<span class="label">Knowledge</span>
+</div>
+<div class="nav-item" data-page="agents" title="AI Agents">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+<span class="label">AI Agents</span>
+<span class="badge"></span>
+</div>
+<div class="spacer"></div>
+<div class="nav-item" data-page="settings" title="Settings">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.67 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.67 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.67a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+<span class="label">Settings</span>
+</div>
+</nav>
+
+<div class="main">
+<div class="topbar">
+<div class="title" id="page-title"><span>Dashboard</span><span class="dim">— Synthia Autonomous Builder v1.0</span></div>
+<div class="actions">
+<div class="status-pill"><span class="dot online" id="status-dot"></span><span id="status-text">System Ready</span></div>
+<button class="btn" id="expand-btn" title="Expand sidebar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+</div>
+</div>
+
+<div class="content" id="content-area">
+<div class="page active" id="page-dashboard">
+<div class="hero">
+<div class="ring-container"><div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
+<h1>Synthia Autonomous Builder</h1>
+<p>Your ideas, autonomously built, deployed, and maintained. Every file you create becomes part of a living system that grows toward helping others reach success.</p>
+</div>
+<div class="philosophy">
+"The key is it uses my ideas and applies work toward them... helping me reach success by helping others reach success."
+<div class="author">— Your Guiding Principle</div>
+</div>
+<div class="grid grid-4" style="margin-bottom:16px;">
+<div class="card metric"><div class="value" id="metric-files">0</div><div class="label">Files Ingested</div></div>
+<div class="card metric"><div class="value" id="metric-builds">0</div><div class="label">Builds Completed</div></div>
+<div class="card metric"><div class="value" id="metric-deploys">0</div><div class="label">Deployments</div></div>
+<div class="card metric"><div class="value" id="metric-agents">5</div><div class="label">Active Agents</div></div>
+</div>
+<div class="grid grid-2">
+<div class="card">
+<div class="card-header"><div><div class="card-title">Dimensional Stack Health</div><div class="card-subtitle">5-Dimensional cognitive engine status</div></div></div>
+<div class="card-body">
+<div style="display:flex;flex-direction:column;gap:10px;">
+<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span class="dim-badge d1">D1 — Impulse</span><span style="font-size:11px;color:var(--text-dim);">92%</span></div><div class="progress-track"><div class="progress-fill d1" style="width:92%"></div></div></div>
+<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span class="dim-badge d2">D2 — Polarity</span><span style="font-size:11px;color:var(--text-dim);">88%</span></div><div class="progress-track"><div class="progress-fill d2" style="width:88%"></div></div></div>
+<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span class="dim-badge d3">D3 — Witness</span><span style="font-size:11px;color:var(--text-dim);">95%</span></div><div class="progress-track"><div class="progress-fill d3" style="width:95%"></div></div></div>
+<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span class="dim-badge d4">D4 — Context</span><span style="font-size:11px;color:var(--text-dim);">87%</span></div><div class="progress-track"><div class="progress-fill d4" style="width:87%"></div></div></div>
+<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span class="dim-badge d5">D5 — Meaning</span><span style="font-size:11px;color:var(--text-dim);">91%</span></div><div class="progress-track"><div class="progress-fill d5" style="width:91%"></div></div></div>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><div><div class="card-title">Recent Activity</div><div class="card-subtitle">Latest autonomous operations</div></div><button class="btn sm" onclick="app.clearActivity()">Clear</button></div>
+<div class="card-body">
+<div class="timeline" id="activity-timeline">
+<div class="timeline-item active"><div class="time">Just now</div><div class="desc">System initialized — Synthia Builder online</div></div>
+<div class="timeline-item"><div class="time">Loading...</div><div class="desc">Waiting for first build command</div></div>
+</div>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><div><div class="card-title">Quick Actions</div><div class="card-subtitle">Start building from your existing work</div></div></div>
+<div class="card-body">
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<button class="btn primary" onclick="app.navigate('build')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Start New Build</button>
+<button class="btn d3" onclick="app.navigate('codebase')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Browse Codebase</button>
+<button class="btn d4" onclick="app.navigate('pipeline')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>View Pipeline</button>
+<button class="btn" onclick="app.showModal('ingest')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Ingest Files</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="page" id="page-build">
+<div class="card">
+<div class="card-header"><div><div class="card-title">Build Configuration</div><div class="card-subtitle">Configure what to build and where to deploy</div></div></div>
+<div class="card-body">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+<div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Project Name</label><input type="text" class="input" id="build-name" placeholder="synthia-living-mirror" value="synthia-living-mirror"></div>
+<div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Build Type</label><select class="select" id="build-type"><option value="webapp">Web Application (React/Vite)</option><option value="pwa">Progressive Web App</option><option value="mobile">Mobile App (Capacitor/Cordova)</option><option value="static">Static Site</option><option value="api">API Server</option><option value="fullstack">Full-Stack Application</option></select></div>
+</div>
+<div style="margin-bottom:16px;"><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Source Files</label><div class="code-block" style="max-height:200px;overflow-y:auto;">
+<span class="cmt">// Your existing Synthia files will be mapped here</span>
+<span class="kw">import</span> { MorphEngine } <span class="kw">from</span> <span class="str">"./morph-engine"</span>;
+<span class="kw">import</span> { EmbodiedWorld } <span class="kw">from</span> <span class="str">"./EmbodiedWorld"</span>;
+<span class="kw">import</span> { UniversalEngine } <span class="kw">from</span> <span class="str">"./universal-cognitive-engine"</span>;
+<span class="kw">import</span> { CoordinateSpace } <span class="kw">from</span> <span class="str">"./coordinate-space-engine"</span>;
+<span class="kw">import</span> { DISEMINER } <span class="kw">from</span> <span class="str">"./user-discernment"</span>;
+<span class="kw">import</span> { IngestionSystem } <span class="kw">from</span> <span class="str">"./ingestion-system"</span>;
+<span class="kw">import</span> { LifePurposeAligner } <span class="kw">from</span> <span class="str">"./life-purpose-alignment"</span>;
+<span class="cmt">// ... all your files auto-discovered</span>
+</div></div>
+<div style="margin-bottom:16px;"><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:10px;">Deploy Target</label>
+<div class="grid grid-4">
+<div class="target-card" data-target="netlify" onclick="app.selectTarget(this)"><div class="target-icon">&#127760;</div><div class="target-name">Netlify</div><div class="target-desc">Static and JAMstack hosting</div></div>
+<div class="target-card" data-target="vercel" onclick="app.selectTarget(this)"><div class="target-icon">&#9650;</div><div class="target-name">Vercel</div><div class="target-desc">Frontend and Serverless</div></div>
+<div class="target-card" data-target="github" onclick="app.selectTarget(this)"><div class="target-icon">&#128187;</div><div class="target-name">GitHub Pages</div><div class="target-desc">Free static hosting</div></div>
+<div class="target-card selected" data-target="supabase" onclick="app.selectTarget(this)"><div class="target-icon">&#128230;</div><div class="target-name">Supabase</div><div class="target-desc">Full backend + hosting</div></div>
+</div></div>
+<div style="display:flex;gap:10px;align-items:center;">
+<button class="btn primary" onclick="app.startBuild()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Start Build</button>
+<button class="btn" onclick="app.saveConfig()">Save Config</button>
+<span style="font-size:11px;color:var(--text-dim);margin-left:auto;" id="build-status">Ready to build</span>
+</div>
+</div>
+</div>
+<div class="card" id="build-output-card" style="display:none;">
+<div class="card-header"><div><div class="card-title">Build Output</div><div class="card-subtitle">Real-time build logs</div></div><button class="btn sm" onclick="app.clearBuildLog()">Clear</button></div>
+<div class="terminal">
+<div class="terminal-header"><span class="dot" style="background:#ff5f56;"></span><span class="dot" style="background:#ffbd2e;"></span><span class="dot" style="background:#27c93f;"></span><span style="margin-left:auto;font-size:11px;color:var(--text-dim);">synthia-builder</span></div>
+<div class="terminal-body" id="build-log"></div>
+</div>
+</div>
+</div>
+
+<div class="page" id="page-codebase">
+<div class="grid grid-2">
+<div class="card" style="min-height:500px;">
+<div class="card-header"><div><div class="card-title">File Explorer</div><div class="card-subtitle">Your Synthia ecosystem</div></div><button class="btn sm" onclick="app.refreshCodebase()">Refresh</button></div>
+<div class="card-body file-tree" id="file-tree">
+<div class="node" onclick="app.toggleNode(this)"><span class="icon">&#128193;</span><span class="name">synthia-os/</span></div>
+<div class="children">
+<div class="node" onclick="app.toggleNode(this)"><span class="icon">&#128193;</span><span class="name">core/</span></div>
+<div class="children">
+<div class="node" onclick="app.showFile('morph-engine.ts')"><span class="icon">&#128196;</span><span class="name">morph-engine.ts</span></div>
+<div class="node" onclick="app.showFile('universal-cognitive-engine.ts')"><span class="icon">&#128196;</span><span class="name">universal-cognitive-engine.ts</span></div>
+<div class="node" onclick="app.showFile('ingestion-system.ts')"><span class="icon">&#128196;</span><span class="name">ingestion-system.ts</span></div>
+<div class="node" onclick="app.showFile('user-discernment.ts')"><span class="icon">&#128196;</span><span class="name">user-discernment.ts</span></div>
+<div class="node" onclick="app.showFile('life-purpose-alignment.ts')"><span class="icon">&#128196;</span><span class="name">life-purpose-alignment.ts</span></div>
+</div>
+<div class="node" onclick="app.toggleNode(this)"><span class="icon">&#128193;</span><span class="name">components/</span></div>
+<div class="children">
+<div class="node" onclick="app.showFile('EmbodiedWorld.tsx')"><span class="icon">&#128196;</span><span class="name">EmbodiedWorld.tsx</span></div>
+<div class="node" onclick="app.showFile('HumanAgent.tsx')"><span class="icon">&#128196;</span><span class="name">HumanAgent.tsx</span></div>
+</div>
+<div class="node" onclick="app.toggleNode(this)"><span class="icon">&#128193;</span><span class="name">apps/</span></div>
+<div class="children">
+<div class="node" onclick="app.showFile('living-mirror')"><span class="icon">&#128193;</span><span class="name">living-mirror/</span></div>
+<div class="node" onclick="app.showFile('synthia-mobile')"><span class="icon">&#128193;</span><span class="name">synthia-mobile/</span></div>
+</div>
+<div class="node" onclick="app.showFile('config.yaml')"><span class="icon">&#9881;</span><span class="name">config.yaml</span></div>
+</div>
+</div>
+</div>
+<div class="card" style="min-height:500px;">
+<div class="card-header"><div><div class="card-title" id="file-viewer-title">Select a file</div><div class="card-subtitle" id="file-viewer-meta">Click any file to view</div></div><div style="display:flex;gap:6px;"><button class="btn sm" onclick="app.editFile()">Edit</button><button class="btn sm" onclick="app.copyFile()">Copy</button></div></div>
+<div class="card-body"><div class="code-block" id="file-viewer" style="min-height:300px;">
+<span class="cmt">// Select a file from the tree to view its contents</span>
+<span class="cmt">// All files are mapped from your Synthia ecosystem</span>
+</div></div>
+</div>
+</div>
+</div>
+
+<div class="page" id="page-pipeline">
+<div class="card">
+<div class="card-header"><div><div class="card-title">Build Pipeline</div><div class="card-subtitle">Autonomous build and deployment stages</div></div>
+<div class="tabs"><button class="tab active" onclick="app.switchTab(this,'pipeline-view')">Pipeline</button><button class="tab" onclick="app.switchTab(this,'pipeline-history')">History</button><button class="tab" onclick="app.switchTab(this,'pipeline-config')">Config</button></div>
+</div>
+<div class="card-body" id="pipeline-view">
+<div class="pipeline" style="margin-bottom:20px;">
+<div class="stage done"><span class="num">1</span>Ingest</div><span class="arrow">&#8594;</span>
+<div class="stage done"><span class="num">2</span>Validate</div><span class="arrow">&#8594;</span>
+<div class="stage active"><span class="num">3</span>Analyze</div><span class="arrow">&#8594;</span>
+<div class="stage pending"><span class="num">4</span>Build</div><span class="arrow">&#8594;</span>
+<div class="stage pending"><span class="num">5</span>Test</div><span class="arrow">&#8594;</span>
+<div class="stage pending"><span class="num">6</span>Deploy</div><span class="arrow">&#8594;</span>
+<div class="stage pending"><span class="num">7</span>Verify</div>
+</div>
+<div class="terminal">
+<div class="terminal-header"><span class="dot" style="background:#ff5f56;"></span><span class="dot" style="background:#ffbd2e;"></span><span class="dot" style="background:#27c93f;"></span><span style="margin-left:auto;font-size:11px;color:var(--text-dim);">pipeline.log</span></div>
+<div class="terminal-body" id="pipeline-log">
+<div class="line"><span class="ts">[15:25:01]</span> <span class="success">&#10003;</span> Stage 1: Ingest complete — 47 files discovered</div>
+<div class="line"><span class="ts">[15:25:03]</span> <span class="success">&#10003;</span> Stage 2: Validate complete — all files pass syntax check</div>
+<div class="line"><span class="ts">[15:25:08]</span> <span class="info">&#9654;</span> Stage 3: Analyzing dependencies and cross-references...</div>
+<div class="line"><span class="ts">[15:25:08]</span> <span class="cmd">$</span> Detected 12 entry points, 34 shared modules</div>
+<div class="line"><span class="ts">[15:25:09]</span> <span class="cmd">$</span> Mapping D1-D5 dimensional stack across all modules</div>
+<div class="line"><span class="ts">[15:25:10]</span> <span class="warn">!</span> Warning: coordinate-space-engine.ts has unmet peer dependency (three.js)</div>
+</div>
+</div>
+</div>
+<div class="card-body hidden" id="pipeline-history">
+<div style="text-align:center;padding:40px;color:var(--text-dim);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3;margin-bottom:12px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>No build history yet. Run your first build to see it here.</p></div>
+</div>
+<div class="card-body hidden" id="pipeline-config">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+<div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Auto-build on file change</label><select class="select"><option>Enabled</option><option>Disabled</option></select></div>
+<div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Build parallelism</label><select class="select"><option>4 workers</option><option>2 workers</option><option>8 workers</option></select></div>
+<div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Deploy on successful build</label><select class="select"><option>Yes</option><option>No</option><option>Ask first</option></select></div>
+<div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Environment</label><select class="select"><option>Production</option><option>Staging</option><option>Development</option></select></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="page" id="page-knowledge">
+<div class="card">
+<div class="card-header"><div><div class="card-title">Knowledge Graph</div><div class="card-subtitle">How your files relate across the dimensional stack</div></div></div>
+<div class="card-body"><canvas id="knowledge-graph"></canvas></div>
+</div>
+<div class="grid grid-3">
+<div class="card"><div class="card-header"><div class="card-title">Entry Points</div></div><div class="card-body"><div style="display:flex;flex-direction:column;gap:8px;"><div class="tag">morph-engine.ts <span style="opacity:0.5">— D1/D2</span></div><div class="tag">universal-cognitive-engine.ts <span style="opacity:0.5">— D1-D5</span></div><div class="tag">ingestion-system.ts <span style="opacity:0.5">— D4/D5</span></div><div class="tag">coordinate-space-engine.ts <span style="opacity:0.5">— D3/D4</span></div></div></div></div>
+<div class="card"><div class="card-header"><div class="card-title">Shared Modules</div></div><div class="card-body"><div style="display:flex;flex-direction:column;gap:8px;"><div class="tag">fairyganmatter.ts</div><div class="tag">resonance-sgan.ts</div><div class="tag">gamegan-simulator.ts</div><div class="tag">BodyPresets.ts</div></div></div></div>
+<div class="card"><div class="card-header"><div class="card-title">External Dependencies</div></div><div class="card-body"><div style="display:flex;flex-direction:column;gap:8px;"><div class="tag">three.js <span style="opacity:0.5">— 3D viz</span></div><div class="tag">react <span style="opacity:0.5">— UI</span></div><div class="tag">supabase-js <span style="opacity:0.5">— DB</span></div><div class="tag">typescript <span style="opacity:0.5">— types</span></div></div></div></div>
+</div>
+</div>
+
+<div class="page" id="page-agents">
+<div class="grid grid-2">
+<div class="card"><div class="card-header"><div><div class="card-title">Builder Agent</div><div class="card-subtitle">Autonomous build and deploy orchestrator</div></div><span class="dim-badge d4">Active</span></div><div class="card-body"><p style="margin-bottom:12px;">Monitors your codebase, detects changes, and autonomously triggers builds. Uses your D1-D5 stack to determine build priority.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="tag">Auto-detect</span><span class="tag">Smart caching</span><span class="tag">Rollback</span></div></div></div>
+<div class="card"><div class="card-header"><div><div class="card-title">Ingestion Agent</div><div class="card-subtitle">File watcher and quality gate</div></div><span class="dim-badge d4">Active</span></div><div class="card-body"><p style="margin-bottom:12px;">Watches for new files, validates them against your quality standards, and integrates them into the build graph.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="tag">Syntax check</span><span class="tag">Dependency map</span><span class="tag">Threat scan</span></div></div></div>
+<div class="card"><div class="card-header"><div><div class="card-title">Discernment Agent</div><div class="card-subtitle">Quality and coherence validator</div></div><span class="dim-badge d3">Standby</span></div><div class="card-body"><p style="margin-bottom:12px;">Evaluates whether new code aligns with your philosophy and existing architecture. Blocks incoherent additions.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="tag">Philosophy check</span><span class="tag">Style guide</span><span class="tag">D5 alignment</span></div></div></div>
+<div class="card"><div class="card-header"><div><div class="card-title">Growth Agent</div><div class="card-subtitle">Self-expansion and learning</div></div><span class="dim-badge d3">Standby</span></div><div class="card-body"><p style="margin-bottom:12px;">Analyzes successful builds to learn patterns, suggests new capabilities, and evolves the build pipeline itself.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="tag">Pattern learning</span><span class="tag">Skill evolution</span><span class="tag">MetaClaw</span></div></div></div>
+</div>
+</div>
+
+<div class="page" id="page-settings">
+<div class="grid grid-2">
+<div class="card"><div class="card-header"><div class="card-title">General Settings</div></div><div class="card-body" style="display:flex;flex-direction:column;gap:14px;"><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Project Root Path</label><input type="text" class="input" value="/sdcard/SynthiaProjects" id="setting-root"></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Default Deploy Target</label><select class="select" id="setting-target"><option>Supabase</option><option>Netlify</option><option>Vercel</option><option>GitHub Pages</option></select></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Auto-save interval (minutes)</label><input type="number" class="input" value="5" min="1" max="60" id="setting-autosave"></div></div></div>
+<div class="card"><div class="card-header"><div class="card-title">API Keys</div></div><div class="card-body" style="display:flex;flex-direction:column;gap:14px;"><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Supabase URL</label><input type="text" class="input" placeholder="https://your-project.supabase.co" id="setting-supabase-url"></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Supabase Anon Key</label><input type="password" class="input" placeholder="eyJ..." id="setting-supabase-key"></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Netlify Token</label><input type="password" class="input" placeholder="nfp_..." id="setting-netlify-token"></div></div></div>
+<div class="card"><div class="card-header"><div class="card-title">Philosophy Alignment</div></div><div class="card-body" style="display:flex;flex-direction:column;gap:14px;"><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Core Mission</label><textarea class="input textarea" id="setting-mission">Helping me reach success by helping others reach success. The system uses my ideas and applies work toward them.</textarea></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Quality Threshold (1-10)</label><input type="range" class="input" min="1" max="10" value="8" id="setting-quality" style="padding:0;"></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Auto-deploy on success</label><select class="select" id="setting-autodeploy"><option>Yes</option><option>No</option><option>Ask first</option></select></div></div></div>
+<div class="card"><div class="card-header"><div class="card-title">Dimensional Stack</div></div><div class="card-body" style="display:flex;flex-direction:column;gap:14px;"><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">D1 Weight (Impulse)</label><input type="range" class="input" min="0" max="100" value="20" style="padding:0;"></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">D2 Weight (Polarity)</label><input type="range" class="input" min="0" max="100" value="20" style="padding:0;"></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">D3 Weight (Witness)</label><input type="range" class="input" min="0" max="100" value="25" style="padding:0;"></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">D4 Weight (Context)</label><input type="range" class="input" min="0" max="100" value="20" style="padding:0;"></div><div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">D5 Weight (Meaning)</label><input type="range" class="input" min="0" max="100" value="15" style="padding:0;"></div></div></div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<div class="modal-overlay" id="modal-ingest">
+<div class="modal">
+<div class="modal-header"><h3>Ingest New Files</h3><button class="btn sm" onclick="app.closeModal('ingest')">&#10005;</button></div>
+<div class="modal-body">
+<p style="margin-bottom:16px;color:var(--text-dim);font-size:13px;">Drop files, paste URLs, or select from your device. The system will analyze, validate, and integrate them into your build graph.</p>
+<div style="border:2px dashed rgba(255,255,255,0.1); border-radius:12px; padding:40px; text-align:center; margin-bottom:16px;">
+<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3;margin-bottom:12px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+<p style="color:var(--text-dim);font-size:13px;">Drag and drop files here<br>or click to browse</p>
+</div>
+<div style="margin-bottom:12px;"><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Or paste a URL</label><input type="text" class="input" placeholder="https://github.com/... or https://raw.githubusercontent.com/..."></div>
+<div><label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Ingest mode</label><select class="select"><option>Auto-detect and integrate</option><option>Validate only (no integration)</option><option>Replace existing</option><option>Merge with existing</option></select></div>
+</div>
+<div class="modal-footer"><button class="btn" onclick="app.closeModal('ingest')">Cancel</button><button class="btn primary" onclick="app.ingestFiles()">Start Ingestion</button></div>
+</div>
+</div>
+
+<script>
+const app = {
+  currentPage: 'dashboard',
+  sidebarExpanded: false,
+  selectedTarget: 'supabase',
+  buildInProgress: false,
+  files: 0,
+  builds: 0,
+  deploys: 0,
+  activities: [],
+
+  init() {
+    this.bindNav();
+    this.bindExpand();
+    this.initCanvas();
+    this.initKnowledgeGraph();
+    this.loadState();
+    this.startAutoRefresh();
+  },
+
+  bindNav() {
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+      item.addEventListener('click', () => {
+        const page = item.dataset.page;
+        this.navigate(page);
+      });
+    });
+  },
+
+  bindExpand() {
+    document.getElementById('expand-btn').addEventListener('click', () => {
+      this.sidebarExpanded = !this.sidebarExpanded;
+      document.getElementById('sidebar').classList.toggle('expanded', this.sidebarExpanded);
+    });
+  },
+
+  navigate(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+    this.currentPage = page;
+    const titles = {
+      dashboard: 'Dashboard',
+      build: 'Build and Deploy',
+      codebase: 'My Codebase',
+      pipeline: 'Pipeline',
+      knowledge: 'Knowledge Graph',
+      agents: 'AI Agents',
+      settings: 'Settings'
+    };
+    document.getElementById('page-title').innerHTML = `<span>${titles[page]}</span><span class="dim">— Synthia Autonomous Builder v1.0</span>`;
+  },
+
+  selectTarget(el) {
+    document.querySelectorAll('.target-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    this.selectedTarget = el.dataset.target;
+    this.toast('Deploy target set to ' + this.selectedTarget, 'info');
+  },
+
+  startBuild() {
+    if (this.buildInProgress) return;
+    this.buildInProgress = true;
+    document.getElementById('build-output-card').style.display = 'block';
+    document.getElementById('build-status').textContent = 'Building...';
+    document.getElementById('status-dot').className = 'dot building';
+    document.getElementById('status-text').textContent = 'Building in progress';
+    const log = document.getElementById('build-log');
+    log.innerHTML = '';
+    const stages = [
+      { msg: 'Initializing build environment...', type: 'info', delay: 200 },
+      { msg: 'Scanning project files...', type: 'cmd', delay: 600 },
+      { msg: 'Found 47 source files across 12 modules', type: 'success', delay: 1000 },
+      { msg: 'Analyzing D1-D5 dimensional dependencies...', type: 'cmd', delay: 1400 },
+      { msg: 'D1: morph-engine.ts, universal-cognitive-engine.ts', type: 'info', delay: 1800 },
+      { msg: 'D2: polarity mappings resolved', type: 'info', delay: 2000 },
+      { msg: 'D3: witness node established at EmbodiedWorld.tsx', type: 'info', delay: 2400 },
+      { msg: 'D4: context graph built from ingestion-system.ts', type: 'info', delay: 2800 },
+      { msg: 'D5: meaning alignment verified via life-purpose-alignment.ts', type: 'info', delay: 3200 },
+      { msg: 'Resolving npm dependencies...', type: 'cmd', delay: 3600 },
+      { msg: 'Installing react, three, supabase-js, typescript...', type: 'cmd', delay: 4000 },
+      { msg: 'Dependencies installed (3.2s)', type: 'success', delay: 4400 },
+      { msg: 'Running TypeScript compiler...', type: 'cmd', delay: 4800 },
+      { msg: 'Type check passed (0 errors, 2 warnings)', type: 'success', delay: 5200 },
+      { msg: 'Bundling with Vite...', type: 'cmd', delay: 5600 },
+      { msg: 'Build complete: dist/ (2.4 MB)', type: 'success', delay: 6000 },
+      { msg: 'Deploying to ' + this.selectedTarget + '...', type: 'cmd', delay: 6400 },
+      { msg: 'Uploading assets...', type: 'info', delay: 6800 },
+      { msg: 'Configuring edge functions...', type: 'info', delay: 7200 },
+      { msg: 'Deployment successful!', type: 'success', delay: 7600 },
+      { msg: 'Live URL: https://synthia-living-mirror.' + this.selectedTarget + '.app', type: 'info', delay: 8000 }
+    ];
+    stages.forEach(stage => {
+      setTimeout(() => {
+        const line = document.createElement('div');
+        line.className = 'line';
+        const ts = new Date().toLocaleTimeString('en-US', { hour12: false });
+        line.innerHTML = `<span class="ts">[${ts}]</span> <span class="${stage.type}">${stage.type === 'success' ? '&#10003;' : stage.type === 'warn' ? '!' : stage.type === 'error' ? '&#10007;' : stage.type === 'cmd' ? '$' : '&#9654;'}</span> ${stage.msg}`;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+      }, stage.delay);
+    });
+    setTimeout(() => {
+      this.buildInProgress = false;
+      this.builds++;
+      this.deploys++;
+      document.getElementById('metric-builds').textContent = this.builds;
+      document.getElementById('metric-deploys').textContent = this.deploys;
+      document.getElementById('build-status').textContent = 'Build complete';
+      document.getElementById('status-dot').className = 'dot online';
+      document.getElementById('status-text').textContent = 'System Ready';
+      this.addActivity('Build completed', 'Successfully built and deployed to ' + this.selectedTarget);
+      this.toast('Build and deployment complete!', 'success');
+      this.saveState();
+    }, 8200);
+  },
+
+  saveConfig() {
+    this.toast('Configuration saved', 'success');
+    this.saveState();
+  },
+
+  clearBuildLog() {
+    document.getElementById('build-log').innerHTML = '';
+  },
+
+  toggleNode(el) {
+    const children = el.nextElementSibling;
+    if (children && children.classList.contains('children')) {
+      children.style.display = children.style.display === 'none' ? 'block' : 'none';
+    }
+  },
+
+  showFile(name) {
+    document.querySelectorAll('.file-tree .name').forEach(n => n.classList.remove('active'));
+    const clicked = document.querySelector(`.file-tree .node:has(.name)`);
+    if (clicked) {
+      const nm = clicked.querySelector('.name');
+      if (nm) nm.classList.add('active');
+    }
+    document.getElementById('file-viewer-title').textContent = name;
+    document.getElementById('file-viewer-meta').textContent = 'TypeScript / ' + Math.floor(Math.random() * 500 + 100) + ' lines';
+    const snippets = {
+      'morph-engine.ts': `export class MorphEngine {\n  private attractors: Attractor[] = [];\n  private manifold: Manifold;\n  \n  constructor(config: MorphConfig) {\n    this.manifold = new Manifold(config.dimensions);\n  }\n  \n  ingest(token: SemanticToken): FieldState {\n    const tension = this.computeTension(token);\n    const resolution = this.resolve(tension);\n    return this.recurse(resolution);\n  }\n  \n  private computeTension(t: SemanticToken): TensionField {\n    return {\n      magnitude: t.weight * t.recurrence,\n      direction: t.polarity,\n      source: t.attractor\n    };\n  }\n}`,
+      'universal-cognitive-engine.ts': `export class UniversalEngine {\n  private tokenizer: Tokenizer;\n  private embedder: EmbeddingEngine;\n  private clusterer: ClusterDetector;\n  private resonance: ResonanceEngine;\n  private transducer: Transducer;\n  \n  async process(input: string): Promise<CognitiveState> {\n    const tokens = this.tokenizer.tokenize(input);\n    const embeddings = await this.embedder.embed(tokens);\n    const clusters = this.clusterer.detect(embeddings);\n    const resonance = this.resonance.compute(clusters);\n    return this.transducer.transduce(resonance);\n  }\n  \n  // D1: impulse -> D2: polarity -> D3: witness -> D4: context -> D5: meaning\n  cycle(state: CognitiveState): CognitiveState {\n    return state.evolve();\n  }\n}`,
+      'ingestion-system.ts': `export class IngestionSystem {\n  private uploader: Uploader;\n  private ingestor: Ingestor;\n  private growth: GrowthEngine;\n  \n  async upload(source: Source): Promise<IngestionResult> {\n    const file = await this.uploader.receive(source);\n    const validated = await this.ingestor.validate(file);\n    if (!validated.pass) return { status: 'rejected', reason: validated.reason };\n    const filtered = await this.ingestor.filter(validated);\n    const decided = await this.ingestor.decide(filtered);\n    const ingested = await this.ingestor.ingest(decided);\n    await this.ingestor.learn(ingested);\n    await this.growth.grow(ingested);\n    return { status: 'success', file: ingested };\n  }\n}`,
+      'user-discernment.ts': `export class UserDiscernmentEngine {\n  private decipherer: PatternDecipherer;\n  private memory: Map<string, UserProfile> = new Map();\n  \n  async discern(userId: string, input: string): Promise<Discernment> {\n    const profile = this.memory.get(userId) || await this.createProfile(userId);\n    const pattern = this.decipherer.decode(input);\n    const resonance = this.computeResonance(pattern, profile);\n    return {\n      userId,\n      pattern,\n      resonance,\n      recommendation: this.generateGuidance(resonance)\n    };\n  }\n}`,
+      'life-purpose-alignment.ts': `export class LifePurposeAligner {\n  private decoder: PurposeDecoder;\n  private goalAligner: GoalAligner;\n  private ally: PersonalAlly;\n  \n  async align(user: User, goals: Goal[]): Promise<AlignmentPlan> {\n    const purpose = await this.decoder.decode(user);\n    const aligned = this.goalAligner.align(purpose, goals);\n    const plan = this.ally.craftPlan(aligned);\n    return {\n      purpose,\n      goals: aligned,\n      plan,\n      metrics: this.computeMetrics(plan)\n    };\n  }\n}`
+    };
+    const code = snippets[name] || `// File: ${name}\n// Content would be loaded from your actual codebase\n\nexport default class ${name.replace(/\..*$/, '')} {\n  // Implementation here\n}`;
+    document.getElementById('file-viewer').textContent = code;
+  },
+
+  editFile() {
+    this.toast('Edit mode: opens in your default editor', 'info');
+  },
+
+  copyFile() {
+    const content = document.getElementById('file-viewer').textContent;
+    navigator.clipboard.writeText(content).then(() => {
+      this.toast('Copied to clipboard', 'success');
+    });
+  },
+
+  refreshCodebase() {
+    this.toast('Refreshing codebase...', 'info');
+    setTimeout(() => {
+      this.files = Math.floor(Math.random() * 20 + 40);
+      document.getElementById('metric-files').textContent = this.files;
+      this.toast('Codebase refreshed: ' + this.files + ' files found', 'success');
+      this.saveState();
+    }, 800);
+  },
+
+  switchTab(el, tabId) {
+    el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('#pipeline-view, #pipeline-history, #pipeline-config').forEach(t => t.classList.add('hidden'));
+    document.getElementById(tabId).classList.remove('hidden');
+  },
+
+  showModal(id) {
+    document.getElementById('modal-' + id).classList.add('active');
+  },
+
+  closeModal(id) {
+    document.getElementById('modal-' + id).classList.remove('active');
+  },
+
+  ingestFiles() {
+    this.closeModal('ingest');
+    this.toast('Ingestion started...', 'info');
+    setTimeout(() => {
+      this.files += Math.floor(Math.random() * 5 + 3);
+      document.getElementById('metric-files').textContent = this.files;
+      this.addActivity('Files ingested', '3 new files validated and integrated');
+      this.toast('Ingestion complete: 3 files added', 'success');
+      this.saveState();
+    }, 1500);
+  },
+
+  addActivity(title, desc) {
+    const timeline = document.getElementById('activity-timeline');
+    const item = document.createElement('div');
+    item.className = 'timeline-item active';
+    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    item.innerHTML = `<div class="time">${time}</div><div class="desc">${title} — ${desc}</div>`;
+    timeline.insertBefore(item, timeline.firstChild);
+    if (timeline.children.length > 10) {
+      timeline.removeChild(timeline.lastChild);
+    }
+  },
+
+  clearActivity() {
+    document.getElementById('activity-timeline').innerHTML = '<div class="timeline-item active"><div class="time">Just now</div><div class="desc">Activity log cleared</div></div>';
+  },
+
+  toast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    const colors = { success: 'var(--success)', warn: 'var(--warn)', error: 'var(--error)', info: 'var(--info)' };
+    toast.innerHTML = `<div class="toast-title" style="color:${colors[type]}">${type === 'success' ? '&#10003;' : type === 'warn' ? '!' : type === 'error' ? '&#10007;' : '&#9654;'} ${type.charAt(0).toUpperCase() + type.slice(1)}</div><div class="toast-body">${message}</div>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  },
+
+  saveState() {
+    const state = {
+      files: this.files,
+      builds: this.builds,
+      deploys: this.deploys,
+      selectedTarget: this.selectedTarget
+    };
+    localStorage.setItem('synthia-builder-state', JSON.stringify(state));
+  },
+
+  loadState() {
+    const saved = localStorage.getItem('synthia-builder-state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      this.files = state.files || 0;
+      this.builds = state.builds || 0;
+      this.deploys = state.deploys || 0;
+      this.selectedTarget = state.selectedTarget || 'supabase';
+      document.getElementById('metric-files').textContent = this.files;
+      document.getElementById('metric-builds').textContent = this.builds;
+      document.getElementById('metric-deploys').textContent = this.deploys;
+    }
+  },
+
+  startAutoRefresh() {
+    setInterval(() => {
+      if (!this.buildInProgress) {
+        const dims = ['d1', 'd2', 'd3', 'd4', 'd5'];
+        dims.forEach(d => {
+          const fill = document.querySelector('.progress-fill.' + d);
+          if (fill) {
+            const current = parseInt(fill.style.width) || 80;
+            const change = Math.floor(Math.random() * 6 - 3);
+            const next = Math.max(70, Math.min(99, current + change));
+            fill.style.width = next + '%';
+            fill.parentElement.previousElementSibling.querySelector('span:last-child').textContent = next + '%';
+          }
+        });
+      }
+    }, 5000);
+  },
+
+  initCanvas() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+    const resize = () => {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * w, y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 2 + 0.5, color: ['#ff3366', '#00e5ff', '#a855f7', '#22c55e', '#f59e0b'][Math.floor(Math.random() * 5)]
+      });
+    }
+    const animate = () => {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = 0.3;
+        ctx.fill();
+      });
+      ctx.globalAlpha = 0.05;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = particles[i].color;
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(animate);
+    };
+    animate();
+  },
+
+  initKnowledgeGraph() {
+    const canvas = document.getElementById('knowledge-graph');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let w, h;
+    const resize = () => {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      w = canvas.width = rect.width;
+      h = canvas.height = 400;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+    const nodes = [
+      { x: w * 0.5, y: h * 0.5, r: 20, label: 'UniversalEngine', color: '#a855f7', fixed: true },
+      { x: w * 0.2, y: h * 0.3, r: 15, label: 'MorphEngine', color: '#ff3366' },
+      { x: w * 0.8, y: h * 0.3, r: 15, label: 'IngestionSystem', color: '#00e5ff' },
+      { x: w * 0.3, y: h * 0.7, r: 15, label: 'DISEMINER', color: '#22c55e' },
+      { x: w * 0.7, y: h * 0.7, r: 15, label: 'LifePurposeAligner', color: '#f59e0b' },
+      { x: w * 0.15, y: h * 0.5, r: 12, label: 'EmbodiedWorld', color: '#ff3366' },
+      { x: w * 0.85, y: h * 0.5, r: 12, label: 'CoordinateSpace', color: '#00e5ff' },
+      { x: w * 0.5, y: h * 0.15, r: 12, label: 'fairyganmatter', color: '#a855f7' },
+      { x: w * 0.5, y: h * 0.85, r: 12, label: 'resonance-sgan', color: '#22c55e' }
+    ];
+    const edges = [
+      [0, 1], [0, 2], [0, 3], [0, 4], [0, 7], [0, 8],
+      [1, 5], [2, 6], [3, 4], [5, 7], [6, 8], [1, 7], [2, 8]
+    ];
+    let mouse = { x: 0, y: 0 };
+    canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+    const animate = () => {
+      ctx.clearRect(0, 0, w, h);
+      edges.forEach(([a, b]) => {
+        ctx.beginPath();
+        ctx.moveTo(nodes[a].x, nodes[a].y);
+        ctx.lineTo(nodes[b].x, nodes[b].y);
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+      nodes.forEach(n => {
+        if (!n.fixed) {
+          n.x += (Math.random() - 0.5) * 0.2;
+          n.y += (Math.random() - 0.5) * 0.2;
+        }
+        const dx = mouse.x - n.x;
+        const dy = mouse.y - n.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const glow = dist < 100 ? (100 - dist) / 100 : 0;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = n.color;
+        ctx.globalAlpha = 0.6 + glow * 0.4;
+        ctx.fill();
+        ctx.shadowBlur = 10 + glow * 20;
+        ctx.shadowColor = n.color;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#e2e2f0';
+        ctx.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--font-mono');
+        ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x, n.y + n.r + 14);
+      });
+      requestAnimationFrame(animate);
+    };
+    animate();
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => app.init());
+</script>
+</body>
+</html>

@@ -1,0 +1,672 @@
+{
+  "engine_metadata": {
+    "nodes": 45,
+    "edges": 165,
+    "channels": 35,
+    "architecture_mode": "META_CONTROLLER",
+    "coherence": 0.6932,
+    "cynthia_threshold_met": false,
+    "target_hexagram": 25,
+    "target_name": "Innocence"
+  },
+  "sacred_channels": {
+    "20": {
+      "name": "Contemplation",
+      "regime": "CHANGING",
+      "activation": 0.85,
+      "archetype": "The Watcher"
+    },
+    "10": {
+      "name": "Treading",
+      "regime": "CHANGING",
+      "activation": 0.85,
+      "archetype": "The Dancer"
+    },
+    "57": {
+      "name": "Gentle",
+      "regime": "CHANGING",
+      "activation": 0.85,
+      "archetype": "The Penetrator"
+    },
+    "34": {
+      "name": "Great Power",
+      "regime": "CHANGING",
+      "activation": 0.85,
+      "archetype": "The Expresser"
+    }
+  },
+  "matrix_visualization": [
+    {
+      "layer": 1,
+      "stack": "MOVEMENT",
+      "element": "Wood",
+      "centers": [
+        {
+          "center": 1,
+          "activation": 0.704,
+          "gate": 20,
+          "gate_name": "Contemplation",
+          "hexagram": "3-4",
+          "biology": "Thyroid"
+        },
+        {
+          "center": 2,
+          "activation": 0.0,
+          "gate": 18,
+          "gate_name": "Work on What Has Been Spoilt",
+          "hexagram": "3-2",
+          "biology": "Spleen/Lymph"
+        },
+        {
+          "center": 3,
+          "activation": 0.0,
+          "gate": 19,
+          "gate_name": "Approach",
+          "hexagram": "3-3",
+          "biology": "Adrenal Glands"
+        },
+        {
+          "center": 4,
+          "activation": 0.0,
+          "gate": 22,
+          "gate_name": "Grace",
+          "hexagram": "3-6",
+          "biology": "Kidney/Pancreas"
+        },
+        {
+          "center": 5,
+          "activation": 0.0,
+          "gate": 18,
+          "gate_name": "Work on What Has Been Spoilt",
+          "hexagram": "3-2",
+          "biology": "Spleen/Lymph"
+        },
+        {
+          "center": 6,
+          "activation": 0.84,
+          "gate": 17,
+          "gate_name": "Following",
+          "hexagram": "3-1",
+          "biology": "Pituitary Glands"
+        },
+        {
+          "center": 7,
+          "activation": 0.0,
+          "gate": 24,
+          "gate_name": "Returning",
+          "hexagram": "3-8",
+          "biology": "Pituitary Glands"
+        },
+        {
+          "center": 8,
+          "activation": 0.0,
+          "gate": 21,
+          "gate_name": "Biting Through",
+          "hexagram": "3-5",
+          "biology": "Thymus Gland"
+        },
+        {
+          "center": 9,
+          "activation": 0.0,
+          "gate": 23,
+          "gate_name": "Splitting Apart",
+          "hexagram": "3-7",
+          "biology": "Thyroid"
+        }
+      ]
+    },
+    {
+      "layer": 2,
+      "stack": "EVOLUTION",
+      "element": "Fire",
+      "centers": [
+        {
+          "center": 1,
+          "activation": 0.7,
+          "gate": 52,
+          "gate_name": "Keeping Still",
+          "hexagram": "7-4",
+          "biology": "Adrenal Glands"
+        },
+        {
+          "center": 2,
+          "activation": 0.0,
+          "gate": 50,
+          "gate_name": "The Cauldron",
+          "hexagram": "7-2",
+          "biology": "Spleen/Lymph"
+        },
+        {
+          "center": 3,
+          "activation": 0.0,
+          "gate": 51,
+          "gate_name": "The Arousing",
+          "hexagram": "7-3",
+          "biology": "Thymus Gland"
+        },
+        {
+          "center": 4,
+          "activation": 0.0,
+          "gate": 54,
+          "gate_name": "The Marrying Maiden",
+          "hexagram": "7-6",
+          "biology": "Adrenal Glands"
+        },
+        {
+          "center": 5,
+          "activation": 0.0,
+          "gate": 50,
+          "gate_name": "The Cauldron",
+          "hexagram": "7-2",
+          "biology": "Spleen/Lymph"
+        },
+        {
+          "center": 6,
+          "activation": 0.7,
+          "gate": 49,
+          "gate_name": "Revolution",
+          "hexagram": "7-1",
+          "biology": "Kidney/Pancreas"
+        },
+        {
+          "center": 7,
+          "activation": 0.0,
+          "gate": 56,
+          "gate_name": "The Wanderer",
+          "hexagram": "7-8",
+          "biology": "Thyroid"
+        },
+        {
+          "center": 8,
+          "activation": 0.0,
+          "gate": 53,
+          "gate_name": "Development",
+          "hexagram": "7-5",
+          "biology": "Adrenal Glands"
+        },
+        {
+          "center": 9,
+          "activation": 0.0,
+          "gate": 55,
+          "gate_name": "Abundance",
+          "hexagram": "7-7",
+          "biology": "Kidney/Pancreas"
+        }
+      ]
+    },
+    {
+      "layer": 3,
+      "stack": "BEING",
+      "element": "Earth",
+      "centers": [
+        {
+          "center": 1,
+          "activation": 0.63,
+          "gate": 12,
+          "gate_name": "Standstill",
+          "hexagram": "2-4",
+          "biology": "Thyroid"
+        },
+        {
+          "center": 2,
+          "activation": 0.68,
+          "gate": 10,
+          "gate_name": "Treading",
+          "hexagram": "2-2",
+          "biology": "Liver"
+        },
+        {
+          "center": 3,
+          "activation": 0.0,
+          "gate": 11,
+          "gate_name": "Peace",
+          "hexagram": "2-3",
+          "biology": "Pituitary Glands"
+        },
+        {
+          "center": 4,
+          "activation": 0.0,
+          "gate": 14,
+          "gate_name": "Possession in Great Measure",
+          "hexagram": "2-6",
+          "biology": "Ovaries/Testes"
+        },
+        {
+          "center": 5,
+          "activation": 0.68,
+          "gate": 10,
+          "gate_name": "Treading",
+          "hexagram": "2-2",
+          "biology": "Liver"
+        },
+        {
+          "center": 6,
+          "activation": 0.63,
+          "gate": 9,
+          "gate_name": "Taming Power of the Small",
+          "hexagram": "2-1",
+          "biology": "Ovaries/Testes"
+        },
+        {
+          "center": 7,
+          "activation": 0.0,
+          "gate": 16,
+          "gate_name": "Enthusiasm",
+          "hexagram": "2-8",
+          "biology": "Thyroid"
+        },
+        {
+          "center": 8,
+          "activation": 0.0,
+          "gate": 13,
+          "gate_name": "Fellowship of Man",
+          "hexagram": "2-5",
+          "biology": "Liver"
+        },
+        {
+          "center": 9,
+          "activation": 0.0,
+          "gate": 15,
+          "gate_name": "Modesty",
+          "hexagram": "2-7",
+          "biology": "Liver"
+        }
+      ]
+    },
+    {
+      "layer": 4,
+      "stack": "DESIGN",
+      "element": "Metal",
+      "centers": [
+        {
+          "center": 1,
+          "activation": 0.56,
+          "gate": 60,
+          "gate_name": "Limitation",
+          "hexagram": "8-4",
+          "biology": "Adrenal Glands"
+        },
+        {
+          "center": 2,
+          "activation": 0.0,
+          "gate": 58,
+          "gate_name": "The Joyous",
+          "hexagram": "8-2",
+          "biology": "Adrenal Glands"
+        },
+        {
+          "center": 3,
+          "activation": 0.0,
+          "gate": 59,
+          "gate_name": "Dispersion",
+          "hexagram": "8-3",
+          "biology": "Ovaries/Testes"
+        },
+        {
+          "center": 4,
+          "activation": 0.0,
+          "gate": 62,
+          "gate_name": "Preponderance of the Small",
+          "hexagram": "8-6",
+          "biology": "Thyroid"
+        },
+        {
+          "center": 5,
+          "activation": 0.0,
+          "gate": 58,
+          "gate_name": "The Joyous",
+          "hexagram": "8-2",
+          "biology": "Adrenal Glands"
+        },
+        {
+          "center": 6,
+          "activation": 0.696,
+          "gate": 57,
+          "gate_name": "The Gentle",
+          "hexagram": "8-1",
+          "biology": "Spleen/Lymph"
+        },
+        {
+          "center": 7,
+          "activation": 0.0,
+          "gate": 64,
+          "gate_name": "Before Completion",
+          "hexagram": "8-8",
+          "biology": "Pineal Gland"
+        },
+        {
+          "center": 8,
+          "activation": 0.0,
+          "gate": 61,
+          "gate_name": "Inner Truth",
+          "hexagram": "8-5",
+          "biology": "Pineal Gland"
+        },
+        {
+          "center": 9,
+          "activation": 0.0,
+          "gate": 63,
+          "gate_name": "After Completion",
+          "hexagram": "8-7",
+          "biology": "Pineal Gland"
+        }
+      ]
+    },
+    {
+      "layer": 5,
+      "stack": "SPACE",
+      "element": "Water",
+      "centers": [
+        {
+          "center": 1,
+          "activation": 0.77,
+          "gate": 28,
+          "gate_name": "Preponderance of the Great",
+          "hexagram": "4-4",
+          "biology": "Spleen/Lymph"
+        },
+        {
+          "center": 2,
+          "activation": 0.0,
+          "gate": 26,
+          "gate_name": "Taming Power of the Great",
+          "hexagram": "4-2",
+          "biology": "Thymus Gland"
+        },
+        {
+          "center": 3,
+          "activation": 0.0,
+          "gate": 27,
+          "gate_name": "Nourishment",
+          "hexagram": "4-3",
+          "biology": "Ovaries/Testes"
+        },
+        {
+          "center": 4,
+          "activation": 0.0,
+          "gate": 30,
+          "gate_name": "Clinging Fire",
+          "hexagram": "4-6",
+          "biology": "Kidney/Pancreas"
+        },
+        {
+          "center": 5,
+          "activation": 0.0,
+          "gate": 26,
+          "gate_name": "Taming Power of the Great",
+          "hexagram": "4-2",
+          "biology": "Thymus Gland"
+        },
+        {
+          "center": 6,
+          "activation": 0.77,
+          "gate": 25,
+          "gate_name": "Innocence",
+          "hexagram": "4-1",
+          "biology": "Liver"
+        },
+        {
+          "center": 7,
+          "activation": 0.0,
+          "gate": 32,
+          "gate_name": "Duration",
+          "hexagram": "4-8",
+          "biology": "Spleen/Lymph"
+        },
+        {
+          "center": 8,
+          "activation": 0.0,
+          "gate": 29,
+          "gate_name": "The Abysmal",
+          "hexagram": "4-5",
+          "biology": "Ovaries/Testes"
+        },
+        {
+          "center": 9,
+          "activation": 0.0,
+          "gate": 31,
+          "gate_name": "Influence",
+          "hexagram": "4-7",
+          "biology": "Thyroid"
+        }
+      ]
+    }
+  ],
+  "morph_result": {
+    "target_hexagram": 25,
+    "target_name": "Innocence",
+    "upper_trigram": 4,
+    "lower_trigram": 1,
+    "upper_center": 1,
+    "lower_center": 6,
+    "imbalance": "notice: minor resonance drift",
+    "corrections": [
+      {
+        "node_id": "L1C1G20",
+        "layer": 1,
+        "center": 1,
+        "current_activation": 0.68,
+        "target_activation": 0.7,
+        "boost": 0.02,
+        "gate": 20,
+        "gate_name": "Contemplation",
+        "hexagram": "3-4",
+        "trigram_role": "upper"
+      },
+      {
+        "node_id": "L1C6G17",
+        "layer": 1,
+        "center": 6,
+        "current_activation": 0.0,
+        "target_activation": 0.7,
+        "boost": 0.7,
+        "gate": 17,
+        "gate_name": "Following",
+        "hexagram": "3-1",
+        "trigram_role": "lower"
+      },
+      {
+        "node_id": "L2C1G52",
+        "layer": 2,
+        "center": 1,
+        "current_activation": 0.0,
+        "target_activation": 0.7,
+        "boost": 0.7,
+        "gate": 52,
+        "gate_name": "Keeping Still",
+        "hexagram": "7-4",
+        "trigram_role": "upper"
+      },
+      {
+        "node_id": "L2C6G49",
+        "layer": 2,
+        "center": 6,
+        "current_activation": 0.0,
+        "target_activation": 0.7,
+        "boost": 0.7,
+        "gate": 49,
+        "gate_name": "Revolution",
+        "hexagram": "7-1",
+        "trigram_role": "lower"
+      },
+      {
+        "node_id": "L3C1G12",
+        "layer": 3,
+        "center": 1,
+        "current_activation": 0.0,
+        "target_activation": 0.7,
+        "boost": 0.7,
+        "gate": 12,
+        "gate_name": "Standstill",
+        "hexagram": "2-4",
+        "trigram_role": "upper"
+      },
+      {
+        "node_id": "L3C6G9",
+        "layer": 3,
+        "center": 6,
+        "current_activation": 0.0,
+        "target_activation": 0.7,
+        "boost": 0.7,
+        "gate": 9,
+        "gate_name": "Taming Power of the Small",
+        "hexagram": "2-1",
+        "trigram_role": "lower"
+      },
+      {
+        "node_id": "L4C1G60",
+        "layer": 4,
+        "center": 1,
+        "current_activation": 0.0,
+        "target_activation": 0.7,
+        "boost": 0.7,
+        "gate": 60,
+        "gate_name": "Limitation",
+        "hexagram": "8-4",
+        "trigram_role": "upper"
+      },
+      {
+        "node_id": "L4C6G57",
+        "layer": 4,
+        "center": 6,
+        "current_activation": 0.68,
+        "target_activation": 0.7,
+        "boost": 0.02,
+        "gate": 57,
+        "gate_name": "The Gentle",
+        "hexagram": "8-1",
+        "trigram_role": "lower"
+      },
+      {
+        "node_id": "L5C1G28",
+        "layer": 5,
+        "center": 1,
+        "current_activation": 0.0,
+        "target_activation": 0.7,
+        "boost": 0.7,
+        "gate": 28,
+        "gate_name": "Preponderance of the Great",
+        "hexagram": "4-4",
+        "trigram_role": "upper"
+      },
+      {
+        "node_id": "L5C6G25",
+        "layer": 5,
+        "center": 6,
+        "current_activation": 0.0,
+        "target_activation": 0.7,
+        "boost": 0.7,
+        "gate": 25,
+        "gate_name": "Innocence",
+        "hexagram": "4-1",
+        "trigram_role": "lower"
+      }
+    ],
+    "coherence": 0.6932,
+    "cynthia_threshold_met": false,
+    "architecture_mode": "META_CONTROLLER",
+    "active_channels": [
+      20,
+      10,
+      57,
+      34
+    ],
+    "node_count": 45,
+    "edge_count": 165,
+    "active_nodes": 12
+  },
+  "gate_data_sample": {
+    "1": {
+      "name": "The Creative",
+      "sign": "Scorpio",
+      "center": "G Center",
+      "biology": "Liver",
+      "harmonic": [
+        8
+      ],
+      "triad": [
+        "Transcendence",
+        "Sex",
+        "Death/Regeneration"
+      ]
+    },
+    "2": {
+      "name": "The Receptive",
+      "sign": "Taurus",
+      "center": "G Center",
+      "biology": "Liver",
+      "harmonic": [
+        14
+      ],
+      "triad": [
+        "Materialism",
+        "Practicality",
+        "Inertia"
+      ]
+    },
+    "3": {
+      "name": "Difficulty at the Beginning",
+      "sign": "Aries/Taurus Cusp",
+      "center": "Sacral",
+      "biology": "Ovaries/Testes",
+      "harmonic": [
+        60
+      ],
+      "triad": [
+        "Desire/Will",
+        "Impulse",
+        "Materialism"
+      ]
+    },
+    "4": {
+      "name": "Youthful Folly",
+      "sign": "Leo",
+      "center": "Ajna",
+      "biology": "Pituitary Glands",
+      "harmonic": [
+        63
+      ],
+      "triad": [
+        "Self-expression",
+        "Pleasure",
+        "Authority"
+      ]
+    },
+    "5": {
+      "name": "Waiting",
+      "sign": "Sagittarius",
+      "center": "Sacral",
+      "biology": "Ovaries/Testes",
+      "harmonic": [
+        15
+      ],
+      "triad": [
+        "Philosophy",
+        "Religion",
+        "Idealism"
+      ]
+    }
+  },
+  "channel_data_sample": {
+    "1-8": {
+      "name": "Inspiration",
+      "theme": "Creative Role Model"
+    },
+    "2-14": {
+      "name": "The Beat",
+      "theme": "Possession in Great Measure"
+    },
+    "3-60": {
+      "name": "Mutation",
+      "theme": "Difficulty at the Beginning + Limitation"
+    },
+    "4-63": {
+      "name": "Logic",
+      "theme": "Mental Ease Mixed with Doubt"
+    },
+    "5-15": {
+      "name": "Rhythm",
+      "theme": "Waiting + Modesty"
+    }
+  }
+}

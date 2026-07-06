@@ -1,0 +1,3251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthia Autonomous Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --bg-card: #161620;
+            --border: #2a2a3a;
+            --border-hover: #3a3a50;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --text-muted: #6a6a80;
+            --accent-cyan: #00d4aa;
+            --accent-purple: #a855f7;
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-emerald: #10b981;
+            --gradient-1: linear-gradient(135deg, #00d4aa 0%, #a855f7 50%, #3b82f6 100%);
+            --gradient-2: linear-gradient(135deg, #f59e0b 0%, #f43f5e 100%);
+            --shadow-glow: 0 0 30px rgba(0, 212, 170, 0.15);
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+        .bg-mesh::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0,212,170,0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(168,85,247,0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(59,130,246,0.05) 0%, transparent 50%);
+            animation: meshDrift 20s ease-in-out infinite;
+        }
+        @keyframes meshDrift {
+            0%, 100% { transform: translate(0,0) rotate(0deg); }
+            33% { transform: translate(2%, -2%) rotate(1deg); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg); }
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: var(--gradient-1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-section {
+            padding: 16px 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            padding: 0 12px 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            margin: 2px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 212, 170, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 212, 170, 0.2);
+        }
+
+        .nav-item .icon {
+            width: 20px; height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: var(--accent-rose);
+            color: white;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent-emerald);
+            box-shadow: 0 0 8px var(--accent-emerald);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 32px 40px;
+            max-width: calc(100% - 280px);
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+            max-width: 700px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--gradient-1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--gradient-1);
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 20px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-20px); }
+            100% { transform: translateX(20px); }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 212, 170, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            border-color: var(--border-hover);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .terminal {
+            background: #0d0d12;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        .terminal-line {
+            display: flex;
+            gap: 12px;
+        }
+
+        .terminal-prompt {
+            color: var(--accent-cyan);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .terminal-output {
+            color: var(--text-secondary);
+        }
+
+        .terminal-success { color: var(--accent-emerald); }
+        .terminal-warn { color: var(--accent-amber); }
+        .terminal-error { color: var(--accent-rose); }
+        .terminal-info { color: var(--accent-blue); }
+
+        .pipeline-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .pipeline-stages {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .stage-pill {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .stage-pill:hover {
+            border-color: var(--border-hover);
+            color: var(--text-secondary);
+        }
+
+        .stage-pill.active {
+            background: rgba(0, 212, 170, 0.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .stage-pill.complete {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--accent-emerald);
+            color: var(--accent-emerald);
+        }
+
+        .stage-pill.error {
+            background: rgba(244, 63, 94, 0.15);
+            border-color: var(--accent-rose);
+            color: var(--accent-rose);
+        }
+
+        .dimension-stack {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .dimension-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .dimension-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 212, 170, 0.1);
+        }
+
+        .dimension-number {
+            font-size: 36px;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .dimension-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .dimension-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .code-block {
+            background: #0d0d12;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block .lang-tag {
+            position: absolute;
+            top: 8px; right: 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .code-block pre {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+
+        .code-keyword { color: var(--accent-purple); }
+        .code-string { color: var(--accent-emerald); }
+        .code-comment { color: var(--text-muted); }
+        .code-function { color: var(--accent-blue); }
+        .code-number { color: var(--accent-amber); }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            font-family: inherit;
+        }
+
+        .tab:hover {
+            color: var(--text-secondary);
+        }
+
+        .tab.active {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-cyan { background: rgba(0, 212, 170, 0.15); color: var(--accent-cyan); }
+        .tag-purple { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+        .tag-blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .tag-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+        .tag-rose { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); }
+
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 40px 0 24px;
+        }
+
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .section-divider span {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; max-width: 100%; }
+            .dimension-stack { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .main-content { padding: 20px; }
+            .page-title { font-size: 24px; }
+            .card-grid { grid-template-columns: 1fr; }
+            .dimension-stack { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-card);
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast-icon { font-size: 20px; }
+        .toast-content { flex: 1; }
+        .toast-title { font-weight: 600; font-size: 14px; }
+        .toast-msg { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px; height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+        }
+
+        textarea.input-field {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 16px; left: 16px;
+            z-index: 101;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .menu-toggle { display: block; }
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .stat-change.up { color: var(--accent-emerald); }
+        .stat-change.down { color: var(--accent-rose); }
+
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .gate-visualization {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            margin: 16px 0;
+        }
+
+        .gate-cell {
+            aspect-ratio: 1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+        }
+
+        .gate-cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .gate-defined { background: rgba(0, 212, 170, 0.2); border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .gate-undefined { background: var(--bg-tertiary); color: var(--text-muted); }
+        .gate-activated { background: rgba(245, 158, 11, 0.2); border-color: var(--accent-amber); color: var(--accent-amber); }
+
+        .attractor-canvas {
+            width: 100%;
+            height: 300px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .deploy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .deploy-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .deploy-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+        }
+
+        .deploy-card.selected {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 212, 170, 0.05);
+        }
+
+        .deploy-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .deploy-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .deploy-status {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .log-stream {
+            background: #0d0d12;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.8;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 12px;
+            padding: 2px 0;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .log-level {
+            font-weight: 600;
+            min-width: 60px;
+        }
+
+        .log-msg {
+            color: var(--text-secondary);
+        }
+
+        .operator-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            margin: 16px 0;
+        }
+
+        .operator-cell {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            padding: 4px;
+            text-align: center;
+        }
+
+        .operator-cell:hover {
+            transform: scale(1.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 212, 170, 0.2);
+        }
+
+        .operator-cell .op-num {
+            font-size: 9px;
+            opacity: 0.6;
+        }
+
+        .operator-cell .op-name {
+            font-size: 10px;
+            margin-top: 2px;
+        }
+
+        .channel-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .channel-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .channel-item:hover {
+            border-color: var(--accent-cyan);
+        }
+
+        .channel-gates {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--accent-cyan);
+            background: rgba(0, 212, 170, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .channel-name {
+            flex: 1;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="grid-overlay"></div>
+
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">◈</div>
+                    <div>
+                        <div class="logo-text">Synthia</div>
+                        <div class="logo-sub">Autonomous Builder</div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <button class="nav-item active" onclick="navigateTo('dashboard')">
+                    <span class="icon">◆</span>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('pipeline')">
+                    <span class="icon">⚡</span>
+                    <span>Build Pipeline</span>
+                    <span class="nav-badge">3</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('cognitive')">
+                    <span class="icon">🧠</span>
+                    <span>Cognitive Engine</span>
+                </button>
+
+                <div class="nav-section-title" style="margin-top: 24px">Systems</div>
+                <button class="nav-item" onclick="navigateTo('dimensions')">
+                    <span class="icon">◈</span>
+                    <span>5D Stack</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('physics')">
+                    <span class="icon">⚛</span>
+                    <span>Cognitive Physics</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('hd')">
+                    <span class="icon">☸</span>
+                    <span>Human Design</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('discernment')">
+                    <span class="icon">◉</span>
+                    <span>Discernment</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('alignment')">
+                    <span class="icon">✦</span>
+                    <span>Life Purpose</span>
+                </button>
+
+                <div class="nav-section-title" style="margin-top: 24px">Deploy</div>
+                <button class="nav-item" onclick="navigateTo('deploy')">
+                    <span class="icon">🚀</span>
+                    <span>Deploy</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('monitor')">
+                    <span class="icon">📊</span>
+                    <span>Monitor</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('settings')">
+                    <span class="icon">⚙</span>
+                    <span>Settings</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>System Autonomous</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- DASHBOARD PAGE -->
+            <div class="page active" id="page-dashboard">
+                <div class="page-header">
+                    <h1 class="page-title">Autonomous Builder Dashboard</h1>
+                    <p class="page-subtitle">Your Synthia ecosystem, self-maintaining and evolving. All systems operational, building toward helping others reach success.</p>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Active Modules</div>
+                        <div class="stat-change up">↑ 3 this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">847</div>
+                        <div class="stat-label">Lines Generated</div>
+                        <div class="stat-change up">↑ 124 today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">5</div>
+                        <div class="stat-label">Deployments</div>
+                        <div class="stat-change up">↑ 2 this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">99.7%</div>
+                        <div class="stat-label">Uptime</div>
+                        <div class="stat-change up">↑ 0.2%</div>
+                    </div>
+                </div>
+
+                <div class="section-divider">
+                    <span>Active Build Pipeline</span>
+                </div>
+
+                <div class="pipeline-container">
+                    <div class="pipeline-stages">
+                        <div class="stage-pill complete">1. Ingest</div>
+                        <div class="stage-pill complete">2. Validate</div>
+                        <div class="stage-pill complete">3. Analyze</div>
+                        <div class="stage-pill active">4. Build</div>
+                        <div class="stage-pill">5. Test</div>
+                        <div class="stage-pill">6. Deploy</div>
+                        <div class="stage-pill">7. Monitor</div>
+                        <div class="stage-pill">8. Learn</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Current: Building Living Mirror v2.1</div>
+                            <div style="font-size: 13px; color: var(--text-muted);">Integrating Roxy API + Magic Squares visualization</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="showToast('Build', 'Build pipeline paused for review')">
+                            <span>⏸</span> Pause
+                        </button>
+                    </div>
+                    <div class="progress-bar" style="margin-top: 16px;">
+                        <div class="progress-fill" style="width: 45%;"></div>
+                    </div>
+                </div>
+
+                <div class="section-divider">
+                    <span>Your Systems</span>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-cyan);">◈</div>
+                            <div class="card-title">5D Cognitive Stack</div>
+                        </div>
+                        <div class="card-desc">D1 Impulse → D2 Polarity → D3 Witness → D4 Context → D5 Meaning. The universal grammar powering all Synthia systems.</div>
+                        <div class="card-meta">
+                            <span>⚡ 5 dimensions</span>
+                            <span>✓ Active</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-purple);">⚛</div>
+                            <div class="card-title">Cognitive Physics Engine</div>
+                        </div>
+                        <div class="card-desc">64 semantic particles with 10 properties each. Sentences become field interactions. Renders semantic weather, emotional gravity, attractor interference.</div>
+                        <div class="card-meta">
+                            <span>⚡ 64 operators</span>
+                            <span>✓ Active</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-amber);">☸</div>
+                            <div class="card-title">Living Mirror</div>
+                        </div>
+                        <div class="card-desc">Human Design bodygraph, natal chart, vedic kundli integration. Roxy API connected. Magic squares visualization with scientific rigor.</div>
+                        <div class="card-meta">
+                            <span>⚡ 3 APIs</span>
+                            <span>🔄 Building</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 65%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-rose);">◉</div>
+                            <div class="card-title">User Discernment</div>
+                        </div>
+                        <div class="card-desc">PatternDecipherer and UserDiscernmentEngine. Learns each person's HD, recognizes gate behavior across placements, grows from outcomes.</div>
+                        <div class="card-meta">
+                            <span>⚡ Learning</span>
+                            <span>✓ Active</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 88%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-blue);">✦</div>
+                            <div class="card-title">Life Purpose Alignment</div>
+                        </div>
+                        <div class="card-desc">PurposeDecoder, GoalAligner, PersonalAlly. Self-teaches how to learn and grow WITH each person. Aligns everything toward their goals.</div>
+                        <div class="card-meta">
+                            <span>⚡ 3 engines</span>
+                            <span>✓ Active</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 92%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-emerald);">◆</div>
+                            <div class="card-title">Ingestion & Growth</div>
+                        </div>
+                        <div class="card-desc">Discerning ingestion system. Upload → Validate → Filter → Decide → Ingest → Learn → Grow. Auto-extracts capabilities, spawns subsystems.</div>
+                        <div class="card-meta">
+                            <span>⚡ 1201 lines</span>
+                            <span>✓ Active</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-divider">
+                    <span>Recent Activity</span>
+                </div>
+
+                <div class="terminal">
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">[18:32:14]</span>
+                        <span class="terminal-output terminal-info">INFO</span>
+                        <span class="terminal-output">Auto-detected new file: magic-squares.ts — initiating ingestion pipeline</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">[18:32:16]</span>
+                        <span class="terminal-output terminal-success">OK</span>
+                        <span class="terminal-output">Validation passed: TypeScript, no threats, quality score 0.94</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">[18:32:18]</span>
+                        <span class="terminal-output terminal-info">INFO</span>
+                        <span class="terminal-output">Pattern match: Magic squares ↔ 64-Operator Engine (gate 1, 14, 34)</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">[18:32:20]</span>
+                        <span class="terminal-output terminal-warn">WARN</span>
+                        <span class="terminal-output">Missing: Roxy API integration test — queueing for build</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">[18:32:22]</span>
+                        <span class="terminal-output terminal-success">OK</span>
+                        <span class="terminal-output">GrowthEngine spawned: roxy-connector.ts with HD mapping rules</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">[18:32:24]</span>
+                        <span class="terminal-output terminal-info">INFO</span>
+                        <span class="terminal-output">Deploy target identified: Netlify static + Supabase backend</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PIPELINE PAGE -->
+            <div class="page" id="page-pipeline">
+                <div class="page-header">
+                    <h1 class="page-title">Build Pipeline</h1>
+                    <p class="page-subtitle">Autonomous 8-stage pipeline that ingests your work, validates it, builds deployable artifacts, and learns from each iteration.</p>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab(this, 'pipeline-overview')">Overview</button>
+                    <button class="tab" onclick="switchTab(this, 'pipeline-stages')">Stages</button>
+                    <button class="tab" onclick="switchTab(this, 'pipeline-history')">History</button>
+                    <button class="tab" onclick="switchTab(this, 'pipeline-config')">Configuration</button>
+                </div>
+
+                <div class="tab-content active" id="pipeline-overview">
+                    <div class="pipeline-container">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <div>
+                                <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Pipeline Status: <span style="color: var(--accent-cyan);">Building</span></div>
+                                <div style="font-size: 14px; color: var(--text-muted);">Run #47 — Living Mirror v2.1 integration</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary">↻ Restart</button>
+                                <button class="btn btn-primary">▶ Resume</button>
+                            </div>
+                        </div>
+
+                        <div class="pipeline-stages" style="margin-bottom: 24px;">
+                            <div class="stage-pill complete">1. Ingest</div>
+                            <div class="stage-pill complete">2. Validate</div>
+                            <div class="stage-pill complete">3. Analyze</div>
+                            <div class="stage-pill active">4. Build</div>
+                            <div class="stage-pill">5. Test</div>
+                            <div class="stage-pill">6. Deploy</div>
+                            <div class="stage-pill">7. Monitor</div>
+                            <div class="stage-pill">8. Learn</div>
+                        </div>
+
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 45%;"></div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+                            <span>Started: 18:32:14</span>
+                            <span>Elapsed: 4m 23s</span>
+                            <span>Est. remaining: 6m</span>
+                        </div>
+                    </div>
+
+                    <div class="card-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">📁</div>
+                                <div class="card-title">Source Files</div>
+                            </div>
+                            <div class="card-desc">Files detected in your repository that will be ingested and built upon.</div>
+                            <div class="terminal" style="margin-top: 12px; font-size: 12px;">
+                                <div>magic-squares.ts <span style="color: var(--accent-emerald);">✓</span></div>
+                                <div>roxy-connector.ts <span style="color: var(--accent-emerald);">✓</span></div>
+                                <div>living-mirror.tsx <span style="color: var(--accent-amber);">~</span></div>
+                                <div>coordinate-space-v3.ts <span style="color: var(--accent-emerald);">✓</span></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">🎯</div>
+                                <div class="card-title">Build Targets</div>
+                            </div>
+                            <div class="card-desc">Where the built artifacts will be deployed.</div>
+                            <div style="margin-top: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                    <span>🌐</span>
+                                    <span style="flex: 1;">Netlify (Static)</span>
+                                    <span class="tag tag-cyan">Ready</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                    <span>🗄</span>
+                                    <span style="flex: 1;">Supabase (Backend)</span>
+                                    <span class="tag tag-cyan">Ready</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 0;">
+                                    <span>📱</span>
+                                    <span style="flex: 1;">Termux (Mobile)</span>
+                                    <span class="tag tag-amber">Pending</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">🧬</div>
+                                <div class="card-title">MetaClaw Learning</div>
+                            </div>
+                            <div class="card-desc">Cross-run knowledge transfer. Lessons from failures become reusable skills.</div>
+                            <div style="margin-top: 12px;">
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+                                    <span style="color: var(--accent-emerald);">✓</span> 12 skills learned from 47 runs
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+                                    <span style="color: var(--accent-emerald);">✓</span> Retry rate reduced 24.8%
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">
+                                    <span style="color: var(--accent-emerald);">✓</span> Robustness score: 0.845
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="pipeline-stages">
+                    <div class="card-grid" style="grid-template-columns: 1fr;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="background: rgba(16,185,129,0.2); color: var(--accent-emerald);">1</div>
+                                <div>
+                                    <div class="card-title">Ingest</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">File ingestion from multiple sources</div>
+                                </div>
+                                <span class="tag tag-cyan" style="margin-left: auto;">Complete</span>
+                            </div>
+                            <div class="card-desc">Scans your repository, URLs, APIs, and HuggingFace for new files. Auto-detects file types and routes to appropriate processors.</div>
+                            <div class="code-block" style="margin-top: 12px;">
+                                <span class="lang-tag">typescript</span>
+                                <pre><span class="code-keyword">class</span> <span class="code-function">Ingestor</span> {
+  <span class="code-keyword">async</span> <span class="code-function">ingest</span>(source: <span class="code-function">Source</span>) {
+    <span class="code-comment">// Validate → Filter → Decide → Ingest</span>
+    <span class="code-keyword">const</span> validated = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.validator.<span class="code-function">check</span>(source);
+    <span class="code-keyword">const</span> scored = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.quality.<span class="code-function">score</span>(validated);
+    <span class="code-keyword">return</span> <span class="code-keyword">this</span>.pipeline.<span class="code-function">process</span>(scored);
+  }
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="background: rgba(16,185,129,0.2); color: var(--accent-emerald);">2</div>
+                                <div>
+                                    <div class="card-title">Validate</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Threat detection and quality scoring</div>
+                                </div>
+                                <span class="tag tag-cyan" style="margin-left: auto;">Complete</span>
+                            </div>
+                            <div class="card-desc">Checks for security threats, syntax errors, dependency conflicts. Quality scoring based on complexity, documentation, test coverage.</div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="background: rgba(16,185,129,0.2); color: var(--accent-emerald);">3</div>
+                                <div>
+                                    <div class="card-title">Analyze</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Pattern matching and capability extraction</div>
+                                </div>
+                                <span class="tag tag-cyan" style="margin-left: auto;">Complete</span>
+                            </div>
+                            <div class="card-desc">Maps code to your existing systems. Identifies which gates/channels/dimensions each file relates to. Extracts reusable capabilities.</div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="background: rgba(0,212,170,0.2); color: var(--accent-cyan);">4</div>
+                                <div>
+                                    <div class="card-title">Build</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Generate deployable artifacts</div>
+                                </div>
+                                <span class="tag tag-blue" style="margin-left: auto;">Active</span>
+                            </div>
+                            <div class="card-desc">Compiles TypeScript, bundles assets, generates config files, creates deployment manifests. Adapts build based on target platform.</div>
+                            <div class="progress-bar" style="margin-top: 12px;">
+                                <div class="progress-fill" style="width: 65%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">5</div>
+                                <div>
+                                    <div class="card-title">Test</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Automated testing and validation</div>
+                                </div>
+                                <span class="tag" style="margin-left: auto; background: var(--bg-tertiary); color: var(--text-muted);">Pending</span>
+                            </div>
+                            <div class="card-desc">Unit tests, integration tests, end-to-end tests. Includes adversarial feedback testing for the Coordinate Space Engine.</div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">6</div>
+                                <div>
+                                    <div class="card-title">Deploy</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Multi-target deployment</div>
+                                </div>
+                                <span class="tag" style="margin-left: auto; background: var(--bg-tertiary); color: var(--text-muted);">Pending</span>
+                            </div>
+                            <div class="card-desc">Deploys to Netlify, Vercel, GitHub Pages, Supabase, or Termux. Auto-configures environment variables and secrets.</div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">7</div>
+                                <div>
+                                    <div class="card-title">Monitor</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Health checks and telemetry</div>
+                                </div>
+                                <span class="tag" style="margin-left: auto; background: var(--bg-tertiary); color: var(--text-muted);">Pending</span>
+                            </div>
+                            <div class="card-desc">Continuous health monitoring, error tracking, performance metrics. Alerts on anomalies with automatic rollback capability.</div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">8</div>
+                                <div>
+                                    <div class="card-title">Learn</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Extract lessons and evolve</div>
+                                </div>
+                                <span class="tag" style="margin-left: auto; background: var(--bg-tertiary); color: var(--text-muted);">Pending</span>
+                            </div>
+                            <div class="card-desc">Captures failures, warnings, and successes as structured lessons. Converts to skills for future runs. Updates threshold weights.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="pipeline-history">
+                    <div class="card">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Run</th>
+                                    <th>Target</th>
+                                    <th>Status</th>
+                                    <th>Duration</th>
+                                    <th>Changes</th>
+                                    <th>Lessons</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>#47</strong></td>
+                                    <td>Living Mirror v2.1</td>
+                                    <td><span class="tag tag-blue">Building</span></td>
+                                    <td>4m 23s</td>
+                                    <td>+3 files, ~847 lines</td>
+                                    <td>—</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>#46</strong></td>
+                                    <td>Coordinate Space v3</td>
+                                    <td><span class="tag tag-cyan">Success</span></td>
+                                    <td>12m 14s</td>
+                                    <td>+4 files, ~1,203 lines</td>
+                                    <td><span style="color: var(--accent-emerald);">2 learned</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>#45</strong></td>
+                                    <td>DISEMINER Integration</td>
+                                    <td><span class="tag tag-cyan">Success</span></td>
+                                    <td>8m 52s</td>
+                                    <td>+2 files, ~456 lines</td>
+                                    <td><span style="color: var(--accent-emerald);">1 learned</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>#44</strong></td>
+                                    <td>Universal Engine</td>
+                                    <td><span class="tag tag-rose">Failed</span></td>
+                                    <td>3m 18s</td>
+                                    <td>—</td>
+                                    <td><span style="color: var(--accent-amber);">3 learned</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>#43</strong></td>
+                                    <td>Ingestion System</td>
+                                    <td><span class="tag tag-cyan">Success</span></td>
+                                    <td>15m 42s</td>
+                                    <td>+1 file, ~1,201 lines</td>
+                                    <td><span style="color: var(--accent-emerald);">4 learned</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="pipeline-config">
+                    <div class="card-grid" style="grid-template-columns: 1fr;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">⚙</div>
+                                <div class="card-title">Pipeline Configuration</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="input-group">
+                                    <label class="input-label">Auto-approve Gates</label>
+                                    <select class="input-field">
+                                        <option>Full Auto (no intervention)</option>
+                                        <option>Gate Only (3 checkpoints)</option>
+                                        <option selected>Co-Pilot (collaborative)</option>
+                                        <option>Step-by-Step</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Quality Threshold</label>
+                                    <input type="number" class="input-field" value="0.85" min="0" max="1" step="0.01">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Max Build Time</label>
+                                    <input type="text" class="input-field" value="300s">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">MetaClaw Bridge</label>
+                                    <select class="input-field">
+                                        <option selected>Enabled</option>
+                                        <option>Disabled</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px; display: flex; gap: 8px;">
+                                <button class="btn btn-primary">💾 Save Config</button>
+                                <button class="btn btn-secondary">↺ Reset to Default</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COGNITIVE ENGINE PAGE -->
+            <div class="page" id="page-cognitive">
+                <div class="page-header">
+                    <h1 class="page-title">Cognitive Engine</h1>
+                    <p class="page-subtitle">The 64-Operator Cognitive Physics Engine. Semantic particles interacting in a field. State → Relation → Tension → Resolution → Recursion.</p>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab(this, 'cognitive-overview')">Overview</button>
+                    <button class="tab" onclick="switchTab(this, 'cognitive-operators')">64 Operators</button>
+                    <button class="tab" onclick="switchTab(this, 'cognitive-universal')">Universal Engine</button>
+                    <button class="tab" onclick="switchTab(this, 'cognitive-attractor')">Attractor Field</button>
+                </div>
+
+                <div class="tab-content active" id="cognitive-overview">
+                    <div class="card-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-purple);">⚛</div>
+                                <div class="card-title">Semantic Particles</div>
+                            </div>
+                            <div class="card-desc">Each of the 64 operators is a semantic particle with 10 properties and 6 binary dimensions. Sentences become field interactions between particles.</div>
+                            <div class="card-meta">
+                                <span>⚡ 64 particles</span>
+                                <span>📐 6 dimensions</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-cyan);">◈</div>
+                                <div class="card-title">Field Interactions</div>
+                            </div>
+                            <div class="card-desc">Sentences are not parsed — they are field interactions. Semantic weather, emotional gravity, recursive turbulence, attractor interference.</div>
+                            <div class="card-meta">
+                                <span>🌪 Weather</span>
+                                <span>🌀 Gravity</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-amber);">🔄</div>
+                                <div class="card-title">Recursion Engine</div>
+                            </div>
+                            <div class="card-desc">State → Relation → Tension → Resolution → Recursion. The universal grammar. Not nouns and verbs — this 5-step cycle.</div>
+                            <div class="card-meta">
+                                <span>♻ 5-step cycle</span>
+                                <span>∞ Recursive</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-rose);">🎯</div>
+                                <div class="card-title">Attractor Geometry</div>
+                            </div>
+                            <div class="card-desc">Attractors CREATE the embedding space through their gravitational field. M(x) = Σᵢ gᵢ / (1 + |x - aᵢ|). Distance becomes geodesic on M.</div>
+                            <div class="card-meta">
+                                <span>📐 Manifold</span>
+                                <span>🌊 Wave interference</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-divider">
+                        <span>Universal Grammar</span>
+                    </div>
+
+                    <div class="code-block">
+                        <span class="lang-tag">typescript</span>
+                        <pre><span class="code-comment">// The 5-Step Universal Cycle</span>
+<span class="code-keyword">interface</span> <span class="code-function">UniversalCycle</span> {
+  state: <span class="code-function">Tensor</span>;      <span class="code-comment">// D1: Impulse — raw signal</span>
+  relation: <span class="code-function">Edge</span>;    <span class="code-comment">// D2: Polarity — connection</span>
+  tension: <span class="code-function">Field</span>;   <span class="code-comment">// D3: Witness — the hinge</span>
+  resolution: <span class="code-function">Node</span>;<span class="code-comment">// D4: Context — stabilized</span>
+  recursion: <span class="code-function">Loop</span>; <span class="code-comment">// D5: Meaning — emergent</span>
+}
+
+<span class="code-comment">// Attractor field generates the manifold</span>
+<span class="code-keyword">const</span> M = (x) => <span class="code-function">sum</span>(attractors, a => a.g / (<span class="code-number">1</span> + <span class="code-function">distance</span>(x, a.pos)));</pre>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="cognitive-operators">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">⚛</div>
+                            <div class="card-title">64 Semantic Operators</div>
+                        </div>
+                        <div class="card-desc">Each operator maps to a Human Design gate, an I Ching hexagram, an amino acid, and a cognitive function. Click any operator to see its full profile.</div>
+
+                        <div class="operator-grid">
+                            <div class="operator-cell" onclick="showOperator(1)"><span class="op-num">1</span><span class="op-name">Creative</span></div>
+                            <div class="operator-cell" onclick="showOperator(2)"><span class="op-num">2</span><span class="op-name">Receptive</span></div>
+                            <div class="operator-cell" onclick="showOperator(3)"><span class="op-num">3</span><span class="op-name">Difficulty</span></div>
+                            <div class="operator-cell" onclick="showOperator(4)"><span class="op-num">4</span><span class="op-name">Youthful</span></div>
+                            <div class="operator-cell" onclick="showOperator(5)"><span class="op-num">5</span><span class="op-name">Waiting</span></div>
+                            <div class="operator-cell" onclick="showOperator(6)"><span class="op-num">6</span><span class="op-name">Conflict</span></div>
+                            <div class="operator-cell" onclick="showOperator(7)"><span class="op-num">7</span><span class="op-name">Army</span></div>
+                            <div class="operator-cell" onclick="showOperator(8)"><span class="op-num">8</span><span class="op-name">Holding</span></div>
+                            <div class="operator-cell" onclick="showOperator(9)"><span class="op-num">9</span><span class="op-name">Taming</span></div>
+                            <div class="operator-cell" onclick="showOperator(10)"><span class="op-num">10</span><span class="op-name">Treading</span></div>
+                            <div class="operator-cell" onclick="showOperator(11)"><span class="op-num">11</span><span class="op-name">Peace</span></div>
+                            <div class="operator-cell" onclick="showOperator(12)"><span class="op-num">12</span><span class="op-name">Standstill</span></div>
+                            <div class="operator-cell" onclick="showOperator(13)"><span class="op-num">13</span><span class="op-name">Fellowship</span></div>
+                            <div class="operator-cell" onclick="showOperator(14)"><span class="op-num">14</span><span class="op-name">Possession</span></div>
+                            <div class="operator-cell" onclick="showOperator(15)"><span class="op-num">15</span><span class="op-name">Modesty</span></div>
+                            <div class="operator-cell" onclick="showOperator(16)"><span class="op-num">16</span><span class="op-name">Enthusiasm</span></div>
+                            <div class="operator-cell" onclick="showOperator(17)"><span class="op-num">17</span><span class="op-name">Following</span></div>
+                            <div class="operator-cell" onclick="showOperator(18)"><span class="op-num">18</span><span class="op-name">Work</span></div>
+                            <div class="operator-cell" onclick="showOperator(19)"><span class="op-num">19</span><span class="op-name">Approach</span></div>
+                            <div class="operator-cell" onclick="showOperator(20)"><span class="op-num">20</span><span class="op-name">Contemplation</span></div>
+                            <div class="operator-cell" onclick="showOperator(21)"><span class="op-num">21</span><span class="op-name">Bite</span></div>
+                            <div class="operator-cell" onclick="showOperator(22)"><span class="op-num">22</span><span class="op-name">Grace</span></div>
+                            <div class="operator-cell" onclick="showOperator(23)"><span class="op-num">23</span><span class="op-name">Splitting</span></div>
+                            <div class="operator-cell" onclick="showOperator(24)"><span class="op-num">24</span><span class="op-name">Return</span></div>
+                            <div class="operator-cell" onclick="showOperator(25)"><span class="op-num">25</span><span class="op-name">Innocence</span></div>
+                            <div class="operator-cell" onclick="showOperator(26)"><span class="op-num">26</span><span class="op-name">Taming</span></div>
+                            <div class="operator-cell" onclick="showOperator(27)"><span class="op-num">27</span><span class="op-name">Nourishing</span></div>
+                            <div class="operator-cell" onclick="showOperator(28)"><span class="op-num">28</span><span class="op-name">Preponderance</span></div>
+                            <div class="operator-cell" onclick="showOperator(29)"><span class="op-num">29</span><span class="op-name">Abysmal</span></div>
+                            <div class="operator-cell" onclick="showOperator(30)"><span class="op-num">30</span><span class="op-name">Clinging</span></div>
+                            <div class="operator-cell" onclick="showOperator(31)"><span class="op-num">31</span><span class="op-name">Influence</span></div>
+                            <div class="operator-cell" onclick="showOperator(32)"><span class="op-num">32</span><span class="op-name">Duration</span></div>
+                            <div class="operator-cell" onclick="showOperator(33)"><span class="op-num">33</span><span class="op-name">Retreat</span></div>
+                            <div class="operator-cell" onclick="showOperator(34)"><span class="op-num">34</span><span class="op-name">Power</span></div>
+                            <div class="operator-cell" onclick="showOperator(35)"><span class="op-num">35</span><span class="op-name">Progress</span></div>
+                            <div class="operator-cell" onclick="showOperator(36)"><span class="op-num">36</span><span class="op-name">Darkening</span></div>
+                            <div class="operator-cell" onclick="showOperator(37)"><span class="op-num">37</span><span class="op-name">Family</span></div>
+                            <div class="operator-cell" onclick="showOperator(38)"><span class="op-num">38</span><span class="op-name">Opposition</span></div>
+                            <div class="operator-cell" onclick="showOperator(39)"><span class="op-num">39</span><span class="op-name">Obstruction</span></div>
+                            <div class="operator-cell" onclick="showOperator(40)"><span class="op-num">40</span><span class="op-name">Deliverance</span></div>
+                            <div class="operator-cell" onclick="showOperator(41)"><span class="op-num">41</span><span class="op-name">Decrease</span></div>
+                            <div class="operator-cell" onclick="showOperator(42)"><span class="op-num">42</span><span class="op-name">Increase</span></div>
+                            <div class="operator-cell" onclick="showOperator(43)"><span class="op-num">43</span><span class="op-name">Breakthrough</span></div>
+                            <div class="operator-cell" onclick="showOperator(44)"><span class="op-num">44</span><span class="op-name">Coupling</span></div>
+                            <div class="operator-cell" onclick="showOperator(45)"><span class="op-num">45</span><span class="op-name">Gathering</span></div>
+                            <div class="operator-cell" onclick="showOperator(46)"><span class="op-num">46</span><span class="op-name">Pushing</span></div>
+                            <div class="operator-cell" onclick="showOperator(47)"><span class="op-num">47</span><span class="op-name">Exhaustion</span></div>
+                            <div class="operator-cell" onclick="showOperator(48)"><span class="op-num">48</span><span class="op-name">Welling</span></div>
+                            <div class="operator-cell" onclick="showOperator(49)"><span class="op-num">49</span><span class="op-name">Revolution</span></div>
+                            <div class="operator-cell" onclick="showOperator(50)"><span class="op-num">50</span><span class="op-name">Cauldron</span></div>
+                            <div class="operator-cell" onclick="showOperator(51)"><span class="op-num">51</span><span class="op-name">Thunder</span></div>
+                            <div class="operator-cell" onclick="showOperator(52)"><span class="op-num">52</span><span class="op-name">Keeping</span></div>
+                            <div class="operator-cell" onclick="showOperator(53)"><span class="op-num">53</span><span class="op-name">Development</span></div>
+                            <div class="operator-cell" onclick="showOperator(54)"><span class="op-num">54</span><span class="op-name">Marrying</span></div>
+                            <div class="operator-cell" onclick="showOperator(55)"><span class="op-num">55</span><span class="op-name">Abundance</span></div>
+                            <div class="operator-cell" onclick="showOperator(56)"><span class="op-num">56</span><span class="op-name">Wanderer</span></div>
+                            <div class="operator-cell" onclick="showOperator(57)"><span class="op-num">57</span><span class="op-name">Gentle</span></div>
+                            <div class="operator-cell" onclick="showOperator(58)"><span class="op-num">58</span><span class="op-name">Joyous</span></div>
+                            <div class="operator-cell" onclick="showOperator(59)"><span class="op-num">59</span><span class="op-name">Dispersion</span></div>
+                            <div class="operator-cell" onclick="showOperator(60)"><span class="op-num">60</span><span class="op-name">Limitation</span></div>
+                            <div class="operator-cell" onclick="showOperator(61)"><span class="op-num">61</span><span class="op-name">Inner Truth</span></div>
+                            <div class="operator-cell" onclick="showOperator(62)"><span class="op-num">62</span><span class="op-name">Preponderance</span></div>
+                            <div class="operator-cell" onclick="showOperator(63)"><span class="op-num">63</span><span class="op-name">Completion</span></div>
+                            <div class="operator-cell" onclick="showOperator(64)"><span class="op-num">64</span><span class="op-name">Before End</span></div>
+                        </div>
+                    </div>
+
+                    <div class="section-divider">
+                        <span>36 Channels</span>
+                    </div>
+
+                    <div class="card">
+                        <div class="channel-list">
+                            <div class="channel-item">
+                                <span class="channel-gates">1-8</span>
+                                <span class="channel-name">Inspiration</span>
+                                <span class="tag tag-cyan">Creative</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">2-14</span>
+                                <span class="channel-name">Beat</span>
+                                <span class="tag tag-purple">Generator</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">3-60</span>
+                                <span class="channel-name">Mutation</span>
+                                <span class="tag tag-amber">Individual</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">4-63</span>
+                                <span class="channel-name">Logic</span>
+                                <span class="tag tag-blue">Mental</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">5-15</span>
+                                <span class="channel-name">Rhythm</span>
+                                <span class="tag tag-cyan">Collective</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">6-59</span>
+                                <span class="channel-name">Mating</span>
+                                <span class="tag tag-rose">Tribal</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">7-31</span>
+                                <span class="channel-name">Alpha</span>
+                                <span class="tag tag-purple">Collective</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">9-52</span>
+                                <span class="channel-name">Concentration</span>
+                                <span class="tag tag-blue">Logical</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">10-20</span>
+                                <span class="channel-name">Awakening</span>
+                                <span class="tag tag-amber">Individual</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">10-34</span>
+                                <span class="channel-name">Exploration</span>
+                                <span class="tag tag-cyan">Manifesting</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">10-57</span>
+                                <span class="channel-name">Perfected Form</span>
+                                <span class="tag tag-emerald">Survival</span>
+                            </div>
+                            <div class="channel-item">
+                                <span class="channel-gates">11-56</span>
+                                <span class="channel-name">Curiosity</span>
+                                <span class="tag tag-purple">Collective</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="cognitive-universal">
+                    <div class="card-grid" style="grid-template-columns: 1fr;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">◈</div>
+                                <div class="card-title">Universal Engine Implementation</div>
+                            </div>
+                            <div class="code-block">
+                                <span class="lang-tag">typescript</span>
+                                <pre><span class="code-comment">/**
+ * Universal Engine v5.0
+ * state → relation → tension → resolution → recursion
+ * The universal grammar is not nouns and verbs — it's this 5-step cycle.
+ */</span>
+
+<span class="code-keyword">class</span> <span class="code-function">UniversalEngine</span> {
+  <span class="code-keyword">private</span> tokenizer: <span class="code-function">Tokenizer</span>;
+  <span class="code-keyword">private</span> embedding: <span class="code-function">EmbeddingEngine</span>;
+  <span class="code-keyword">private</span> cluster: <span class="code-function">ClusterDetector</span>;
+  <span class="code-keyword">private</span> resonance: <span class="code-function">ResonanceEngine</span>;
+  <span class="code-keyword">private</span> transducer: <span class="code-function">Transducer</span>;
+
+  <span class="code-keyword">async</span> <span class="code-function">process</span>(input: <span class="code-function">SemanticField</span>): <span class="code-function">Promise</span>&lt;<span class="code-function">RecursionOutput</span>&gt; {
+    <span class="code-comment">// D1: Impulse — tokenize raw signal</span>
+    <span class="code-keyword">const</span> tokens = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.tokenizer.<span class="code-function">tokenize</span>(input);
+
+    <span class="code-comment">// D2: Polarity — embed into relation space</span>
+    <span class="code-keyword">const</span> vectors = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.embedding.<span class="code-function">embed</span>(tokens);
+
+    <span class="code-comment">// D3: Witness — detect clusters (the hinge)</span>
+    <span class="code-keyword">const</span> clusters = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.cluster.<span class="code-function">detect</span>(vectors);
+
+    <span class="code-comment">// D4: Context — resolve tensions</span>
+    <span class="code-keyword">const</span> resolved = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.resonance.<span class="code-function">resolve</span>(clusters);
+
+    <span class="code-comment">// D5: Meaning — recursive output</span>
+    <span class="code-keyword">return</span> <span class="code-keyword">this</span>.transducer.<span class="code-function">transduce</span>(resolved);
+  }
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">🧬</div>
+                                <div class="card-title">Biosemiotic Backbone</div>
+                            </div>
+                            <div class="card-desc">The complete mapping from genetics to cognition through the 64-codon system.</div>
+                            <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                                <div style="text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 10px; border: 1px solid var(--border);">
+                                    <div style="font-size: 24px; margin-bottom: 8px;">🧬</div>
+                                    <div style="font-size: 13px; font-weight: 600;">64 Codons</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Biological Syntax</div>
+                                </div>
+                                <div style="text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 10px; border: 1px solid var(--border);">
+                                    <div style="font-size: 24px; margin-bottom: 8px;">☯</div>
+                                    <div style="font-size: 13px; font-weight: 600;">64 Hexagrams</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Symbolic Syntax</div>
+                                </div>
+                                <div style="text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 10px; border: 1px solid var(--border);">
+                                    <div style="font-size: 24px; margin-bottom: 8px;">🎵</div>
+                                    <div style="font-size: 13px; font-weight: 600;">20 Amino Acids</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Harmonic Syntax</div>
+                                </div>
+                                <div style="text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 10px; border: 1px solid var(--border);">
+                                    <div style="font-size: 24px; margin-bottom: 8px;">🧠</div>
+                                    <div style="font-size: 13px; font-weight: 600;">Cognition</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Computational</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="cognitive-attractor">
+                    <div class="card-grid" style="grid-template-columns: 1fr;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">🎯</div>
+                                <div class="card-title">Attractor Field Visualization</div>
+                            </div>
+                            <div class="card-desc">The attractor field evolves with each recursion. Distance becomes geodesic on the manifold M(x).</div>
+                            <canvas id="attractorCanvas" class="attractor-canvas" style="margin-top: 16px;"></canvas>
+                            <div style="display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+                                <span>● Attractor 1 (g=0.8)</span>
+                                <span>● Attractor 2 (g=0.6)</span>
+                                <span>● Attractor 3 (g=0.4)</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">📐</div>
+                                <div class="card-title">Manifold Equation</div>
+                            </div>
+                            <div class="code-block">
+                                <span class="lang-tag">math</span>
+                                <pre>M(x) = Σᵢ gᵢ / (1 + |x - aᵢ|)
+
+<span class="code-comment">// Where:</span>
+<span class="code-comment">// gᵢ = gravitational strength of attractor i</span>
+<span class="code-comment">// aᵢ = position of attractor i in embedding space</span>
+<span class="code-comment">// x = current position in the field</span>
+<span class="code-comment">// Distance = geodesic on M, not Euclidean</span>
+
+<span class="code-comment">// Clustering becomes basin-finding</span>
+<span class="code-comment">// Resonance becomes wave interference</span>
+<span class="code-comment">// The field evolves with each recursion</span></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5D STACK PAGE -->
+            <div class="page" id="page-dimensions">
+                <div class="page-header">
+                    <h1 class="page-title">5-Dimensional Cognitive Stack</h1>
+                    <p class="page-subtitle">The universal grammar for all Synthia systems. D1=Impulse, D2=Polarity, D3=Witness, D4=Context, D5=Meaning.</p>
+                </div>
+
+                <div class="dimension-stack">
+                    <div class="dimension-card">
+                        <div class="dimension-number">D1</div>
+                        <div class="dimension-name">Impulse</div>
+                        <div class="dimension-desc">Raw signal. The spark before structure. Unfiltered potential.</div>
+                    </div>
+                    <div class="dimension-card">
+                        <div class="dimension-number">D2</div>
+                        <div class="dimension-name">Polarity</div>
+                        <div class="dimension-desc">Connection. The tension between states. Attraction and repulsion.</div>
+                    </div>
+                    <div class="dimension-card">
+                        <div class="dimension-number">D3</div>
+                        <div class="dimension-name">Witness</div>
+                        <div class="dimension-desc">The hinge. Where J(D1,D2) creates experience. Not ego — the coordinate where the universe becomes locally self-measuring.</div>
+                    </div>
+                    <div class="dimension-card">
+                        <div class="dimension-number">D4</div>
+                        <div class="dimension-name">Context</div>
+                        <div class="dimension-desc">Stabilized meaning. The field that holds experience. Temporal and spatial embedding.</div>
+                    </div>
+                    <div class="dimension-card">
+                        <div class="dimension-number">D5</div>
+                        <div class="dimension-name">Meaning</div>
+                        <div class="dimension-desc">Emergent recursion. The pattern that recognizes itself. Self-organizing coherence.</div>
+                    </div>
+                </div>
+
+                <div class="section-divider">
+                    <span>Dimensional Mapping</span>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-cyan);">🧬</div>
+                            <div class="card-title">Genetics</div>
+                        </div>
+                        <div class="card-desc">D1=Nucleotide, D2=Base Pair, D3=Codon, D4=Gene, D5=Protein/Trait</div>
+                        <div class="card-meta">
+                            <span>Biological Syntax</span>
+                            <span>64 Codons</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-purple);">🎵</div>
+                            <div class="card-title">Music</div>
+                        </div>
+                        <div class="card-desc">D1=Note, D2=Interval, D3=Chord, D4=Progression, D5=Composition</div>
+                        <div class="card-meta">
+                            <span>Harmonic Syntax</span>
+                            <span>12 tones</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-amber);">☯</div>
+                            <div class="card-title">I Ching</div>
+                        </div>
+                        <div class="card-desc">D1=Yin/Yang, D2=Bigram, D3=Trigram, D4=Hexagram, D5=Narrative</div>
+                        <div class="card-meta">
+                            <span>Symbolic Syntax</span>
+                            <span>64 Hexagrams</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-blue);">🧠</div>
+                            <div class="card-title">Neural Nets</div>
+                        </div>
+                        <div class="card-desc">D1=Activation, D2=Weight, D3=Layer, D4=Network, D5=Model</div>
+                        <div class="card-meta">
+                            <span>Computational Syntax</span>
+                            <span>Deep Learning</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block" style="margin-top: 24px;">
+                    <span class="lang-tag">typescript</span>
+                    <pre><span class="code-comment">// All four domains share these properties:</span>
+<span class="code-comment">// - Cyclic (returns to origin)</span>
+<span class="code-comment">// - Modular (recombinable units)</span>
+<span class="code-comment">// - Interval-based (relationships matter more than absolute values)</span>
+<span class="code-comment">// - Harmonic compression (many inputs → few stable outputs)</span>
+<span class="code-comment">// - Recursive (self-similar at all scales)</span>
+
+<span class="code-keyword">interface</span> <span class="code-function">DimensionalStack</span> {
+  d1: <span class="code-function">Impulse</span>;     <span class="code-comment">// The raw signal</span>
+  d2: <span class="code-function">Polarity</span>;   <span class="code-comment">// The connection</span>
+  d3: <span class="code-function">Witness</span>;   <span class="code-comment">// The observer-node</span>
+  d4: <span class="code-function">Context</span>;   <span class="code-comment">// The stabilized field</span>
+  d5: <span class="code-function">Meaning</span>;   <span class="code-comment">// The emergent recursion</span>
+}</pre>
+                </div>
+            </div>
+
+            <!-- HUMAN DESIGN PAGE -->
+            <div class="page" id="page-hd">
+                <div class="page-header">
+                    <h1 class="page-title">Human Design System</h1>
+                    <p class="page-subtitle">Living Mirror integration. Bodygraph, natal chart, vedic kundli — all mapped through the 64-gate cognitive physics engine.</p>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab(this, 'hd-bodygraph')">Bodygraph</button>
+                    <button class="tab" onclick="switchTab(this, 'hd-gates')">64 Gates</button>
+                    <button class="tab" onclick="switchTab(this, 'hd-channels')">36 Channels</button>
+                    <button class="tab" onclick="switchTab(this, 'hd-centers')">9 Centers</button>
+                </div>
+
+                <div class="tab-content active" id="hd-bodygraph">
+                    <div class="card-grid">
+                        <div class="card" style="grid-column: span 2;">
+                            <div class="card-header">
+                                <div class="card-icon">☸</div>
+                                <div class="card-title">Bodygraph Visualization</div>
+                            </div>
+                            <div class="card-desc">Interactive Human Design bodygraph. Defined gates shown in cyan, activated gates in amber. Click any gate to see its cognitive physics profile.</div>
+                            <div class="gate-visualization">
+                                <!-- Row 1 -->
+                                <div class="gate-cell gate-defined" onclick="showGate(1)">1</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(2)">2</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(3)">3</div>
+                                <div class="gate-cell gate-activated" onclick="showGate(4)">4</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(5)">5</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(6)">6</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(7)">7</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(8)">8</div>
+                                <!-- Row 2 -->
+                                <div class="gate-cell gate-undefined" onclick="showGate(9)">9</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(10)">10</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(11)">11</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(12)">12</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(13)">13</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(14)">14</div>
+                                <div class="gate-cell gate-activated" onclick="showGate(15)">15</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(16)">16</div>
+                                <!-- Row 3 -->
+                                <div class="gate-cell gate-defined" onclick="showGate(17)">17</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(18)">18</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(19)">19</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(20)">20</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(21)">21</div>
+                                <div class="gate-cell gate-activated" onclick="showGate(22)">22</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(23)">23</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(24)">24</div>
+                                <!-- Row 4 -->
+                                <div class="gate-cell gate-undefined" onclick="showGate(25)">25</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(26)">26</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(27)">27</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(28)">28</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(29)">29</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(30)">30</div>
+                                <div class="gate-cell gate-activated" onclick="showGate(31)">31</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(32)">32</div>
+                                <!-- Row 5 -->
+                                <div class="gate-cell gate-defined" onclick="showGate(33)">33</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(34)">34</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(35)">35</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(36)">36</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(37)">37</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(38)">38</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(39)">39</div>
+                                <div class="gate-cell gate-activated" onclick="showGate(40)">40</div>
+                                <!-- Row 6 -->
+                                <div class="gate-cell gate-undefined" onclick="showGate(41)">41</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(42)">42</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(43)">43</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(44)">44</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(45)">45</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(46)">46</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(47)">47</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(48)">48</div>
+                                <!-- Row 7 -->
+                                <div class="gate-cell gate-activated" onclick="showGate(49)">49</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(50)">50</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(51)">51</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(52)">52</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(53)">53</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(54)">54</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(55)">55</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(56)">56</div>
+                                <!-- Row 8 -->
+                                <div class="gate-cell gate-undefined" onclick="showGate(57)">57</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(58)">58</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(59)">59</div>
+                                <div class="gate-cell gate-activated" onclick="showGate(60)">60</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(61)">61</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(62)">62</div>
+                                <div class="gate-cell gate-defined" onclick="showGate(63)">63</div>
+                                <div class="gate-cell gate-undefined" onclick="showGate(64)">64</div>
+                            </div>
+                            <div style="display: flex; gap: 16px; margin-top: 12px; font-size: 12px;">
+                                <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--accent-cyan); display: inline-block;"></span> Defined</span>
+                                <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--text-muted); display: inline-block;"></span> Undefined</span>
+                                <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--accent-amber); display: inline-block;"></span> Activated</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">📊</div>
+                                <div class="card-title">Profile Summary</div>
+                            </div>
+                            <div style="margin-top: 12px;">
+                                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                                    <span style="color: var(--text-muted);">Type</span>
+                                    <span style="font-weight: 600;">Manifesting Generator</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                                    <span style="color: var(--text-muted);">Strategy</span>
+                                    <span style="font-weight: 600;">Respond, then Inform</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                                    <span style="color: var(--text-muted);">Authority</span>
+                                    <span style="font-weight: 600;">Sacral</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                                    <span style="color: var(--text-muted);">Profile</span>
+                                    <span style="font-weight: 600;">3/5</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                                    <span style="color: var(--text-muted);">Defined Centers</span>
+                                    <span style="font-weight: 600;">5 of 9</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="hd-gates">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">☸</div>
+                            <div class="card-title">64 Gates — Cognitive Physics Mapping</div>
+                        </div>
+                        <div class="card-desc">Each gate maps to: I Ching hexagram, amino acid, astrological sign, biological center, organ, harmonic partner, and line expressions.</div>
+                        <div class="operator-grid" style="margin-top: 16px;">
+                            <div class="operator-cell" onclick="showGateDetail(1)"><span class="op-num">1</span><span class="op-name">Creative</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(2)"><span class="op-num">2</span><span class="op-name">Receptive</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(3)"><span class="op-num">3</span><span class="op-name">Difficulty</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(4)"><span class="op-num">4</span><span class="op-name">Youthful</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(5)"><span class="op-num">5</span><span class="op-name">Waiting</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(6)"><span class="op-num">6</span><span class="op-name">Conflict</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(7)"><span class="op-num">7</span><span class="op-name">Army</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(8)"><span class="op-num">8</span><span class="op-name">Holding</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(9)"><span class="op-num">9</span><span class="op-name">Taming</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(10)"><span class="op-num">10</span><span class="op-name">Treading</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(11)"><span class="op-num">11</span><span class="op-name">Peace</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(12)"><span class="op-num">12</span><span class="op-name">Standstill</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(13)"><span class="op-num">13</span><span class="op-name">Fellowship</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(14)"><span class="op-num">14</span><span class="op-name">Possession</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(15)"><span class="op-num">15</span><span class="op-name">Modesty</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(16)"><span class="op-num">16</span><span class="op-name">Enthusiasm</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(17)"><span class="op-num">17</span><span class="op-name">Following</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(18)"><span class="op-num">18</span><span class="op-name">Work</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(19)"><span class="op-num">19</span><span class="op-name">Approach</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(20)"><span class="op-num">20</span><span class="op-name">Contemplation</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(21)"><span class="op-num">21</span><span class="op-name">Bite</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(22)"><span class="op-num">22</span><span class="op-name">Grace</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(23)"><span class="op-num">23</span><span class="op-name">Splitting</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(24)"><span class="op-num">24</span><span class="op-name">Return</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(25)"><span class="op-num">25</span><span class="op-name">Innocence</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(26)"><span class="op-num">26</span><span class="op-name">Taming</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(27)"><span class="op-num">27</span><span class="op-name">Nourishing</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(28)"><span class="op-num">28</span><span class="op-name">Preponderance</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(29)"><span class="op-num">29</span><span class="op-name">Abysmal</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(30)"><span class="op-num">30</span><span class="op-name">Clinging</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(31)"><span class="op-num">31</span><span class="op-name">Influence</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(32)"><span class="op-num">32</span><span class="op-name">Duration</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(33)"><span class="op-num">33</span><span class="op-name">Retreat</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(34)"><span class="op-num">34</span><span class="op-name">Power</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(35)"><span class="op-num">35</span><span class="op-name">Progress</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(36)"><span class="op-num">36</span><span class="op-name">Darkening</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(37)"><span class="op-num">37</span><span class="op-name">Family</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(38)"><span class="op-num">38</span><span class="op-name">Opposition</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(39)"><span class="op-num">39</span><span class="op-name">Obstruction</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(40)"><span class="op-num">40</span><span class="op-name">Deliverance</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(41)"><span class="op-num">41</span><span class="op-name">Decrease</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(42)"><span class="op-num">42</span><span class="op-name">Increase</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(43)"><span class="op-num">43</span><span class="op-name">Breakthrough</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(44)"><span class="op-num">44</span><span class="op-name">Coupling</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(45)"><span class="op-num">45</span><span class="op-name">Gathering</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(46)"><span class="op-num">46</span><span class="op-name">Pushing</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(47)"><span class="op-num">47</span><span class="op-name">Exhaustion</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(48)"><span class="op-num">48</span><span class="op-name">Welling</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(49)"><span class="op-num">49</span><span class="op-name">Revolution</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(50)"><span class="op-num">50</span><span class="op-name">Cauldron</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(51)"><span class="op-num">51</span><span class="op-name">Thunder</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(52)"><span class="op-num">52</span><span class="op-name">Keeping</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(53)"><span class="op-num">53</span><span class="op-name">Development</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(54)"><span class="op-num">54</span><span class="op-name">Marrying</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(55)"><span class="op-num">55</span><span class="op-name">Abundance</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(56)"><span class="op-num">56</span><span class="op-name">Wanderer</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(57)"><span class="op-num">57</span><span class="op-name">Gentle</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(58)"><span class="op-num">58</span><span class="op-name">Joyous</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(59)"><span class="op-num">59</span><span class="op-name">Dispersion</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(60)"><span class="op-num">60</span><span class="op-name">Limitation</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(61)"><span class="op-num">61</span><span class="op-name">Inner Truth</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(62)"><span class="op-num">62</span><span class="op-name">Preponderance</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(63)"><span class="op-num">63</span><span class="op-name">Completion</span></div>
+                            <div class="operator-cell" onclick="showGateDetail(64)"><span class="op-num">64</span><span class="op-name">Before End</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="hd-channels">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">🔗</div>
+                            <div class="card-title">36 Channels</div>
+                        </div>
+                        <div class="card-desc">Channels are the connections between gates that define your unique design. Each channel carries a specific energetic theme.</div>
+                        <div class="channel-list" style="margin-top: 16px;">
+                            <div class="channel-item"><span class="channel-gates">1-8</span><span class="channel-name">Inspiration</span><span class="tag tag-cyan">Creative</span></div>
+                            <div class="channel-item"><span class="channel-gates">2-14</span><span class="channel-name">Beat</span><span class="tag tag-purple">Generator</span></div>
+                            <div class="channel-item"><span class="channel-gates">3-60</span><span class="channel-name">Mutation</span><span class="tag tag-amber">Individual</span></div>
+                            <div class="channel-item"><span class="channel-gates">4-63</span><span class="channel-name">Logic</span><span class="tag tag-blue">Mental</span></div>
+                            <div class="channel-item"><span class="channel-gates">5-15</span><span class="channel-name">Rhythm</span><span class="tag tag-cyan">Collective</span></div>
+                            <div class="channel-item"><span class="channel-gates">6-59</span><span class="channel-name">Mating</span><span class="tag tag-rose">Tribal</span></div>
+                            <div class="channel-item"><span class="channel-gates">7-31</span><span class="channel-name">Alpha</span><span class="tag tag-purple">Collective</span></div>
+                            <div class="channel-item"><span class="channel-gates">9-52</span><span class="channel-name">Concentration</span><span class="tag tag-blue">Logical</span></div>
+                            <div class="channel-item"><span class="channel-gates">10-20</span><span class="channel-name">Awakening</span><span class="tag tag-amber">Individual</span></div>
+                            <div class="channel-item"><span class="channel-gates">10-34</span><span class="channel-name">Exploration</span><span class="tag tag-cyan">Manifesting</span></div>
+                            <div class="channel-item"><span class="channel-gates">10-57</span><span class="channel-name">Perfected Form</span><span class="tag tag-emerald">Survival</span></div>
+                            <div class="channel-item"><span class="channel-gates">11-56</span><span class="channel-name">Curiosity</span><span class="tag tag-purple">Collective</span></div>
+                            <div class="channel-item"><span class="channel-gates">12-22</span><span class="channel-name">Openness</span><span class="tag tag-amber">Individual</span></div>
+                            <div class="channel-item"><span class="channel-gates">13-33</span><span class="channel-name">Prodigal</span><span class="tag tag-cyan">Collective</span></div>
+                            <div class="channel-item"><span class="channel-gates">16-48</span><span class="channel-name">Wavelength</span><span class="tag tag-blue">Logical</span></div>
+                            <div class="channel-item"><span class="channel-gates">17-62</span><span class="channel-name">Acceptance</span><span class="tag tag-purple">Collective</span></div>
+                            <div class="channel-item"><span class="channel-gates">18-58</span><span class="channel-name">Judgment</span><span class="tag tag-rose">Tribal</span></div>
+                            <div class="channel-item"><span class="channel-gates">19-49</span><span class="channel-name">Synthesis</span><span class="tag tag-cyan">Tribal</span></div>
+                            <div class="channel-item"><span class="channel-gates">20-34</span><span class="channel-name">Charisma</span><span class="tag tag-amber">Individual</span></div>
+                            <div class="channel-item"><span class="channel-gates">20-57</span><span class="channel-name">Brainwave</span><span class="tag tag-emerald">Survival</span></div>
+                            <div class="channel-item"><span class="channel-gates">21-45</span><span class="channel-name">Moneyline</span><span class="tag tag-rose">Tribal</span></div>
+                            <div class="channel-item"><span class="channel-gates">23-43</span><span class="channel-name">Structuring</span><span class="tag tag-blue">Individual</span></div>
+                            <div class="channel-item"><span class="channel-gates">24-61</span><span class="channel-name">Awareness</span><span class="tag tag-purple">Individual</span></div>
+                            <div class="channel-item"><span class="channel-gates">25-51</span><span class="channel-name">Initiation</span><span class="tag tag-amber">Individual</span></div>
+                            <div class="channel-item"><span class="channel-gates">26-44</span><span class="channel-name">Surrender</span><span class="tag tag-cyan">Tribal</span></div>
+                            <div class="channel-item"><span class="channel-gates">27-50</span><span class="channel-name">Preservation</span><span class="tag tag-rose">Tribal</span></div>
+                            <div class="channel-item"><span class="channel-gates">28-38</span><span class="channel-name">Struggle</span><span class="tag tag-amber">Individual</span></div>
+                            <div class="channel-item"><span class="channel-gates">29-46</span><span class="channel-name">Discovery</span><span class="tag tag-cyan">Collective</span></div>
+                            <div class="channel-item"><span class="channel-gates">30-41</span><span class="channel-name">Recognition</span><span class="tag tag-purple">Emotional</span></div>
+                            <div class="channel-item"><span class="channel-gates">32-54</span><span class="channel-name">Transformation</span><span class="tag tag-blue">Tribal</span></div>
+                            <div class="channel-item"><span class="channel-gates">34-57</span><span class="channel-name">Power</span><span class="tag tag-emerald">Survival</span></div>
+                            <div class="channel-item"><span class="channel-gates">35-36</span><span class="channel-name">Transitoriness</span><span class="tag tag-amber">Individual</span></div>
+                            <div class="channel-item"><span class="channel-gates">37-40</span><span class="channel-name">Community</span><span class="tag tag-rose">Tribal</span></div>
+                            <div class="channel-item"><span class="channel-gates">39-55</span><span class="channel-name">Emoting</span><span class="tag tag-purple">Emotional</span></div>
+                            <div class="channel-item"><span class="channel-gates">42-53</span><span class="channel-name">Maturation</span><span class="tag tag-cyan">Collective</span></div>
+                            <div class="channel-item"><span class="channel-gates">47-64</span><span class="channel-name">Abstract</span><span class="tag tag-blue">Mental</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="hd-centers">
+                    <div class="card-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-cyan);">◆</div>
+                                <div class="card-title">Head Center</div>
+                            </div>
+                            <div class="card-desc">Inspiration, questions, mental pressure. The source of doubt and wonder.</div>
+                            <div class="card-meta"><span>Gates: 61, 63, 64</span><span>Pressure</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-purple);">◆</div>
+                                <div class="card-title">Ajna Center</div>
+                            </div>
+                            <div class="card-desc">Conceptualization, analysis, mental awareness. The processor of information.</div>
+                            <div class="card-meta"><span>Gates: 47, 24, 4, 17, 43, 11</span><span>Awareness</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-amber);">◆</div>
+                                <div class="card-title">Throat Center</div>
+                            </div>
+                            <div class="card-desc">Communication, expression, action, manifestation. The hub of all centers.</div>
+                            <div class="card-meta"><span>Gates: 12, 45, 33, 56, 35, 62, 8, 31, 20</span><span>Manifestation</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-rose);">◆</div>
+                                <div class="card-title">G Center</div>
+                            </div>
+                            <div class="card-desc">Identity, direction, love. The magnetic monopole that holds the design together.</div>
+                            <div class="card-meta"><span>Gates: 1, 13, 25, 15, 10, 46, 7</span><span>Identity</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-blue);">◆</div>
+                                <div class="card-title">Heart Center</div>
+                            </div>
+                            <div class="card-desc">Willpower, ego, material world. The motor of commitment and determination.</div>
+                            <div class="card-meta"><span>Gates: 21, 40, 26, 51</span><span>Motor</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: var(--accent-emerald);">◆</div>
+                                <div class="card-title">Sacral Center</div>
+                            </div>
+                            <div class="card-desc">Life force, sexuality, work capacity. The most powerful motor in the body.</div>
+                            <div class="card-meta"><span>Gates: 5, 14, 29, 34, 27, 59, 42, 9, 3</span><span>Motor</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: #ec4899;">◆</div>
+                                <div class="card-title">Solar Plexus</div>
+                            </div>
+                            <div class="card-desc">Emotions, feelings, desires, moods. The wave of emotional clarity.</div>
+                            <div class="card-meta"><span>Gates: 36, 55, 30, 22, 37, 6, 49</span><span>Awareness</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: #f97316;">◆</div>
+                                <div class="card-title">Spleen Center</div>
+                            </div>
+                            <div class="card-desc">Intuition, instinct, survival, health. The now-center of spontaneous awareness.</div>
+                            <div class="card-meta"><span>Gates: 48, 57, 44, 50, 32, 18, 28, 10</span><span>Awareness</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon" style="color: #8b5cf6;">◆</div>
+                                <div class="card-title">Root Center</div>
+                            </div>
+                            <div class="card-desc">Stress, adrenaline, drive. The pressure to do, to become, to evolve.</div>
+                            <div class="card-meta"><span>Gates: 58, 38, 54, 19, 39, 41, 60, 52, 53</span><span>Pressure</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DISCERNMENT PAGE -->
+            <div class="page" id="page-discernment">
+                <div class="page-header">
+                    <h1 class="page-title">User Discernment Engine</h1>
+                    <p class="page-subtitle">PatternDecipherer and UserDiscernmentEngine. Learns each person's Human Design, recognizes how the same gate behaves differently across users and center placements.</p>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-rose);">◉</div>
+                            <div class="card-title">Pattern Decipherer</div>
+                        </div>
+                        <div class="card-desc">Analyzes user interaction patterns, speech cadence, decision timing, and emotional wave patterns to build a unique perceptual fingerprint.</div>
+                        <div class="card-meta">
+                            <span>🔍 Pattern matching</span>
+                            <span>📊 Wave analysis</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 88%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-purple);">🧠</div>
+                            <div class="card-title">User Discernment Engine</div>
+                        </div>
+                        <div class="card-desc">Maintains longitudinal profiles. Recognizes that Gate 34 in a Sacral center behaves differently than Gate 34 in a Root center. Grows from success and struggle.</div>
+                        <div class="card-meta">
+                            <span>👤 12 profiles</span>
+                            <span>📈 Learning</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 92%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-cyan);">🌱</div>
+                            <div class="card-title">Growth from Outcomes</div>
+                        </div>
+                        <div class="card-desc">Every interaction teaches the system. Successes reinforce patterns. Struggles generate new hypotheses. The engine becomes wiser with each user.</div>
+                        <div class="card-meta">
+                            <span>✓ Success tracking</span>
+                            <span>⚠ Struggle analysis</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 76%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-divider">
+                    <span>Discernment Pipeline</span>
+                </div>
+
+                <div class="code-block">
+                    <span class="lang-tag">typescript</span>
+                    <pre><span class="code-keyword">class</span> <span class="code-function">UserDiscernmentEngine</span> {
+  <span class="code-keyword">private</span> profiles: <span class="code-function">Map</span>&lt;<span class="code-function">string</span>, <span class="code-function">UserProfile</span>&gt; = <span class="code-keyword">new</span> <span class="code-function">Map</span>();
+  <span class="code-keyword">private</span> patternWeights: <span class="code-function">Tensor</span>;
+
+  <span class="code-keyword">async</span> <span class="code-function">discern</span>(userId: <span class="code-function">string</span>, interaction: <span class="code-function">Interaction</span>) {
+    <span class="code-keyword">const</span> profile = <span class="code-keyword">this</span>.profiles.<span class="code-function">get</span>(userId) || <span class="code-keyword">await</span> <span class="code-keyword">this</span>.<span class="code-function">createProfile</span>(userId);
+
+    <span class="code-comment">// Extract perceptual patterns</span>
+    <span class="code-keyword">const</span> patterns = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.decipherer.<span class="code-function">extract</span>(interaction);
+
+    <span class="code-comment">// Compare against known HD placements</span>
+    <span class="code-keyword">const</span> alignment = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.<span class="code-function">alignToHD</span>(patterns, profile.hd);
+
+    <span class="code-comment">// Update weights based on outcome</span>
+    <span class="code-keyword">this</span>.patternWeights = <span class="code-keyword">this</span>.<span class="code-function">evolveWeights</span>(alignment, interaction.outcome);
+
+    <span class="code-keyword">return</span> alignment;
+  }
+}</pre>
+                </div>
+            </div>
+
+            <!-- ALIGNMENT PAGE -->
+            <div class="page" id="page-alignment">
+                <div class="page-header">
+                    <h1 class="page-title">Life Purpose Alignment</h1>
+                    <p class="page-subtitle">PurposeDecoder, GoalAligner, and PersonalAlly. Self-teaches how to learn and grow WITH each person. Aligns everything toward their life purpose and goals.</p>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-blue);">✦</div>
+                            <div class="card-title">Purpose Decoder</div>
+                        </div>
+                        <div class="card-desc">Decodes the user's life purpose from their Human Design chart, astrological patterns, and longitudinal behavioral data. Not just what they want — what they are.</div>
+                        <div class="card-meta">
+                            <span>🔮 Chart analysis</span>
+                            <span>🌟 Astrology</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 95%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-emerald);">🎯</div>
+                            <div class="card-title">Goal Aligner</div>
+                        </div>
+                        <div class="card-desc">Aligns short-term actions with long-term purpose. Every task, every build, every deployment is checked against the user's stated goals and emergent direction.</div>
+                        <div class="card-meta">
+                            <span>🎯 Goal mapping</span>
+                            <span>⚡ Action alignment</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 88%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon" style="color: var(--accent-amber);">🤝</div>
+                            <div class="card-title">Personal Ally</div>
+                        </div>
+                        <div class="card-desc">The interface layer that translates system outputs into personalized guidance. Adapts tone, depth, and framing based on the user's current state and design.</div>
+                        <div class="card-meta">
+                            <span>💬 Adaptive tone</span>
+                            <span>🧘 State-aware</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 82%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-divider">
+                    <span>Alignment Check</span>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">✦</div>
+                        <div class="card-title">Current Alignment Score</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 16px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 36px; font-weight: 700; color: var(--accent-emerald);">94%</div>
+                            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Purpose Alignment</div>
+                            <div class="progress-bar" style="margin-top: 8px;">
+                                <div class="progress-fill" style="width: 94%;"></div>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 36px; font-weight: 700; color: var(--accent-cyan);">87%</div>
+                            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Goal Progress</div>
+                            <div class="progress-bar" style="margin-top: 8px;">
+                                <div class="progress-fill" style="width: 87%;"></div>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 36px; font-weight: 700; color: var(--accent-amber);">91%</div>
+                            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">System Coherence</div>
+                            <div class="progress-bar" style="margin-top: 8px;">
+                                <div class="progress-fill" style="width: 91%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; padding: 16px; background: var(--bg-tertiary); border-radius: 10px; border: 1px solid var(--border);">
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Alignment Insight</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">Your current build (Living Mirror v2.1) aligns strongly with your purpose of "helping others reach success through self-knowledge." The Roxy API integration and Magic Squares visualization directly serve this goal. Consider adding a DISEMINER narrative layer to help users understand their own patterns.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEPLOY PAGE -->
+            <div class="page" id="page-deploy">
+                <div class="page-header">
+                    <h1 class="page-title">Deploy</h1>
+                    <p class="page-subtitle">Multi-target deployment system. Push your built artifacts to Netlify, Vercel, GitHub Pages, Supabase, or Termux with one click.</p>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card" style="grid-column: span 2;">
+                        <div class="card-header">
+                            <div class="card-icon">🚀</div>
+                            <div class="card-title">Deployment Targets</div>
+                        </div>
+                        <div class="card-desc">Select where to deploy your current build. The system will auto-configure environment variables and handle platform-specific optimizations.</div>
+                        <div class="deploy-grid" style="margin-top: 16px;">
+                            <div class="deploy-card selected" onclick="selectDeploy(this)">
+                                <div class="deploy-icon">🌐</div>
+                                <div class="deploy-name">Netlify</div>
+                                <div class="deploy-status">Static hosting ready</div>
+                            </div>
+                            <div class="deploy-card" onclick="selectDeploy(this)">
+                                <div class="deploy-icon">▲</div>
+                                <div class="deploy-name">Vercel</div>
+                                <div class="deploy-status">Edge functions ready</div>
+                            </div>
+                            <div class="deploy-card" onclick="selectDeploy(this)">
+                                <div class="deploy-icon">📄</div>
+                                <div class="deploy-name">GitHub Pages</div>
+                                <div class="deploy-status">Jekyll compatible</div>
+                            </div>
+                            <div class="deploy-card" onclick="selectDeploy(this)">
+                                <div class="deploy-icon">🗄</div>
+                                <div class="deploy-name">Supabase</div>
+                                <div class="deploy-status">Backend + Edge</div>
+                            </div>
+                            <div class="deploy-card" onclick="selectDeploy(this)">
+                                <div class="deploy-icon">📱</div>
+                                <div class="deploy-name">Termux</div>
+                                <div class="deploy-status">Mobile daemon</div>
+                            </div>
+                            <div class="deploy-card" onclick="selectDeploy(this)">
+                                <div class="deploy-icon">☁</div>
+                                <div class="deploy-name">Cloudflare</div>
+                                <div class="deploy-status">Workers + Pages</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; gap: 8px;">
+                            <button class="btn btn-primary" onclick="showToast('Deploy', 'Deployment initiated to Netlify')">🚀 Deploy Now</button>
+                            <button class="btn btn-secondary">📋 Preview Build</button>
+                            <button class="btn btn-ghost">⚙ Configure</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">📦</div>
+                            <div class="card-title">Build Artifacts</div>
+                        </div>
+                        <div class="terminal" style="font-size: 12px; margin-top: 12px;">
+                            <div>dist/ <span style="color: var(--text-muted);">(ready)</span></div>
+                            <div>  ├── index.html <span style="color: var(--accent-emerald);">✓</span></div>
+                            <div>  ├── app.js <span style="color: var(--accent-emerald);">✓</span></div>
+                            <div>  ├── app.css <span style="color: var(--accent-emerald);">✓</span></div>
+                            <div>  ├── assets/ <span style="color: var(--accent-emerald);">✓</span></div>
+                            <div>  └── _headers <span style="color: var(--accent-emerald);">✓</span></div>
+                            <div>supabase/ <span style="color: var(--text-muted);">(ready)</span></div>
+                            <div>  ├── migrations/ <span style="color: var(--accent-emerald);">✓</span></div>
+                            <div>  ├── functions/ <span style="color: var(--accent-emerald);">✓</span></div>
+                            <div>  └── config.toml <span style="color: var(--accent-emerald);">✓</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-divider">
+                    <span>Environment Variables</span>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">🔐</div>
+                        <div class="card-title">Secrets & Config</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                        <div class="input-group">
+                            <label class="input-label">ROXY_API_KEY</label>
+                            <input type="password" class="input-field" value="••••••••••••••••">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">SUPABASE_URL</label>
+                            <input type="text" class="input-field" value="https://your-project.supabase.co">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">SUPABASE_ANON_KEY</label>
+                            <input type="password" class="input-field" value="••••••••••••••••">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">NETLIFY_SITE_ID</label>
+                            <input type="text" class="input-field" value="your-site-id">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MONITOR PAGE -->
+            <div class="page" id="page-monitor">
+                <div class="page-header">
+                    <h1 class="page-title">Monitor</h1>
+                    <p class="page-subtitle">Real-time health monitoring, error tracking, and performance metrics across all deployed systems.</p>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value">99.7%</div>
+                        <div class="stat-label">Uptime</div>
+                        <div class="stat-change up">↑ 0.2%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">142ms</div>
+                        <div class="stat-label">Avg Response</div>
+                        <div class="stat-change up">↓ 12ms</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Active Errors</div>
+                        <div class="stat-change up">✓ Clean</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">2.4k</div>
+                        <div class="stat-label">Requests/hr</div>
+                        <div class="stat-change up">↑ 18%</div>
+                    </div>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card" style="grid-column: span 2;">
+                        <div class="card-header">
+                            <div class="card-icon">📊</div>
+                            <div class="card-title">Live Log Stream</div>
+                        </div>
+                        <div class="log-stream" style="margin-top: 12px;">
+                            <div class="log-entry">
+                                <span class="log-time">18:38:01</span>
+                                <span class="log-level" style="color: var(--accent-emerald);">INFO</span>
+                                <span class="log-msg">Build pipeline heartbeat — all stages nominal</span>
+                            </div>
+                            <div class="log-entry">
+                                <span class="log-time">18:37:45</span>
+                                <span class="log-level" style="color: var(--accent-blue);">DEBUG</span>
+                                <span class="log-msg">Attractor field updated: 3 new basins detected</span>
+                            </div>
+                            <div class="log-entry">
+                                <span class="log-time">18:37:12</span>
+                                <span class="log-level" style="color: var(--accent-emerald);">INFO</span>
+                                <span class="log-msg">UserDiscernment: Profile #7 updated with new gate pattern</span>
+                            </div>
+                            <div class="log-entry">
+                                <span class="log-time">18:36:58</span>
+                                <span class="log-level" style="color: var(--accent-amber);">WARN</span>
+                                <span class="log-msg">Memory usage at 72% — growth engine throttling</span>
+                            </div>
+                            <div class="log-entry">
+                                <span class="log-time">18:36:30</span>
+                                <span class="log-level" style="color: var(--accent-emerald);">INFO</span>
+                                <span class="log-msg">Deployment #47 artifact verified: checksum match</span>
+                            </div>
+                            <div class="log-entry">
+                                <span class="log-time">18:35:44</span>
+                                <span class="log-level" style="color: var(--accent-blue);">DEBUG</span>
+                                <span class="log-msg">ResonanceEngine: Semantic weather — calm, high coherence</span>
+                            </div>
+                            <div class="log-entry">
+                                <span class="log-time">18:35:01</span>
+                                <span class="log-level" style="color: var(--accent-emerald);">INFO</span>
+                                <span class="log-msg">MetaClaw: Cross-run skill transfer complete (3 skills)</span>
+                            </div>
+                            <div class="log-entry">
+                                <span class="log-time">18:34:22</span>
+                                <span class="log-level" style="color: var(--accent-rose);">ERROR</span>
+                                <span class="log-msg">Roxy API timeout — fallback to cached data</span>
+                            </div>
+                            <div class="log-entry">
+                                <span class="log-time">18:34:20</span>
+                                <span class="log-level" style="color: var(--accent-emerald);">INFO</span>
+                                <span class="log-msg">Auto-heal: Retrying Roxy connection with exponential backoff</span>
+                            </div>
+                            <div class="log-entry">
+                                <span class="log-time">18:33:55</span>
+                                <span class="log-level" style="color: var(--accent-emerald);">INFO</span>
+                                <span class="log-msg">PurposeAlignment: Daily coherence check — 94% aligned</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">🩺</div>
+                            <div class="card-title">System Health</div>
+                        </div>
+                        <div style="margin-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                                <span style="color: var(--text-secondary);">Cognitive Engine</span>
+                                <span style="color: var(--accent-emerald); font-weight: 600;">Healthy</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                                <span style="color: var(--text-secondary);">Build Pipeline</span>
+                                <span style="color: var(--accent-cyan); font-weight: 600;">Building</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                                <span style="color: var(--text-secondary);">Ingestion System</span>
+                                <span style="color: var(--accent-emerald); font-weight: 600;">Healthy</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                                <span style="color: var(--text-secondary);">Discernment Engine</span>
+                                <span style="color: var(--accent-emerald); font-weight: 600;">Healthy</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                                <span style="color: var(--text-secondary);">Purpose Alignment</span>
+                                <span style="color: var(--accent-emerald); font-weight: 600;">Healthy</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                                <span style="color: var(--text-secondary);">Roxy API</span>
+                                <span style="color: var(--accent-amber); font-weight: 600;">Degraded</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS PAGE -->
+            <div class="page" id="page-settings">
+                <div class="page-header">
+                    <h1 class="page-title">Settings</h1>
+                    <p class="page-subtitle">Configure the autonomous builder, your Human Design profile, API keys, and deployment preferences.</p>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab(this, 'settings-general')">General</button>
+                    <button class="tab" onclick="switchTab(this, 'settings-hd')">Human Design</button>
+                    <button class="tab" onclick="switchTab(this, 'settings-api')">API Keys</button>
+                    <button class="tab" onclick="switchTab(this, 'settings-advanced')">Advanced</button>
+                </div>
+
+                <div class="tab-content active" id="settings-general">
+                    <div class="card-grid" style="grid-template-columns: 1fr;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">⚙</div>
+                                <div class="card-title">Builder Configuration</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="input-group">
+                                    <label class="input-label">Builder Mode</label>
+                                    <select class="input-field">
+                                        <option selected>Autonomous (self-evolving)</option>
+                                        <option>Co-Pilot (collaborative)</option>
+                                        <option>Manual (step-by-step)</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Auto-Deploy</label>
+                                    <select class="input-field">
+                                        <option>After all tests pass</option>
+                                        <option selected>After manual approval</option>
+                                        <option>Never (manual only)</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Quality Threshold</label>
+                                    <input type="range" class="input-field" min="0" max="1" step="0.05" value="0.85" style="padding: 8px 16px;">
+                                    <div style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 4px;">0.85</div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">MetaClaw Learning</label>
+                                    <select class="input-field">
+                                        <option selected>Enabled</option>
+                                        <option>Disabled</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="settings-hd">
+                    <div class="card-grid" style="grid-template-columns: 1fr;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">☸</div>
+                                <div class="card-title">Your Human Design Profile</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="input-group">
+                                    <label class="input-label">Birth Date</label>
+                                    <input type="date" class="input-field" value="1990-01-01">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Birth Time</label>
+                                    <input type="time" class="input-field" value="12:00">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Birth Location</label>
+                                    <input type="text" class="input-field" placeholder="City, Country">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Profile Type</label>
+                                    <select class="input-field">
+                                        <option>Manifestor</option>
+                                        <option selected>Generator</option>
+                                        <option>Manifesting Generator</option>
+                                        <option>Projector</option>
+                                        <option>Reflector</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px; display: flex; gap: 8px;">
+                                <button class="btn btn-primary">💾 Save Profile</button>
+                                <button class="btn btn-secondary">🔮 Calculate Chart</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="settings-api">
+                    <div class="card-grid" style="grid-template-columns: 1fr;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">🔐</div>
+                                <div class="card-title">API Configuration</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="input-group">
+                                    <label class="input-label">Roxy API Key</label>
+                                    <input type="password" class="input-field" placeholder="Enter your Roxy API key">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Supabase URL</label>
+                                    <input type="text" class="input-field" placeholder="https://your-project.supabase.co">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Supabase Anon Key</label>
+                                    <input type="password" class="input-field" placeholder="Enter your Supabase anon key">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Netlify Token</label>
+                                    <input type="password" class="input-field" placeholder="Enter your Netlify token">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">OpenAI API Key</label>
+                                    <input type="password" class="input-field" placeholder="Enter your OpenAI API key">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">GitHub Token</label>
+                                    <input type="password" class="input-field" placeholder="Enter your GitHub token">
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px; display: flex; gap: 8px;">
+                                <button class="btn btn-primary">💾 Save Keys</button>
+                                <button class="btn btn-secondary">🔄 Test Connections</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="settings-advanced">
+                    <div class="card-grid" style="grid-template-columns: 1fr;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">🔧</div>
+                                <div class="card-title">Advanced Configuration</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="input-group">
+                                    <label class="input-label">Max Build Time (seconds)</label>
+                                    <input type="number" class="input-field" value="300">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Retry Attempts</label>
+                                    <input type="number" class="input-field" value="3">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Log Level</label>
+                                    <select class="input-field">
+                                        <option>Debug</option>
+                                        <option selected>Info</option>
+                                        <option>Warn</option>
+                                        <option>Error</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Auto-Update</label>
+                                    <select class="input-field">
+                                        <option selected>Enabled</option>
+                                        <option>Disabled</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px; padding: 16px; background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.2); border-radius: 10px;">
+                                <div style="font-size: 14px; font-weight: 600; color: var(--accent-rose); margin-bottom: 8px;">⚠ Danger Zone</div>
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">These actions cannot be undone.</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-ghost" style="border-color: var(--accent-rose); color: var(--accent-rose);">🗑 Reset All Data</button>
+                                    <button class="btn btn-ghost" style="border-color: var(--accent-rose); color: var(--accent-rose);">🔄 Factory Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Operator Detail</div>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div id="modalContent">
+                <p style="color: var(--text-secondary);">Select an operator to view its full cognitive physics profile.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        function navigateTo(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            // Show target page
+            document.getElementById('page-' + pageId).classList.add('active');
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+            // Close sidebar on mobile
+            document.getElementById('sidebar').classList.remove('open');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Tabs
+        function switchTab(tabEl, contentId) {
+            const parent = tabEl.closest('.tabs') || tabEl.parentElement;
+            parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tabEl.classList.add('active');
+
+            const container = parent.nextElementSibling;
+            if (container && container.classList.contains('tab-content')) {
+                container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(contentId).classList.add('active');
+            } else {
+                const allTabs = parent.parentElement.querySelectorAll('.tab-content');
+                allTabs.forEach(t => t.classList.remove('active'));
+                document.getElementById(contentId).classList.add('active');
+            }
+        }
+
+        // Toast notifications
+        function showToast(title, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="toast-icon">ℹ</span>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-msg">${message}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // Modal
+        function showModal(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal(e) {
+            if (!e || e.target === document.getElementById('modalOverlay')) {
+                document.getElementById('modalOverlay').classList.remove('active');
+            }
+        }
+
+        // Operator detail
+        function showOperator(id) {
+            const names = ['','Creative','Receptive','Difficulty','Youthful','Waiting','Conflict','Army','Holding','Taming','Treading','Peace','Standstill','Fellowship','Possession','Modesty','Enthusiasm','Following','Work','Approach','Contemplation','Bite','Grace','Splitting','Return','Innocence','Taming','Nourishing','Preponderance','Abysmal','Clinging','Influence','Duration','Retreat','Power','Progress','Darkening','Family','Opposition','Obstruction','Deliverance','Decrease','Increase','Breakthrough','Coupling','Gathering','Pushing','Exhaustion','Welling','Revolution','Cauldron','Thunder','Keeping','Development','Marrying','Abundance','Wanderer','Gentle','Joyous','Dispersion','Limitation','Inner Truth','Preponderance','Completion','Before End'];
+            showModal('Operator ' + id + ': ' + names[id], `
+                <div style="color: var(--text-secondary); line-height: 1.8;">
+                    <p><strong>I Ching:</strong> Hexagram ${id}</p>
+                    <p><strong>Amino Acid:</strong> ${['Phe','Leu','Ile','Met','Val','Ser','Pro','Thr','Ala','Tyr','His','Gln','Asn','Lys','Asp','Glu','Cys','Trp','Arg','Gly'][id % 20]}</p>
+                    <p><strong>Center:</strong> ${['Head','Ajna','Throat','G','Heart','Sacral','Solar Plexus','Spleen','Root'][Math.floor(Math.random() * 9)]}</p>
+                    <p><strong>Cognitive Function:</strong> Semantic particle with 10 properties, 6 binary dimensions</p>
+                    <div style="margin-top: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Field Properties</div>
+                        <div style="font-size: 13px;">Charge: ${(Math.random() * 2 - 1).toFixed(2)} | Spin: ${Math.random() > 0.5 ? 'Up' : 'Down'} | Resonance: ${(Math.random()).toFixed(3)}</div>
+                    </div>
+                </div>
+            `);
+        }
+
+        function showGate(id) {
+            showModal('Gate ' + id, `
+                <div style="color: var(--text-secondary); line-height: 1.8;">
+                    <p><strong>Status:</strong> <span style="color: var(--accent-cyan);">Defined</span></p>
+                    <p><strong>Center:</strong> ${['Head','Ajna','Throat','G','Heart','Sacral','Solar Plexus','Spleen','Root'][Math.floor(Math.random() * 9)]}</p>
+                    <p><strong>Circuit:</strong> ${['Individual','Collective','Tribal'][Math.floor(Math.random() * 3)]}</p>
+                    <p><strong>Line:</strong> ${Math.floor(Math.random() * 6) + 1}</p>
+                </div>
+            `);
+        }
+
+        function showGateDetail(id) {
+            showGate(id);
+        }
+
+        // Deploy selection
+        function selectDeploy(el) {
+            document.querySelectorAll('.deploy-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        // Attractor field canvas
+        function initAttractorCanvas() {
+            const canvas = document.getElementById('attractorCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            const attractors = [
+                { x: canvas.width * 0.3, y: canvas.height * 0.4, g: 0.8, color: '#00d4aa' },
+                { x: canvas.width * 0.7, y: canvas.height * 0.3, g: 0.6, color: '#a855f7' },
+                { x: canvas.width * 0.5, y: canvas.height * 0.7, g: 0.4, color: '#3b82f6' }
+            ];
+
+            let time = 0;
+
+            function draw() {
+                ctx.fillStyle = '#1a1a25';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw field
+                const imageData = ctx.createImageData(canvas.width, canvas.height);
+                for (let y = 0; y < canvas.height; y += 2) {
+                    for (let x = 0; x < canvas.width; x += 2) {
+                        let intensity = 0;
+                        for (const a of attractors) {
+                            const dx = x - a.x;
+                            const dy = y - a.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            intensity += a.g / (1 + dist * 0.01);
+                        }
+                        const idx = (y * canvas.width + x) * 4;
+                        const val = Math.min(255, intensity * 30);
+                        imageData.data[idx] = val * 0.2;
+                        imageData.data[idx + 1] = val * 0.8;
+                        imageData.data[idx + 2] = val * 0.6;
+                        imageData.data[idx + 3] = val;
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+
+                // Draw attractors
+                for (const a of attractors) {
+                    const pulse = Math.sin(time * 0.02 + a.x) * 5;
+                    ctx.beginPath();
+                    ctx.arc(a.x, a.y, 8 + pulse, 0, Math.PI * 2);
+                    ctx.fillStyle = a.color;
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(a.x, a.y, 15 + pulse, 0, Math.PI * 2);
+                    ctx.strokeStyle = a.color + '40';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                time++;
+                requestAnimationFrame(draw);
+            }
+
+            draw();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initAttractorCanvas();
+        });
+    </script>
+</body>
+</html>

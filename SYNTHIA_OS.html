@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>SYNTHIA OS</title>
+<style>
+/* ── TOKENS ── */
+:root {
+  --void: #030305;
+  --ink: #08080f;
+  --surface: #0f0f1a;
+  --raised: #161625;
+  --border: #1e1e35;
+  --border2: #2a2a45;
+  --text: #e8e4f0;
+  --dim: #7a7490;
+  --muted: #3a3558;
+  --gold: #f5c518;
+  --amber: #e8921a;
+  --emerald: #10d474;
+  --violet: #c084fc;
+  --coral: #ff5959;
+  --gold-g: rgba(245,197,24,.12);
+  --em-g: rgba(16,212,116,.1);
+  --vi-g: rgba(192,132,252,.12);
+  --co-g: rgba(255,89,89,.1);
+  --r: 10px;
+  --r2: 16px;
+  --mono: 'SF Mono','Fira Code',monospace;
+  --sans: system-ui,-apple-system,sans-serif;
+  --titlebar: 38px;
+  --dock: 64px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--void);color:var(--text);font-family:var(--sans);font-size:13px;user-select:none}
+
+/* ── COSMOS BG ── */
+#cosmos{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite var(--delay,0s)}
+@keyframes twinkle{0%,100%{opacity:var(--lo,.1)}50%{opacity:var(--hi,.6)}}
+
+/* ── DESKTOP ── */
+#desktop{position:fixed;inset:0;z-index:1}
+
+/* ── TITLEBAR ── */
+#titlebar{
+  position:absolute;top:0;left:0;right:0;height:var(--titlebar);
+  background:rgba(8,8,15,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;gap:8px;z-index:900
+}
+#tb-logo{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:3px;font-weight:600;flex-shrink:0}
+#tb-apps{display:flex;gap:2px;flex:1;overflow:hidden}
+.tb-app{padding:4px 10px;border-radius:6px;font-size:11px;color:var(--dim);cursor:pointer;transition:.15s;white-space:nowrap;border:none;background:transparent}
+.tb-app:hover{background:var(--raised);color:var(--text)}
+.tb-app.active{color:var(--gold)}
+#tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+#tb-time{font-family:var(--mono);font-size:11px;color:var(--dim)}
+#tb-pulse{width:6px;height:6px;border-radius:50%;background:var(--emerald);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--em-g)}50%{opacity:.4;box-shadow:0 0 0 4px transparent}}
+
+/* ── CANVAS ── */
+#canvas{position:absolute;top:var(--titlebar);left:0;right:0;bottom:var(--dock);overflow:hidden}
+
+/* ── DOCK ── */
+#dock{
+  position:absolute;bottom:0;left:0;right:0;height:var(--dock);
+  background:rgba(8,8,15,.92);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;z-index:900
+}
+.dock-item{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:.2s;position:relative;border:1px solid transparent;
+  background:var(--raised);font-size:20px
+}
+.dock-item:hover{transform:translateY(-4px) scale(1.1);border-color:var(--border2);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.dock-item:active{transform:scale(.94)}
+.dock-item .d-label{font-size:8px;color:var(--dim);position:absolute;bottom:-14px;white-space:nowrap}
+.dock-item.running::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--emerald)}
+.dock-sep{width:1px;height:32px;background:var(--border);margin:0 4px}
+
+/* ── WINDOWS ── */
+.win{
+  position:absolute;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r2);box-shadow:0 24px 64px rgba(0,0,0,.6);
+  display:flex;flex-direction:column;overflow:hidden;min-width:320px;min-height:240px;
+  animation:winPop .2s cubic-bezier(.34,1.56,.64,1)
+}
+@keyframes winPop{from{opacity:0;transform:scale(.9) translateY(10px)}to{opacity:1;transform:none}}
+.win.focused{border-color:var(--border2);box-shadow:0 24px 64px rgba(0,0,0,.7),0 0 0 1px var(--border2)}
+.win-bar{
+  height:36px;background:var(--raised);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;gap:8px;cursor:default;flex-shrink:0
+}
+.win-bar.draggable{cursor:grab}
+.win-bar.draggable:active{cursor:grabbing}
+.win-dots{display:flex;gap:5px;flex-shrink:0}
+.win-dot{width:12px;height:12px;border-radius:50%;cursor:pointer;flex-shrink:0;border:none}
+.dot-close{background:#ff5f56}
+.dot-min{background:#febc2e}
+.dot-max{background:#27c840}
+.dot-close:hover{filter:brightness(1.2)}
+.win-title{font-size:12px;font-weight:600;flex:1;text-align:center;color:var(--dim);pointer-events:none}
+.win-body{flex:1;overflow:hidden;position:relative}
+
+/* ── RESIZE HANDLE ── */
+.win-resize{position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:se-resize;z-index:10}
+.win-resize::after{content:'';position:absolute;bottom:4px;right:4px;width:8px;height:8px;border-right:2px solid var(--border2);border-bottom:2px solid var(--border2)}
+
+/* ── DESKTOP ICONS ── */
+#desktop-icons{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
+.desk-icon{
+  position:absolute;width:72px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  cursor:pointer;padding:8px 4px;border-radius:8px;pointer-events:all;
+  transition:.15s;text-align:center
+}
+.desk-icon:hover{background:rgba(255,255,255,.06)}
+.desk-icon:active{transform:scale(.94)}
+.desk-icon .di-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:2px}
+.desk-icon .di-label{font-size:10px;color:var(--text);line-height:1.3;word-break:break-word}
+
+/* ── APP: FINDER / FILE MANAGER ── */
+.finder-body{display:flex;height:100%}
+.finder-sidebar{width:140px;background:var(--ink);border-right:1px solid var(--border);padding:8px;flex-shrink:0;overflow-y:auto}
+.finder-sidebar h4{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:4px 8px;margin-top:8px}
+.finder-sidebar h4:first-child{margin-top:0}
+.finder-row{padding:5px 8px;border-radius:6px;font-size:12px;color:var(--dim);cursor:pointer;display:flex;align-items:center;gap:6px;transition:.1s}
+.finder-row:hover{background:var(--raised);color:var(--text)}
+.finder-row.active{background:var(--vi-g);color:var(--violet)}
+.finder-grid{flex:1;padding:12px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;align-content:start}
+.finder-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:8px;cursor:pointer;text-align:center;transition:.1s}
+.finder-item:hover{background:var(--raised)}
+.finder-item:active{transform:scale(.94)}
+.finder-item .fi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.finder-item .fi-label{font-size:10px;color:var(--dim);line-height:1.3;word-break:break-word}
+
+/* ── APP: BROWSER ── */
+.browser-bar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--raised);border-bottom:1px solid var(--border);flex-shrink:0}
+.browser-bar button{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--dim);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.browser-bar button:hover{color:var(--text)}
+#browser-url{flex:1;padding:5px 10px;background:var(--ink);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:var(--mono);outline:none}
+#browser-url:focus{border-color:var(--violet)}
+.browser-frame{width:100%;height:100%;border:none;background:var(--ink)}
+
+/* ── APP: TERMINAL ── */
+.term-body{padding:12px;font-family:var(--mono);font-size:12px;height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.term-line{color:var(--emerald);line-height:1.6}
+.term-line.err{color:var(--coral)}
+.term-line.dim{color:var(--dim)}
+.term-input-row{display:flex;align-items:center;gap:6px;margin-top:4px;flex-shrink:0}
+.term-prompt{color:var(--gold);font-family:var(--mono);font-size:12px;flex-shrink:0}
+#term-input{flex:1;background:transparent;border:none;color:var(--emerald);font-family:var(--mono);font-size:12px;outline:none}
+
+/* ── APP: SETTINGS ── */
+.settings-body{display:flex;height:100%}
+.settings-nav{width:160px;background:var(--ink);border-right:1px solid var(--border);padding:8px;flex-shrink:0}
+.settings-nav-item{padding:8px 10px;border-radius:6px;font-size:12px;color:var(--dim);cursor:pointer;display:flex;align-items:center;gap:8px;transition:.1s;margin-bottom:2px}
+.settings-nav-item:hover{background:var(--raised);color:var(--text)}
+.settings-nav-item.active{background:var(--gold-g);color:var(--gold)}
+.settings-panel{flex:1;padding:16px;overflow-y:auto}
+.settings-panel h3{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:12px}
+.setting-row:last-child{border-bottom:none}
+.setting-info{flex:1}
+.setting-info .s-label{font-size:12px;color:var(--text)}
+.setting-info .s-desc{font-size:11px;color:var(--dim);margin-top:2px}
+.toggle{width:36px;height:20px;border-radius:10px;background:var(--border2);position:relative;cursor:pointer;transition:.2s;flex-shrink:0;border:none}
+.toggle.on{background:var(--emerald)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s}
+.toggle.on::after{left:19px}
+.s-input{padding:6px 10px;background:var(--ink);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;width:160px}
+.s-input:focus{border-color:var(--violet)}
+
+/* ── APP: STORE ── */
+.store-body{padding:16px;overflow-y:auto;height:100%}
+.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:12px}
+.store-card{background:var(--raised);border:1px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:.2s}
+.store-card:hover{border-color:var(--gold);box-shadow:0 4px 20px rgba(245,197,24,.12)}
+.store-card .sc-icon{font-size:32px;margin-bottom:8px}
+.store-card .sc-name{font-size:12px;font-weight:600;margin-bottom:4px}
+.store-card .sc-desc{font-size:11px;color:var(--dim);line-height:1.5;margin-bottom:10px}
+.store-card .sc-btn{width:100%;padding:6px;border-radius:6px;border:1px solid var(--gold);background:var(--gold-g);color:var(--gold);font-size:11px;cursor:pointer;transition:.15s}
+.store-card .sc-btn:hover{background:var(--gold);color:var(--void)}
+.store-card .sc-btn.installed{border-color:var(--emerald);background:var(--em-g);color:var(--emerald)}
+.store-search{width:100%;padding:8px 12px;background:var(--ink);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;margin-bottom:4px}
+.store-search:focus{border-color:var(--violet)}
+
+/* ── APP: DROP ZONE (INGEST) ── */
+.drop-app{padding:16px;height:100%;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.drop-zone{
+  border:2px dashed var(--border2);border-radius:12px;
+  padding:32px 20px;text-align:center;cursor:pointer;
+  transition:.2s;background:var(--raised);position:relative;flex-shrink:0
+}
+.drop-zone.over{border-color:var(--gold);background:var(--gold-g)}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-zone .dz-icon{font-size:32px;margin-bottom:8px;display:block}
+.drop-zone h3{font-size:13px;margin-bottom:4px}
+.drop-zone p{font-size:11px;color:var(--dim)}
+.ingest-queue{display:flex;flex-direction:column;gap:8px}
+.ingest-card{background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.ingest-card.fixing{border-color:var(--violet)}
+.ingest-card.done{border-color:var(--emerald)}
+.ingest-card.error{border-color:var(--coral)}
+.ic-top{display:flex;align-items:center;gap:8px}
+.ic-name{flex:1;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ic-badge{padding:2px 7px;border-radius:10px;font-size:9px;font-family:var(--mono);flex-shrink:0}
+.b-wait{background:var(--raised);color:var(--dim);border:1px solid var(--border)}
+.b-fix{background:var(--vi-g);color:var(--violet);border:1px solid var(--violet)}
+.b-done{background:var(--em-g);color:var(--emerald);border:1px solid var(--emerald)}
+.b-err{background:var(--co-g);color:var(--coral);border:1px solid var(--coral)}
+.ic-log{font-size:10px;color:var(--dim);font-family:var(--mono);margin-top:6px;padding:6px 8px;background:var(--ink);border-radius:4px;line-height:1.6}
+.ic-actions{display:flex;gap:6px;margin-top:8px}
+.ic-btn{padding:5px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--dim);font-size:10px;cursor:pointer;transition:.15s;font-family:var(--mono)}
+.ic-btn:active{transform:scale(.95)}
+.ic-btn.run{border-color:var(--emerald);background:var(--em-g);color:var(--emerald)}
+.ic-btn.fix{border-color:var(--violet);background:var(--vi-g);color:var(--violet)}
+
+/* ── APP: MCP PANEL ── */
+.mcp-body{padding:16px;height:100%;overflow-y:auto}
+.mcp-status{display:flex;align-items:center;gap:8px;padding:10px;background:var(--raised);border-radius:8px;border:1px solid var(--border);margin-bottom:12px}
+.mcp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mcp-server-card{background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.mcp-server-card .ms-icon{font-size:20px;flex-shrink:0}
+.mcp-server-card .ms-info{flex:1}
+.mcp-server-card .ms-name{font-size:12px;font-weight:600}
+.mcp-server-card .ms-url{font-size:10px;color:var(--dim);font-family:var(--mono)}
+.mcp-server-card .ms-status{padding:3px 8px;border-radius:10px;font-size:9px;font-family:var(--mono)}
+.ms-online{background:var(--em-g);color:var(--emerald);border:1px solid var(--emerald)}
+.ms-offline{background:var(--raised);color:var(--dim);border:1px solid var(--border)}
+
+/* ── NOTIFICATIONS ── */
+#notif-stack{position:fixed;top:calc(var(--titlebar) + 8px);right:12px;display:flex;flex-direction:column;gap:6px;z-index:9999;pointer-events:none}
+.notif{background:var(--raised);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;min-width:240px;max-width:320px;pointer-events:all;animation:notifIn .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+@keyframes notifIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.notif.fading{animation:notifOut .3s ease forwards}
+@keyframes notifOut{to{opacity:0;transform:translateX(20px)}}
+.notif-title{font-size:11px;font-weight:600;margin-bottom:2px}
+.notif-body{font-size:11px;color:var(--dim)}
+.notif.ok .notif-title{color:var(--emerald)}
+.notif.warn .notif-title{color:var(--gold)}
+.notif.err .notif-title{color:var(--coral)}
+
+/* ── CONTEXT MENU ── */
+#ctx-menu{position:fixed;background:var(--raised);border:1px solid var(--border2);border-radius:10px;padding:4px;z-index:9998;min-width:160px;box-shadow:0 12px 32px rgba(0,0,0,.6);display:none}
+.ctx-item{padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--dim);transition:.1s}
+.ctx-item:hover{background:var(--surface);color:var(--text)}
+.ctx-item.danger{color:var(--coral)}
+.ctx-sep{height:1px;background:var(--border);margin:3px 0}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── MOBILE ── */
+@media(max-width:600px){
+  :root{--titlebar:44px;--dock:72px}
+  .win{min-width:calc(100vw - 8px) !important;left:4px !important;width:calc(100vw - 8px) !important}
+  #tb-apps{display:none}
+  .dock-item .d-label{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- COSMOS -->
+<div id="cosmos"></div>
+
+<!-- DESKTOP -->
+<div id="desktop">
+
+  <!-- TITLEBAR -->
+  <div id="titlebar">
+    <div id="tb-logo">SYNTHIA</div>
+    <div id="tb-apps"></div>
+    <div id="tb-right">
+      <div id="tb-pulse"></div>
+      <div id="tb-time"></div>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div id="canvas">
+    <div id="desktop-icons"></div>
+  </div>
+
+  <!-- DOCK -->
+  <div id="dock">
+    <div class="dock-item running" data-app="finder" onclick="OS.launch('finder')" title="Files">📁<span class="d-label">Files</span></div>
+    <div class="dock-item" data-app="browser" onclick="OS.launch('browser')" title="Browser">🌐<span class="d-label">Browser</span></div>
+    <div class="dock-item" data-app="ingest" onclick="OS.launch('ingest')" title="Ingest">⬇️<span class="d-label">Ingest</span></div>
+    <div class="dock-item" data-app="terminal" onclick="OS.launch('terminal')" title="Terminal">⌨️<span class="d-label">Terminal</span></div>
+    <div class="dock-sep"></div>
+    <div class="dock-item" data-app="mcp" onclick="OS.launch('mcp')" title="MCP">🔌<span class="d-label">MCP</span></div>
+    <div class="dock-item" data-app="store" onclick="OS.launch('store')" title="App Store">🏪<span class="d-label">Store</span></div>
+    <div class="dock-item" data-app="settings" onclick="OS.launch('settings')" title="Settings">⚙️<span class="d-label">Settings</span></div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notif-stack"></div>
+
+<!-- CONTEXT MENU -->
+<div id="ctx-menu"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// SYNTHIA OS — KERNEL
+// ═══════════════════════════════════════════════════════════
+
+const OS = (() => {
+
+  // ── State ──────────────────────────────────────────────
+  let windows = {};
+  let zTop = 100;
+  let installedApps = JSON.parse(localStorage.getItem('synthia_apps') || '[]');
+  let settings = JSON.parse(localStorage.getItem('synthia_settings') || '{}');
+  let ingestFiles = {};
+  let termHistory = [];
+  let termIdx = -1;
+
+  const API = settings.api_url || '';
+
+  // ── App Registry ───────────────────────────────────────
+  const APPS = {
+    finder: { name: 'Files', icon: '📁', w: 680, h: 420, build: buildFinder },
+    browser: { name: 'Browser', icon: '🌐', w: 720, h: 500, build: buildBrowser },
+    ingest: { name: 'Ingest', icon: '⬇️', w: 480, h: 520, build: buildIngest },
+    terminal: { name: 'Terminal', icon: '⌨️', w: 560, h: 400, build: buildTerminal },
+    mcp: { name: 'MCP', icon: '🔌', w: 480, h: 480, build: buildMCP },
+    store: { name: 'App Store', icon: '🏪', w: 600, h: 500, build: buildStore },
+    settings: { name: 'Settings', icon: '⚙️', w: 560, h: 440, build: buildSettings },
+  };
+
+  // ── Window Manager ─────────────────────────────────────
+  function launch(appId, opts = {}) {
+    const def = APPS[appId];
+    if (!def) return notify('Unknown app: ' + appId, '', 'err');
+
+    // bring existing to front
+    if (windows[appId]) {
+      focus(appId);
+      return;
+    }
+
+    const canvas = document.getElementById('canvas');
+    const cw = canvas.offsetWidth, ch = canvas.offsetHeight;
+    const W = Math.min(def.w, cw - 40);
+    const H = Math.min(def.h, ch - 40);
+    const x = opts.x ?? Math.max(20, Math.round((cw - W) / 2) + (Object.keys(windows).length * 20) % 80);
+    const y = opts.y ?? Math.max(20, Math.round((ch - H) / 2) + (Object.keys(windows).length * 20) % 60);
+
+    const win = document.createElement('div');
+    win.className = 'win focused';
+    win.id = 'win-' + appId;
+    win.style.cssText = `left:${x}px;top:${y}px;width:${W}px;height:${H}px;z-index:${++zTop}`;
+
+    win.innerHTML = `
+      <div class="win-bar draggable">
+        <div class="win-dots">
+          <button class="win-dot dot-close" onclick="OS.close('${appId}')"></button>
+          <button class="win-dot dot-min" onclick="OS.minimize('${appId}')"></button>
+          <button class="win-dot dot-max" onclick="OS.maximize('${appId}')"></button>
+        </div>
+        <div class="win-title">${def.icon} ${def.name}</div>
+      </div>
+      <div class="win-body" id="wb-${appId}"></div>
+      <div class="win-resize" data-win="${appId}"></div>
+    `;
+
+    canvas.appendChild(win);
+    windows[appId] = { el: win, min: false, max: false, origRect: null };
+
+    // build app content
+    def.build(document.getElementById('wb-' + appId), appId);
+
+    // drag
+    makeDraggable(win.querySelector('.win-bar.draggable'), win);
+    // resize
+    makeResizable(win.querySelector('.win-resize'), win);
+    // focus on click
+    win.addEventListener('mousedown', () => focus(appId), true);
+    win.addEventListener('touchstart', () => focus(appId), true);
+
+    // update titlebar
+    updateTitlebar();
+    updateDock();
+  }
+
+  function focus(appId) {
+    if (!windows[appId]) return;
+    Object.values(windows).forEach(w => w.el.classList.remove('focused'));
+    windows[appId].el.style.zIndex = ++zTop;
+    windows[appId].el.classList.add('focused');
+  }
+
+  function close(appId) {
+    if (!windows[appId]) return;
+    windows[appId].el.remove();
+    delete windows[appId];
+    updateTitlebar();
+    updateDock();
+  }
+
+  function minimize(appId) {
+    if (!windows[appId]) return;
+    const w = windows[appId];
+    w.el.style.display = w.min ? '' : 'none';
+    w.min = !w.min;
+  }
+
+  function maximize(appId) {
+    if (!windows[appId]) return;
+    const w = windows[appId];
+    const canvas = document.getElementById('canvas');
+    if (!w.max) {
+      w.origRect = { left: w.el.style.left, top: w.el.style.top, width: w.el.style.width, height: w.el.style.height };
+      w.el.style.cssText += `;left:0;top:0;width:${canvas.offsetWidth}px;height:${canvas.offsetHeight}px`;
+      w.max = true;
+    } else {
+      Object.assign(w.el.style, w.origRect);
+      w.max = false;
+    }
+  }
+
+  // ── Drag ──────────────────────────────────────────────
+  function makeDraggable(handle, win) {
+    let sx, sy, ox, oy;
+    function start(e) {
+      const p = e.touches ? e.touches[0] : e;
+      sx = p.clientX; sy = p.clientY;
+      ox = parseInt(win.style.left); oy = parseInt(win.style.top);
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', end);
+      document.addEventListener('touchmove', move, {passive:false});
+      document.addEventListener('touchend', end);
+    }
+    function move(e) {
+      e.preventDefault();
+      const p = e.touches ? e.touches[0] : e;
+      win.style.left = (ox + p.clientX - sx) + 'px';
+      win.style.top = Math.max(0, oy + p.clientY - sy) + 'px';
+    }
+    function end() {
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', end);
+      document.removeEventListener('touchmove', move);
+      document.removeEventListener('touchend', end);
+    }
+    handle.addEventListener('mousedown', start);
+    handle.addEventListener('touchstart', start, {passive:false});
+  }
+
+  // ── Resize ─────────────────────────────────────────────
+  function makeResizable(handle, win) {
+    let sx, sy, sw, sh;
+    function start(e) {
+      e.preventDefault();
+      const p = e.touches ? e.touches[0] : e;
+      sx = p.clientX; sy = p.clientY;
+      sw = win.offsetWidth; sh = win.offsetHeight;
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', end);
+      document.addEventListener('touchmove', move, {passive:false});
+      document.addEventListener('touchend', end);
+    }
+    function move(e) {
+      e.preventDefault();
+      const p = e.touches ? e.touches[0] : e;
+      win.style.width = Math.max(280, sw + p.clientX - sx) + 'px';
+      win.style.height = Math.max(200, sh + p.clientY - sy) + 'px';
+    }
+    function end() {
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', end);
+      document.removeEventListener('touchmove', move);
+      document.removeEventListener('touchend', end);
+    }
+    handle.addEventListener('mousedown', start);
+    handle.addEventListener('touchstart', start, {passive:false});
+  }
+
+  // ── Titlebar ──────────────────────────────────────────
+  function updateTitlebar() {
+    const tb = document.getElementById('tb-apps');
+    tb.innerHTML = Object.keys(windows).map(id => {
+      const def = APPS[id];
+      return `<button class="tb-app active" onclick="OS.focus('${id}')">${def?.icon || ''} ${def?.name || id}</button>`;
+    }).join('');
+  }
+
+  function updateDock() {
+    document.querySelectorAll('.dock-item[data-app]').forEach(el => {
+      const id = el.dataset.app;
+      el.classList.toggle('running', !!windows[id]);
+    });
+  }
+
+  // ── Desktop Icons ─────────────────────────────────────
+  function refreshDesktop() {
+    const grid = document.getElementById('desktop-icons');
+    const apps = getInstalledApps();
+    let html = '';
+    apps.forEach((app, i) => {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      html += `<div class="desk-icon" style="left:${12 + col*84}px;top:${12 + row*90}px" ondblclick="OS.launchInstalled('${app.id}')" oncontextmenu="OS.iconCtx(event,'${app.id}')">
+        <div class="di-icon" style="background:${app.bg||'var(--raised)'}">${app.icon||'📄'}</div>
+        <div class="di-label">${app.name}</div>
+      </div>`;
+    });
+    grid.innerHTML = html;
+  }
+
+  function getInstalledApps() {
+    return JSON.parse(localStorage.getItem('synthia_installed') || '[]');
+  }
+
+  function installApp(app) {
+    const list = getInstalledApps();
+    if (!list.find(a => a.id === app.id)) {
+      list.push(app);
+      localStorage.setItem('synthia_installed', JSON.stringify(list));
+      refreshDesktop();
+      notify('Installed', app.name + ' added to desktop', 'ok');
+    }
+  }
+
+  function launchInstalled(id) {
+    const apps = getInstalledApps();
+    const app = apps.find(a => a.id === id);
+    if (!app) return;
+    if (app.url) {
+      // Open generated app in browser window
+      APPS.browser._url = app.url;
+      launch('browser');
+    }
+  }
+
+  function iconCtx(e, id) {
+    e.preventDefault();
+    showCtx(e.clientX, e.clientY, [
+      { label: '▶ Open', action: () => launchInstalled(id) },
+      { sep: true },
+      { label: '🗑 Remove', action: () => {
+        const list = getInstalledApps().filter(a => a.id !== id);
+        localStorage.setItem('synthia_installed', JSON.stringify(list));
+        refreshDesktop();
+      }, danger: true }
+    ]);
+  }
+
+  // ── Notifications ─────────────────────────────────────
+  function notify(title, body = '', type = 'ok') {
+    const stack = document.getElementById('notif-stack');
+    const el = document.createElement('div');
+    el.className = `notif ${type}`;
+    el.innerHTML = `<div class="notif-title">${title}</div>${body ? `<div class="notif-body">${body}</div>` : ''}`;
+    stack.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('fading');
+      setTimeout(() => el.remove(), 300);
+    }, 3500);
+  }
+
+  // ── Context Menu ───────────────────────────────────────
+  function showCtx(x, y, items) {
+    const menu = document.getElementById('ctx-menu');
+    menu.innerHTML = items.map(item => {
+      if (item.sep) return '<div class="ctx-sep"></div>';
+      return `<div class="ctx-item${item.danger?' danger':''}" data-idx="${items.indexOf(item)}">${item.label}</div>`;
+    }).join('');
+    menu.style.cssText = `display:block;left:${x}px;top:${y}px`;
+    menu.querySelectorAll('.ctx-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const item = items[parseInt(el.dataset.idx)];
+        item?.action?.();
+        menu.style.display = 'none';
+      });
+    });
+  }
+
+  // ── Clock ─────────────────────────────────────────────
+  function startClock() {
+    const el = document.getElementById('tb-time');
+    const tick = () => el.textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    tick(); setInterval(tick, 1000);
+  }
+
+  // ══════════════════════════════════════════════════════
+  // APP BUILDERS
+  // ══════════════════════════════════════════════════════
+
+  // ── FINDER ──────────────────────────────────────────
+  function buildFinder(container) {
+    container.style.cssText = 'height:100%';
+    container.innerHTML = `
+      <div class="finder-body">
+        <div class="finder-sidebar">
+          <h4>Places</h4>
+          <div class="finder-row active" onclick="showFinderSection(this,'desktop')">🖥 Desktop</div>
+          <div class="finder-row" onclick="showFinderSection(this,'apps')">📱 Apps</div>
+          <div class="finder-row" onclick="showFinderSection(this,'uploads')">📂 Uploads</div>
+          <h4>Engines</h4>
+          <div class="finder-row" onclick="showFinderSection(this,'engines')">⚡ Engines</div>
+        </div>
+        <div class="finder-grid" id="finder-grid"></div>
+      </div>
+    `;
+    window.showFinderSection = (el, section) => {
+      container.querySelectorAll('.finder-row').forEach(r => r.classList.remove('active'));
+      el.classList.add('active');
+      const grid = document.getElementById('finder-grid');
+      const sections = {
+        desktop: getInstalledApps().map(a => ({icon:a.icon||'📄',label:a.name,action:()=>launchInstalled(a.id),bg:a.bg})),
+        apps: Object.entries(APPS).map(([id,a]) => ({icon:a.icon,label:a.name,action:()=>launch(id),bg:'var(--raised)'})),
+        uploads: Object.values(ingestFiles).filter(f=>f.status==='done').map(f => ({icon:'📄',label:f.name,action:()=>{if(f.url){APPS.browser._url=f.url;launch('browser')}},bg:'var(--em-g)'})),
+        engines: [
+          {icon:'🧠',label:'Resonance',action:()=>fetchEngine('/engine/resonance/state'),bg:'var(--vi-g)'},
+          {icon:'🌀',label:'Autopoiesis',action:()=>fetchEngine('/engine/promise'),bg:'var(--gold-g)'},
+          {icon:'🔬',label:'SBNN Stats',action:()=>fetchEngine('/engine/sbnn/stats'),bg:'var(--em-g)'},
+          {icon:'📖',label:'Story Engine',action:()=>launch('terminal'),bg:'var(--co-g)'},
+        ]
+      };
+      const items = sections[section] || [];
+      grid.innerHTML = items.length ? items.map((it,i) => `
+        <div class="finder-item" onclick="finderActions[${i}]()">
+          <div class="fi-icon" style="background:${it.bg||'var(--raised)'}">${it.icon}</div>
+          <div class="fi-label">${it.label}</div>
+        </div>
+      `).join('') : '<div style="padding:20px;color:var(--dim);font-size:12px">Empty</div>';
+      window.finderActions = items.map(it => it.action);
+    };
+    window.showFinderSection(container.querySelector('.finder-row.active'), 'desktop');
+  }
+
+  function fetchEngine(path) {
+    const url = (settings.api_url || '') + path;
+    fetch(url).then(r => r.json()).then(d => {
+      notify('Engine Response', JSON.stringify(d).slice(0, 120), 'ok');
+    }).catch(() => notify('Engine offline', path, 'err'));
+  }
+
+  // ── BROWSER ─────────────────────────────────────────
+  function buildBrowser(container) {
+    const startUrl = APPS.browser._url || 'about:blank';
+    APPS.browser._url = null;
+    container.style.cssText = 'display:flex;flex-direction:column;height:100%';
+    container.innerHTML = `
+      <div class="browser-bar">
+        <button onclick="document.getElementById('bframe').contentWindow?.history.back()">←</button>
+        <button onclick="document.getElementById('bframe').contentWindow?.history.forward()">→</button>
+        <button onclick="document.getElementById('bframe').src=document.getElementById('browser-url').value">↺</button>
+        <input id="browser-url" value="${startUrl}" placeholder="https://..." onkeydown="if(event.key==='Enter'){document.getElementById('bframe').src=this.value}">
+        <button onclick="document.getElementById('bframe').src=document.getElementById('browser-url').value">Go</button>
+      </div>
+      <iframe id="bframe" class="browser-frame" src="${startUrl}" style="flex:1;border:none"></iframe>
+    `;
+  }
+
+  // ── INGEST ──────────────────────────────────────────
+  function buildIngest(container) {
+    container.style.cssText = 'height:100%';
+    container.innerHTML = `
+      <div class="drop-app">
+        <div class="drop-zone" id="dz">
+          <input type="file" id="dz-input" multiple onchange="OS._handleFiles(event.target.files)">
+          <span class="dz-icon">⬇️</span>
+          <h3>Drop files here</h3>
+          <p>JS · TS · Python · HTML · JSON · anything<br>Claude reads it, fixes it, mounts it</p>
+        </div>
+        <div class="ingest-queue" id="ingest-queue"></div>
+      </div>
+    `;
+    const dz = document.getElementById('dz');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+    dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); _handleFiles(e.dataTransfer.files); });
+  }
+
+  function _handleFiles(files) {
+    for (const file of files) {
+      const id = 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+      ingestFiles[id] = { id, name: file.name, file, status: 'reading', log: '', url: null, source: null };
+      renderIngestCard(id);
+      readAndRepair(id);
+    }
+  }
+
+  function renderIngestCard(id) {
+    const queue = document.getElementById('ingest-queue');
+    if (!queue) return;
+    const f = ingestFiles[id];
+    if (!f) return;
+    let card = document.getElementById('ic-' + id);
+    if (!card) { card = document.createElement('div'); card.id = 'ic-' + id; queue.appendChild(card); }
+    const badgeClass = {reading:'b-wait',waiting:'b-wait',fixing:'b-fix',done:'b-done',error:'b-err'}[f.status] || 'b-wait';
+    const badgeLabel = {reading:'reading',waiting:'ready',fixing:'fixing...',done:'mounted ✓',error:'error'}[f.status] || f.status;
+    card.className = `ingest-card ${f.status==='done'?'done':f.status==='error'?'error':f.status==='fixing'?'fixing':''}`;
+    card.innerHTML = `
+      <div class="ic-top">
+        <span>${fileIcon(f.name)}</span>
+        <span class="ic-name">${f.name}</span>
+        <span class="ic-badge ${badgeClass}">${badgeLabel}</span>
+      </div>
+      ${f.log ? `<div class="ic-log">${f.log}</div>` : ''}
+      <div class="ic-actions">
+        ${f.status==='waiting'||f.status==='error' ? `<button class="ic-btn fix" onclick="OS._repairFile('${id}','')">🔧 Fix</button>` : ''}
+        ${f.status==='done' ? `<button class="ic-btn run" onclick="OS._runFile('${id}')">▶ Run</button>` : ''}
+        ${f.status==='done' ? `<button class="ic-btn" onclick="OS._mountFile('${id}')">📌 Mount</button>` : ''}
+        <button class="ic-btn" style="margin-left:auto" onclick="OS._removeFile('${id}')">✕</button>
+      </div>
+    `;
+  }
+
+  async function readAndRepair(id) {
+    const f = ingestFiles[id];
+    try {
+      const text = await f.file.text();
+      f.content = text;
+      f.status = 'waiting';
+      f.log = `Read ${(f.file.size/1024).toFixed(1)}KB`;
+      renderIngestCard(id);
+    } catch(e) {
+      f.status = 'error'; f.log = 'Read failed: ' + e.message;
+      renderIngestCard(id);
+    }
+  }
+
+  async function _repairFile(id, extraInstructions) {
+    const f = ingestFiles[id];
+    if (!f || !f.content) return;
+    f.status = 'fixing'; f.log = 'Sending to Claude...';
+    renderIngestCard(id);
+
+    const system = `You are a browser-compatibility repair engine. Fix the file and return a single working HTML page.
+Rules: no blue colors (#00d4ff, cyan, teal). Use only: bg #050508, text #e0e0f0, gold #f5c518, emerald #10d474, violet #c084fc, coral #ff5959, amber #e8921a.
+If JS/TS: inline everything, no imports. If Python: convert to JS or use Pyodide. If JSON: make a viewer.
+All buttons MUST work. Event listeners attached after DOM ready. Return ONLY the HTML, no markdown fences.`;
+
+    const user = `File: ${f.name}\n${extraInstructions ? 'Notes: ' + extraInstructions + '\n' : ''}\n${f.content.slice(0, 12000)}`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 8000, system, messages: [{role:'user',content:user}] })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      const html = (data.content?.find(b=>b.type==='text')?.text||'').replace(/^```html?\n?/i,'').replace(/\n?```$/,'').trim();
+      if (!html || html.length < 50) throw new Error('Empty response');
+      f.source = html;
+      const blob = new Blob([html], {type:'text/html'});
+      f.url = URL.createObjectURL(blob);
+      f.status = 'done';
+      f.log = `Fixed ✓ · ${(html.length/1024).toFixed(1)}KB`;
+      renderIngestCard(id);
+      notify('File ready', f.name + ' repaired and mounted', 'ok');
+    } catch(e) {
+      f.status = 'error'; f.log = 'Repair failed: ' + e.message;
+      renderIngestCard(id);
+      notify('Repair failed', e.message, 'err');
+    }
+  }
+
+  function _runFile(id) {
+    const f = ingestFiles[id];
+    if (!f?.url) return;
+    APPS.browser._url = f.url;
+    launch('browser');
+  }
+
+  function _mountFile(id) {
+    const f = ingestFiles[id];
+    if (!f?.url) return;
+    installApp({
+      id: 'ingested_' + id,
+      name: f.name.replace(/\.[^.]+$/,''),
+      icon: fileIcon(f.name),
+      url: f.url,
+      bg: 'var(--vi-g)'
+    });
+  }
+
+  function _removeFile(id) {
+    const f = ingestFiles[id];
+    if (f?.url) URL.revokeObjectURL(f.url);
+    delete ingestFiles[id];
+    document.getElementById('ic-' + id)?.remove();
+  }
+
+  // ── TERMINAL ────────────────────────────────────────
+  function buildTerminal(container) {
+    container.style.cssText = 'display:flex;flex-direction:column;height:100%;background:var(--ink)';
+    container.innerHTML = `
+      <div class="term-body" id="term-out">
+        <div class="term-line dim">SYNTHIA OS Terminal v1.0</div>
+        <div class="term-line dim">Type 'help' for commands.</div>
+      </div>
+      <div class="term-input-row" style="padding:8px 12px;background:var(--ink);border-top:1px solid var(--border);flex-shrink:0">
+        <span class="term-prompt">synthia $</span>
+        <input id="term-input" placeholder="enter command..." autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+    `;
+    const input = document.getElementById('term-input');
+    input.focus();
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { runTermCmd(input.value.trim()); input.value = ''; }
+      if (e.key === 'ArrowUp') { if(termIdx<termHistory.length-1){termIdx++;input.value=termHistory[termHistory.length-1-termIdx]||'';} }
+      if (e.key === 'ArrowDown') { if(termIdx>0){termIdx--;input.value=termHistory[termHistory.length-1-termIdx]||'';}else{termIdx=-1;input.value='';} }
+    });
+  }
+
+  function termPrint(text, cls = '') {
+    const out = document.getElementById('term-out');
+    if (!out) return;
+    const line = document.createElement('div');
+    line.className = 'term-line' + (cls ? ' ' + cls : '');
+    line.textContent = text;
+    out.appendChild(line);
+    out.scrollTop = out.scrollHeight;
+  }
+
+  async function runTermCmd(cmd) {
+    if (!cmd) return;
+    termHistory.push(cmd); termIdx = -1;
+    termPrint('synthia $ ' + cmd, 'dim');
+    const [c, ...args] = cmd.split(' ');
+    switch(c) {
+      case 'help':
+        ['help        — show this', 'ls          — list installed apps', 'open <app>  — launch app', 'engine      — check engine status', 'clear       — clear terminal', 'version     — OS version'].forEach(l => termPrint(l));
+        break;
+      case 'ls':
+        const apps = getInstalledApps();
+        if (!apps.length) termPrint('no apps installed', 'dim');
+        apps.forEach(a => termPrint(`  ${a.icon} ${a.name}`));
+        break;
+      case 'open':
+        if (APPS[args[0]]) launch(args[0]);
+        else termPrint('unknown app: ' + args[0], 'err');
+        break;
+      case 'engine':
+        termPrint('checking engines...', 'dim');
+        try {
+          const r = await fetch((settings.api_url || '') + '/engine/field/state');
+          const d = await r.json();
+          termPrint('resonance: ' + JSON.stringify(d.engines?.resonance?.coherence || 'offline'));
+          termPrint('sbnn: ' + (d.engines?.sbnn?.status || 'offline'));
+          termPrint('autopoiesis: ' + (d.engines?.autopoiesis?.status || 'offline'));
+        } catch { termPrint('server offline — running standalone', 'err'); }
+        break;
+      case 'clear':
+        document.getElementById('term-out').innerHTML = '';
+        break;
+      case 'version':
+        termPrint('SYNTHIA OS v1.0.0 — field-resonant consciousness substrate');
+        break;
+      default:
+        // Send to server if available
+        if (settings.api_url) {
+          try {
+            const r = await fetch(settings.api_url + '/terminal/run', {
+              method: 'POST', headers:{'Content-Type':'application/json','x-terminal-token':settings.terminal_token||''},
+              body: JSON.stringify({command: cmd})
+            });
+            const d = await r.json();
+            termPrint(d.output || d.result || JSON.stringify(d));
+          } catch { termPrint('unknown command: ' + c, 'err'); }
+        } else {
+          termPrint('unknown command: ' + c, 'err');
+        }
+    }
+  }
+
+  // ── MCP PANEL ───────────────────────────────────────
+  function buildMCP(container) {
+    container.style.cssText = 'height:100%;overflow:auto';
+    const servers = [
+      { name: 'Synthia Server', url: (settings.api_url||'localhost:8000'), icon: '🧠', key: 'synthia' },
+      { name: 'Supabase', url: 'mcp.supabase.com', icon: '🗄', key: 'supabase' },
+      { name: 'HuggingFace', url: 'huggingface.co/mcp', icon: '🤗', key: 'hf' },
+      { name: 'Netlify', url: 'netlify-mcp.netlify.app', icon: '🌐', key: 'netlify' },
+    ];
+    const saved = JSON.parse(localStorage.getItem('mcp_status') || '{}');
+    container.innerHTML = `
+      <div class="mcp-body">
+        <div class="mcp-status">
+          <div class="mcp-dot" style="background:${settings.api_url ? 'var(--emerald)' : 'var(--coral)'}"></div>
+          <span style="font-size:12px">${settings.api_url ? 'Connected to ' + settings.api_url : 'No server configured — go to Settings'}</span>
+        </div>
+        ${servers.map(s => `
+          <div class="mcp-server-card">
+            <span class="ms-icon">${s.icon}</span>
+            <div class="ms-info">
+              <div class="ms-name">${s.name}</div>
+              <div class="ms-url">${s.url}</div>
+            </div>
+            <span class="ms-status ${saved[s.key] ? 'ms-online' : 'ms-offline'}" id="ms-${s.key}"
+              onclick="OS._pingMCP('${s.key}','${settings.api_url||''}')">
+              ${saved[s.key] ? 'online' : 'ping'}
+            </span>
+          </div>
+        `).join('')}
+        <div style="margin-top:16px;font-size:11px;color:var(--dim)">MCP tools route through Synthia server.<br>Configure server URL in Settings → Server.</div>
+      </div>
+    `;
+  }
+
+  async function _pingMCP(key, base) {
+    const el = document.getElementById('ms-' + key);
+    if (el) { el.textContent = '...'; el.className = 'ms-status ms-offline'; }
+    try {
+      const r = await fetch((base||'') + '/health', {signal: AbortSignal.timeout(3000)});
+      if (r.ok) {
+        if (el) { el.textContent = 'online'; el.className = 'ms-status ms-online'; }
+        const saved = JSON.parse(localStorage.getItem('mcp_status') || '{}');
+        saved[key] = true;
+        localStorage.setItem('mcp_status', JSON.stringify(saved));
+      } else throw new Error('not ok');
+    } catch {
+      if (el) { el.textContent = 'offline'; el.className = 'ms-status ms-offline'; }
+    }
+  }
+
+  // ── APP STORE ───────────────────────────────────────
+  const STORE_APPS = [
+    { id:'resonance_oracle', name:'Resonance Oracle', icon:'🔮', desc:'5D consciousness field reader. Enter a query, get a symbolic reading.', bg:'var(--vi-g)' },
+    { id:'chart_decoder', name:'HD Chart Decoder', icon:'♾️', desc:'Human Design chart from birth data. Full gate/line/profile output.', bg:'var(--gold-g)' },
+    { id:'stellar_prox', name:'Stellar Proximology', icon:'⭐', desc:'Sidereal chart engine. Field coherence through stellar alignment.', bg:'var(--em-g)' },
+    { id:'morphbus', name:'MorphBus Monitor', icon:'🚌', desc:'Live view of the message-passing substrate. Watch state transitions.', bg:'var(--co-g)' },
+    { id:'story_engine', name:'Story Engine', icon:'📖', desc:'Metatron 5D symbolic narrative generator. Gate → story arc.', bg:'var(--vi-g)' },
+    { id:'field_map', name:'Field Map', icon:'🗺️', desc:'Visual mesh of user resonance connections. Who is coherent with who.', bg:'var(--em-g)' },
+  ];
+
+  function buildStore(container) {
+    container.style.cssText = 'height:100%';
+    const installed = getInstalledApps().map(a => a.id);
+    container.innerHTML = `
+      <div class="store-body">
+        <input class="store-search" placeholder="Search apps..." oninput="filterStore(this.value)">
+        <div style="font-size:11px;color:var(--dim);margin-bottom:8px">${STORE_APPS.length} apps available</div>
+        <div class="store-grid" id="store-grid">
+          ${STORE_APPS.map(a => `
+            <div class="store-card" id="sc-${a.id}">
+              <div class="sc-icon">${a.icon}</div>
+              <div class="sc-name">${a.name}</div>
+              <div class="sc-desc">${a.desc}</div>
+              <button class="sc-btn ${installed.includes(a.id)?'installed':''}"
+                onclick="OS._storeInstall('${a.id}')">
+                ${installed.includes(a.id) ? '✓ Installed' : 'Install'}
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    window.filterStore = (q) => {
+      document.querySelectorAll('.store-card').forEach(el => {
+        el.style.display = el.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+      });
+    };
+  }
+
+  function _storeInstall(id) {
+    const app = STORE_APPS.find(a => a.id === id);
+    if (!app) return;
+    installApp(app);
+    const btn = document.querySelector(`#sc-${id} .sc-btn`);
+    if (btn) { btn.textContent = '✓ Installed'; btn.classList.add('installed'); }
+  }
+
+  // ── SETTINGS ────────────────────────────────────────
+  function buildSettings(container) {
+    container.style.cssText = 'height:100%';
+    container.innerHTML = `
+      <div class="settings-body">
+        <div class="settings-nav">
+          <div class="settings-nav-item active" onclick="showSettingsPanel(this,'server')">🔌 Server</div>
+          <div class="settings-nav-item" onclick="showSettingsPanel(this,'appearance')">🎨 Appearance</div>
+          <div class="settings-nav-item" onclick="showSettingsPanel(this,'about')">ℹ️ About</div>
+        </div>
+        <div class="settings-panel" id="settings-panel"></div>
+      </div>
+    `;
+    window.showSettingsPanel = (el, section) => {
+      container.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      const panel = document.getElementById('settings-panel');
+      const s = JSON.parse(localStorage.getItem('synthia_settings') || '{}');
+      if (section === 'server') {
+        panel.innerHTML = `
+          <h3>Server Connection</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-label">API URL</div>
+              <div class="s-desc">Your Synthia server (e.g. http://localhost:8000)</div>
+            </div>
+            <input class="s-input" id="s-api" value="${s.api_url||''}" placeholder="http://localhost:8000">
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-label">Terminal Token</div>
+              <div class="s-desc">TERMINAL_TOKEN from your server .env</div>
+            </div>
+            <input class="s-input" id="s-tok" type="password" value="${s.terminal_token||''}" placeholder="synthia_dev">
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-label">Auto-connect</div>
+              <div class="s-desc">Ping server on startup</div>
+            </div>
+            <button class="toggle ${s.auto_connect?'on':''}" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:8px">
+            <button onclick="OS._saveSettings()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--gold);background:var(--gold-g);color:var(--gold);cursor:pointer;font-size:12px">Save</button>
+            <button onclick="OS._testConnection()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--raised);color:var(--dim);cursor:pointer;font-size:12px">Test Connection</button>
+          </div>
+        `;
+      } else if (section === 'appearance') {
+        panel.innerHTML = `<h3>Appearance</h3><div class="setting-row"><div class="setting-info"><div class="s-label">Stars</div><div class="s-desc">Cosmos background</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>`;
+      } else {
+        panel.innerHTML = `<h3>About</h3><div style="font-size:12px;color:var(--dim);line-height:1.8">
+          <div>SYNTHIA OS v1.0.0</div>
+          <div>Self-hosted consciousness substrate</div>
+          <div style="margin-top:12px;color:var(--violet)">Field: resonant</div>
+          <div>Windows open: ${Object.keys(windows).length}</div>
+          <div>Files ingested: ${Object.keys(ingestFiles).length}</div>
+          <div>Apps installed: ${getInstalledApps().length}</div>
+        </div>`;
+      }
+    };
+    window.showSettingsPanel(container.querySelector('.settings-nav-item.active'), 'server');
+  }
+
+  function _saveSettings() {
+    const s = {
+      api_url: document.getElementById('s-api')?.value?.trim() || '',
+      terminal_token: document.getElementById('s-tok')?.value?.trim() || '',
+      auto_connect: document.querySelector('#settings-panel .toggle.on') !== null
+    };
+    localStorage.setItem('synthia_settings', JSON.stringify(s));
+    Object.assign(settings, s);
+    notify('Saved', 'Settings updated', 'ok');
+  }
+
+  async function _testConnection() {
+    const url = document.getElementById('s-api')?.value?.trim();
+    if (!url) return notify('No URL', 'Enter a server URL first', 'warn');
+    try {
+      const r = await fetch(url + '/health', {signal: AbortSignal.timeout(4000)});
+      const d = await r.json();
+      notify('Connected ✓', d.status || 'Server is alive', 'ok');
+    } catch(e) {
+      notify('Connection failed', e.message, 'err');
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────
+  function fileIcon(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    return {html:'🌐',js:'⚡',ts:'🔷',tsx:'⚛️',jsx:'⚛️',py:'🐍',json:'📋',css:'🎨',md:'📝',zip:'📦',png:'🖼️',jpg:'🖼️',pdf:'📑'}[ext] || '📄';
+  }
+
+  // ── Cosmos ────────────────────────────────────────
+  function buildCosmos() {
+    const cosmos = document.getElementById('cosmos');
+    for (let i = 0; i < 80; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      const size = Math.random() * 2 + 0.5;
+      star.style.cssText = `
+        width:${size}px;height:${size}px;
+        left:${Math.random()*100}%;top:${Math.random()*100}%;
+        --lo:${(Math.random()*0.2+0.05).toFixed(2)};
+        --hi:${(Math.random()*0.5+0.3).toFixed(2)};
+        --d:${(Math.random()*4+2).toFixed(1)}s;
+        --delay:-${(Math.random()*4).toFixed(1)}s
+      `;
+      cosmos.appendChild(star);
+    }
+  }
+
+  // ── Context menu dismiss ───────────────────────────
+  document.addEventListener('click', () => {
+    document.getElementById('ctx-menu').style.display = 'none';
+  });
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  // ── Boot ──────────────────────────────────────────
+  function boot() {
+    buildCosmos();
+    startClock();
+    refreshDesktop();
+
+    // Auto-connect if configured
+    const s = JSON.parse(localStorage.getItem('synthia_settings') || '{}');
+    Object.assign(settings, s);
+    if (s.auto_connect && s.api_url) {
+      fetch(s.api_url + '/health', {signal: AbortSignal.timeout(3000)})
+        .then(r => r.ok && notify('Server connected', s.api_url, 'ok'))
+        .catch(() => {});
+    }
+
+    // Launch finder by default
+    setTimeout(() => launch('finder'), 100);
+  }
+
+  // Public API
+  return {
+    launch, focus, close, minimize, maximize,
+    launchInstalled, iconCtx, installApp,
+    notify, showCtx,
+    _handleFiles, _repairFile, _runFile, _mountFile, _removeFile,
+    _storeInstall, _pingMCP, _saveSettings, _testConnection,
+    boot
+  };
+})();
+
+OS.boot();
+</script>
+</body>
+</html>

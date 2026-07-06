@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ CAUSAL INFERENCE ENGINE ⚡ | Synthia OS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Inter:wght@300;400;600;700&display=swap');
+
+        :root {
+            --neon-green: #00ff88;
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-orange: #ffaa00;
+            --neon-red: #ff3333;
+            --neon-purple: #aa00ff;
+            --dark-bg: #0a0a0f;
+            --panel-bg: rgba(10, 10, 15, 0.85);
+            --border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            25% { transform: translateY(-20px) translateX(10px); opacity: 0.6; }
+            50% { transform: translateY(-10px) translateX(-5px); opacity: 0.4; }
+            75% { transform: translateY(-30px) translateX(15px); opacity: 0.5; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: rgba(0, 255, 136, 0.6);
+            margin-top: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .tagline {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 15px;
+            font-style: italic;
+        }
+
+        /* Controls */
+        .controls-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        select, button, input {
+            font-family: 'Inter', sans-serif;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.5);
+            color: #e0e0e0;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:hover, button:hover {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 255, 136, 0.05));
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 255, 136, 0.1));
+        }
+
+        button.active {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+            color: #000;
+            font-weight: 700;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neon-green);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        /* Graph container */
+        .graph-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .graph-wrapper { grid-template-columns: 1fr; }
+        }
+
+        .graph-container {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            position: relative;
+            min-height: 500px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .graph-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--neon-cyan);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #graphCanvas {
+            width: 100%;
+            height: 450px;
+            position: relative;
+        }
+
+        svg.connections {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .node {
+            position: absolute;
+            width: 180px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 255, 136, 0.03) 100%);
+            border: 2px solid var(--neon-green);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .node:hover {
+            transform: scale(1.08) translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+            z-index: 100;
+            border-color: var(--neon-cyan);
+        }
+
+        .node.active {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 255, 136, 0.1) 100%);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.4);
+            animation: nodePulse 2s infinite;
+        }
+
+        @keyframes nodePulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(0, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 60px rgba(0, 255, 255, 0.6); }
+        }
+
+        .node-header {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            margin-bottom: 6px;
+        }
+
+        .node-gate-name {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 4px;
+        }
+
+        .node-center {
+            font-size: 0.7rem;
+            color: var(--neon-orange);
+            margin-bottom: 6px;
+        }
+
+        .node-binary {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--neon-pink);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+
+        .node-codon {
+            font-size: 0.7rem;
+            color: var(--neon-green);
+            opacity: 0.8;
+        }
+
+        .node-latency {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 8px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 0.65rem;
+            color: var(--neon-cyan);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .connection-path {
+            fill: none;
+            stroke: var(--neon-green);
+            stroke-width: 2.5;
+            opacity: 0.4;
+            transition: all 0.5s;
+        }
+
+        .connection-path.active {
+            stroke: var(--neon-cyan);
+            stroke-width: 4;
+            opacity: 1;
+            filter: drop-shadow(0 0 10px var(--neon-cyan));
+            animation: signalFlow 1.5s infinite;
+        }
+
+        @keyframes signalFlow {
+            0% { stroke-dasharray: 0, 1000; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 500, 500; stroke-dashoffset: -250; }
+            100% { stroke-dasharray: 0, 1000; stroke-dashoffset: -500; }
+        }
+
+        .arrow-head {
+            fill: var(--neon-green);
+            opacity: 0.6;
+            transition: all 0.5s;
+        }
+
+        .arrow-head.active {
+            fill: var(--neon-cyan);
+            opacity: 1;
+        }
+
+        /* Analysis panel */
+        .analysis-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .analysis-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .analysis-panel::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        .analysis-panel::-webkit-scrollbar-thumb {
+            background: var(--neon-green);
+            border-radius: 3px;
+        }
+
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--neon-cyan);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title::before {
+            content: '🔍';
+        }
+
+        .coherence-meter {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .coherence-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .coherence-bar {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .coherence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease, background 0.5s;
+            position: relative;
+        }
+
+        .coherence-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 20px; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+            border-radius: 0 4px 4px 0;
+        }
+
+        .signal-quality-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .quality-crystal { background: rgba(0, 255, 136, 0.2); color: var(--neon-green); border: 1px solid var(--neon-green); }
+        .quality-strong { background: rgba(0, 255, 136, 0.15); color: #88ffaa; border: 1px solid #88ffaa; }
+        .quality-moderate { background: rgba(255, 170, 0, 0.15); color: var(--neon-orange); border: 1px solid var(--neon-orange); }
+        .quality-weak { background: rgba(255, 51, 51, 0.15); color: var(--neon-red); border: 1px solid var(--neon-red); }
+        .quality-broken { background: rgba(255, 0, 0, 0.2); color: #ff6666; border: 1px solid #ff6666; }
+
+        .causal-step {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--neon-green);
+            padding: 18px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .causal-step:hover {
+            border-left-color: var(--neon-cyan);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .causal-step.origin { border-left-color: var(--neon-pink); }
+        .causal-step.result { border-left-color: var(--neon-cyan); }
+
+        .step-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .step-label.origin { color: var(--neon-pink); }
+        .step-label.result { color: var(--neon-cyan); }
+
+        .step-description {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .step-mechanism {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+            padding: 10px;
+            background: rgba(255, 170, 0, 0.05);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .step-mechanism strong {
+            color: var(--neon-orange);
+        }
+
+        .friction-warning {
+            background: rgba(255, 0, 0, 0.08);
+            border: 1px solid rgba(255, 51, 51, 0.4);
+            padding: 18px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .friction-warning h3 {
+            color: var(--neon-red);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .friction-warning p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            margin-bottom: 6px;
+        }
+
+        .friction-warning p strong {
+            color: var(--neon-orange);
+        }
+
+        .human-experience {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            padding: 18px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .human-experience h3 {
+            color: var(--neon-green);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        .human-experience p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        /* Channel list */
+        .channel-list {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .channel-list-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--neon-cyan);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .channel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .channel-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .channel-card:hover {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.05);
+            transform: translateX(5px);
+        }
+
+        .channel-card.selected {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 255, 255, 0.08);
+        }
+
+        .channel-info {
+            flex: 1;
+        }
+
+        .channel-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            font-weight: 600;
+        }
+
+        .channel-names {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+        }
+
+        .channel-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        .score-high { color: var(--neon-green); background: rgba(0, 255, 136, 0.1); }
+        .score-medium { color: var(--neon-orange); background: rgba(255, 170, 0, 0.1); }
+        .score-low { color: var(--neon-red); background: rgba(255, 51, 51, 0.1); }
+
+        /* Trigram legend */
+        .trigram-legend {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .trigram-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .trigram-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .trigram-card:hover {
+            border-color: var(--neon-green);
+            transform: translateY(-2px);
+        }
+
+        .trigram-binary {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--neon-pink);
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+
+        .trigram-name {
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .trigram-function {
+            font-size: 0.75rem;
+            color: var(--neon-orange);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .trigram-desc {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.4;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        /* Signal animation overlay */
+        .signal-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .signal-particle {
+            position: absolute;
+            width: 6px; height: 6px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+            opacity: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.5rem; }
+            .graph-wrapper { grid-template-columns: 1fr; }
+            .controls-grid { grid-template-columns: 1fr; }
+            .channel-grid { grid-template-columns: 1fr; }
+            .trigram-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-particles" id="bgParticles"></div>
+
+    <div class="container">
+        <header class="fade-in">
+            <h1>⚡ CAUSAL INFERENCE ENGINE ⚡</h1>
+            <div class="subtitle">Trigram Logic × Signal Flow × Consciousness</div>
+            <div class="tagline">"The 64 gates are not personality types — they are 64 logic operators running on biological hardware"</div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar fade-in delay-1">
+            <div class="stat-card">
+                <div class="stat-value" id="statTotalChannels">36</div>
+                <div class="stat-label">Total Channels</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statFrictionChannels">0</div>
+                <div class="stat-label">With Friction</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statAvgCoherence">0.00</div>
+                <div class="stat-label">Avg Coherence</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statCrystalClear">0</div>
+                <div class="stat-label">Crystal Clear</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-panel fade-in delay-2">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label>Select Channel</label>
+                    <select id="channelSelect">
+                        <option value="">-- Choose a Channel --</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Filter by Quality</label>
+                    <select id="qualityFilter">
+                        <option value="all">All Channels</option>
+                        <option value="crystal">Crystal Clear</option>
+                        <option value="strong">Strong</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="weak">Weak</option>
+                        <option value="broken">Broken</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Filter by Friction</label>
+                    <select id="frictionFilter">
+                        <option value="all">All</option>
+                        <option value="none">No Friction</option>
+                        <option value="critical">Critical Only</option>
+                        <option value="high">High+</option>
+                    </select>
+                </div>
+            </div>
+            <div class="button-row">
+                <button onclick="visualizeSelected()" id="btnVisualize">Visualize Channel</button>
+                <button onclick="animateSignalFlow()" id="btnAnimate">Animate Signal</button>
+                <button onclick="showAllChannels()" id="btnShowAll">Show All Channels</button>
+                <button onclick="clearGraph()" id="btnClear">Clear</button>
+                <button onclick="toggleTrigramLegend()" id="btnTrigrams">Trigram Legend</button>
+            </div>
+        </div>
+
+        <!-- Graph + Analysis -->
+        <div class="graph-wrapper fade-in delay-3">
+            <div class="graph-container">
+                <div class="graph-title">Signal Flow Visualization</div>
+                <div id="graphCanvas">
+                    <svg class="connections" id="connectionsSvg"></svg>
+                </div>
+            </div>
+
+            <div class="analysis-panel" id="analysisPanel">
+                <div class="panel-title">Causal Analysis</div>
+                <div id="analysisContent">
+                    <p style="color: rgba(255,255,255,0.4); text-align: center; padding: 40px 0;">
+                        Select a channel to see causal analysis
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Channel List -->
+        <div class="channel-list fade-in delay-4">
+            <div class="channel-list-title">All 36 Defined Channels</div>
+            <div class="channel-grid" id="channelGrid"></div>
+        </div>
+
+        <!-- Trigram Legend -->
+        <div class="trigram-legend" id="trigramLegend" style="display: none;">
+            <div class="channel-list-title">The 8 Primal Trigram Logic Operators</div>
+            <div class="trigram-grid" id="trigramGrid"></div>
+        </div>
+    </div>
+
+    <script>
+
+// ============================================
+// THE 64-GATE GENOME DATA
+// ============================================
+
+const GATE_GENOME = {
+    1: {id: 1, name: "Creative", gate: "Self-Expression", center: "G-Center", organ: "Liver", binary: "111111", amino: "Met", pressure: "Will", keynote: "I Create"},
+    2: {id: 2, name: "Receptive", gate: "Higher Knowing", center: "G-Center", organ: "Liver", binary: "000000", amino: "Ala", pressure: "Will", keynote: "I Receive"},
+    3: {id: 3, name: "Difficulty at the Beginning", gate: "Ordering", center: "Sacral", organ: "Ovaries/Testes", binary: "010001", amino: "Val", pressure: "Sacral", keynote: "I Order"},
+    4: {id: 4, name: "Youthful Folly", gate: "Formulization", center: "Ajna", organ: "Pituitary", binary: "100111", amino: "Thr", pressure: "Mind", keynote: "I Answer"},
+    5: {id: 5, name: "Waiting", gate: "Patterns", center: "Sacral", organ: "Ovaries/Testes", binary: "111011", amino: "Leu", pressure: "Sacral", keynote: "I Wait"},
+    6: {id: 6, name: "Conflict", gate: "Friction", center: "Solar Plexus", organ: "Kidneys", binary: "001000", amino: "Asn", pressure: "Heart", keynote: "I Conflict"},
+    7: {id: 7, name: "The Army", gate: "Role of the Self", center: "G-Center", organ: "Liver", binary: "111010", amino: "Ile", pressure: "Will", keynote: "I Lead"},
+    8: {id: 8, name: "Holding Together", gate: "Contribution", center: "Throat", organ: "Thyroid", binary: "000010", amino: "Ala", pressure: "Heart", keynote: "I Contribute"},
+    9: {id: 9, name: "Small Taming", gate: "Focus", center: "Sacral", organ: "Ovaries/Testes", binary: "110100", amino: "Gly", pressure: "Sacral", keynote: "I Focus"},
+    10: {id: 10, name: "Treading", gate: "Behavior", center: "G-Center", organ: "Liver", binary: "110111", amino: "Thr", pressure: "Will", keynote: "I Am"},
+    11: {id: 11, name: "Peace", gate: "Ideas", center: "Ajna", organ: "Pituitary", binary: "001011", amino: "Asn", pressure: "Mind", keynote: "I Seek"},
+    12: {id: 12, name: "Standstill", gate: "Caution", center: "Throat", organ: "Thyroid", binary: "111100", amino: "Pro", pressure: "Heart", keynote: "I Caution"},
+    13: {id: 13, name: "Fellowship", gate: "The Listener", center: "G-Center", organ: "Liver", binary: "101100", amino: "Lys", pressure: "Will", keynote: "I Listen"},
+    14: {id: 14, name: "Great Possession", gate: "Power Skills", center: "Sacral", organ: "Ovaries/Testes", binary: "001101", amino: "Asp", pressure: "Sacral", keynote: "I Empower"},
+    15: {id: 15, name: "Modesty", gate: "Extremes", center: "G-Center", organ: "Liver", binary: "100011", amino: "Arg", pressure: "Will", keynote: "I Flow"},
+    16: {id: 16, name: "Enthusiasm", gate: "Skills", center: "Throat", organ: "Thyroid", binary: "010110", amino: "Gly", pressure: "Heart", keynote: "I Enthuse"},
+    17: {id: 17, name: "Following", gate: "Opinions", center: "Ajna", organ: "Pituitary", binary: "110001", amino: "His", pressure: "Mind", keynote: "I Follow"},
+    18: {id: 18, name: "Work on the Decayed", gate: "Correction", center: "Spleen", organ: "Lymphatic", binary: "100110", amino: "Phe", pressure: "Heart", keynote: "I Correct"},
+    19: {id: 19, name: "Approach", gate: "Wanting", center: "Root", organ: "Adrenals", binary: "001001", amino: "Ser", pressure: "Heart", keynote: "I Want"},
+    20: {id: 20, name: "Contemplation", gate: "Now", center: "Throat", organ: "Thyroid", binary: "000101", amino: "Leu", pressure: "Heart", keynote: "I Am Now"},
+    21: {id: 21, name: "Biting Through", gate: "Control", center: "Heart", organ: "Heart/Thymus", binary: "100101", amino: "Ser", pressure: "Will", keynote: "I Control"},
+    22: {id: 22, name: "Grace", gate: "Openness", center: "Solar Plexus", organ: "Kidneys", binary: "101000", amino: "Lys", pressure: "Heart", keynote: "I Open"},
+    23: {id: 23, name: "Splitting Apart", gate: "Assimilation", center: "Throat", organ: "Thyroid", binary: "010000", amino: "Val", pressure: "Heart", keynote: "I Assimilate"},
+    24: {id: 24, name: "Return", gate: "Rationalization", center: "Ajna", organ: "Pituitary", binary: "111101", amino: "Pro", pressure: "Mind", keynote: "I Rationalize"},
+    25: {id: 25, name: "Innocence", gate: "The Spirit of the Self", center: "G-Center", organ: "Liver", binary: "011111", amino: "Tyr", pressure: "Will", keynote: "I Love"},
+    26: {id: 26, name: "Great Taming", gate: "The Egoist", center: "Heart", organ: "Heart/Thymus", binary: "100100", amino: "Gly", pressure: "Will", keynote: "I Transmit"},
+    27: {id: 27, name: "Nourishment", gate: "Nurturing", center: "Sacral", organ: "Ovaries/Testes", binary: "001100", amino: "Gly", pressure: "Sacral", keynote: "I Nourish"},
+    28: {id: 28, name: "Great Excess", gate: "Game Player", center: "Spleen", organ: "Lymphatic", binary: "011110", amino: "Ala", pressure: "Heart", keynote: "I Struggle"},
+    29: {id: 29, name: "Water", gate: "Perseverance", center: "Sacral", organ: "Ovaries/Testes", binary: "010010", amino: "Gln", pressure: "Sacral", keynote: "I Persevere"},
+    30: {id: 30, name: "The Clinging", gate: "Feelings", center: "Solar Plexus", organ: "Kidneys", binary: "101101", amino: "Asp", pressure: "Heart", keynote: "I Feel"},
+    31: {id: 31, name: "Influence", gate: "Leading", center: "Throat", organ: "Thyroid", binary: "011100", amino: "Pro", pressure: "Heart", keynote: "I Lead"},
+    32: {id: 32, name: "Duration", gate: "Continuity", center: "Spleen", organ: "Lymphatic", binary: "001110", amino: "Cys", pressure: "Heart", keynote: "I Endure"},
+    33: {id: 33, name: "Retreat", gate: "Privacy", center: "Throat", organ: "Thyroid", binary: "111001", amino: "His", pressure: "Heart", keynote: "I Retreat"},
+    34: {id: 34, name: "Great Power", gate: "Power", center: "Sacral", organ: "Ovaries/Testes", binary: "101111", amino: "Pro", pressure: "Sacral", keynote: "I Empower"},
+    35: {id: 35, name: "Progress", gate: "Change", center: "Throat", organ: "Thyroid", binary: "000100", amino: "Gly", pressure: "Heart", keynote: "I Change"},
+    36: {id: 36, name: "Darkening of the Light", gate: "Crisis", center: "Solar Plexus", organ: "Kidneys", binary: "011000", amino: "Ile", pressure: "Heart", keynote: "I Crisis"},
+    37: {id: 37, name: "The Family", gate: "Friendship", center: "Solar Plexus", organ: "Kidneys", binary: "110110", amino: "Gly", pressure: "Heart", keynote: "I Befriend"},
+    38: {id: 38, name: "Opposition", gate: "Fighter", center: "Root", organ: "Adrenals", binary: "110101", amino: "Trp", pressure: "Heart", keynote: "I Fight"},
+    39: {id: 39, name: "Obstruction", gate: "Provocation", center: "Root", organ: "Adrenals", binary: "001010", amino: "Cys", pressure: "Heart", keynote: "I Provoke"},
+    40: {id: 40, name: "Deliverance", gate: "Aloneness", center: "Heart", organ: "Heart/Thymus", binary: "010101", amino: "Ser", pressure: "Will", keynote: "I Am Alone"},
+    41: {id: 41, name: "Decrease", gate: "Contraction", center: "Root", organ: "Adrenals", binary: "100001", amino: "His", pressure: "Heart", keynote: "I Contract"},
+    42: {id: 42, name: "Increase", gate: "Growth", center: "Sacral", organ: "Ovaries/Testes", binary: "011001", amino: "Leu", pressure: "Sacral", keynote: "I Grow"},
+    43: {id: 43, name: "Breakthrough", gate: "Insight", center: "Ajna", organ: "Pituitary", binary: "110011", amino: "Arg", pressure: "Mind", keynote: "I Break Through"},
+    44: {id: 44, name: "Coming to Meet", gate: "Alertness", center: "Spleen", organ: "Lymphatic", binary: "001111", amino: "Pro", pressure: "Heart", keynote: "I Alert"},
+    45: {id: 45, name: "Gathering", gate: "Gathering", center: "Throat", organ: "Thyroid", binary: "000110", amino: "Phe", pressure: "Will", keynote: "I Gather"},
+    46: {id: 46, name: "Pushing Upward", gate: "Determination of the Self", center: "G-Center", organ: "Liver", binary: "011011", amino: "Arg", pressure: "Will", keynote: "I Determine"},
+    47: {id: 47, name: "Oppression", gate: "Realization", center: "Ajna", organ: "Pituitary", binary: "010111", amino: "Val", pressure: "Mind", keynote: "I Realize"},
+    48: {id: 48, name: "The Well", gate: "Depth", center: "Spleen", organ: "Lymphatic", binary: "011010", amino: "Gln", pressure: "Heart", keynote: "I Depth"},
+    49: {id: 49, name: "Revolution", gate: "Revolution", center: "Solar Plexus", organ: "Kidneys", binary: "101110", amino: "Ala", pressure: "Heart", keynote: "I Revolutionize"},
+    50: {id: 50, name: "The Cauldron", gate: "Values", center: "Spleen", organ: "Lymphatic", binary: "110010", amino: "Gln", pressure: "Heart", keynote: "I Value"},
+    51: {id: 51, name: "The Arousing", gate: "Shock", center: "Heart", organ: "Heart/Thymus", binary: "001001", amino: "Ser", pressure: "Will", keynote: "I Shock"},
+    52: {id: 52, name: "Keeping Still", gate: "Inaction", center: "Root", organ: "Adrenals", binary: "100010", amino: "Ala", pressure: "Heart", keynote: "I Still"},
+    53: {id: 53, name: "Development", gate: "Evolution", center: "Root", organ: "Adrenals", binary: "001011", amino: "Asn", pressure: "Heart", keynote: "I Evolve"},
+    54: {id: 54, name: "The Marrying Maiden", gate: "Drive", center: "Root", organ: "Adrenals", binary: "010011", amino: "Arg", pressure: "Heart", keynote: "I Drive"},
+    55: {id: 55, name: "Abundance", gate: "Spirit", center: "Solar Plexus", organ: "Kidneys", binary: "101100", amino: "Lys", pressure: "Heart", keynote: "I Spirit"},
+    56: {id: 56, name: "The Wanderer", gate: "Stimulation", center: "Throat", organ: "Thyroid", binary: "001100", amino: "Gly", pressure: "Heart", keynote: "I Stimulate"},
+    57: {id: 57, name: "Gentle", gate: "Intuition", center: "Spleen", organ: "Lymphatic", binary: "011011", amino: "Arg", pressure: "Heart", keynote: "I Intuit"},
+    58: {id: 58, name: "The Joyous", gate: "Vitality", center: "Root", organ: "Adrenals", binary: "011001", amino: "Leu", pressure: "Heart", keynote: "I Vitalize"},
+    59: {id: 59, name: "Dispersion", gate: "Sexuality", center: "Sacral", organ: "Ovaries/Testes", binary: "110100", amino: "Gly", pressure: "Sacral", keynote: "I Sexualize"},
+    60: {id: 60, name: "Limitation", gate: "Acceptance", center: "Root", organ: "Adrenals", binary: "010110", amino: "Gly", pressure: "Heart", keynote: "I Accept"},
+    61: {id: 61, name: "Inner Truth", gate: "Mystery", center: "Head", organ: "Pineal", binary: "110011", amino: "Arg", pressure: "Mind", keynote: "I Mystery"},
+    62: {id: 62, name: "Small Preponderance", gate: "Details", center: "Throat", organ: "Thyroid", binary: "001100", amino: "Gly", pressure: "Heart", keynote: "I Detail"},
+    63: {id: 63, name: "After Completion", gate: "Doubt", center: "Head", organ: "Pineal", binary: "010101", amino: "Ser", pressure: "Mind", keynote: "I Doubt"},
+    64: {id: 64, name: "Before Completion", gate: "Confusion", center: "Head", organ: "Pineal", binary: "101010", amino: "Gln", pressure: "Mind", keynote: "I Confuse"}
+};
+
+// ============================================
+// TRIGRAM LOGIC OPERATORS
+// ============================================
+
+const TRIGRAMS = {
+    "111": {name: "Heaven (Qian)", function: "OVERWRITE", hardware: "CPU / Power Supply", experience: "Pure creative 'On' signal", latency: "Instant (0ms)", desc: "Pure creative force"},
+    "000": {name: "Earth (Kun)", function: "STORE", hardware: "Database / Storage", experience: "Capacity to hold everything", latency: "Persistent (infinite)", desc: "Infinite receptivity"},
+    "001": {name: "Thunder (Zhen)", function: "TRIGGER", hardware: "Interrupt / Start Button", experience: "Sudden initiation", latency: "Rising edge (instant)", desc: "Sudden initiation"},
+    "100": {name: "Mountain (Gen)", function: "HALT", hardware: "Heat Sink / Ground", experience: "Capacity to stop", latency: "Falling edge (instant)", desc: "Stillness"},
+    "010": {name: "Water (Kan)", function: "ENCRYPT", hardware: "Encryption / RAM", experience: "Deep shifting process", latency: "Variable (hidden)", desc: "Hidden depth"},
+    "101": {name: "Fire (Li)", function: "RENDER", hardware: "GPU / Monitor", experience: "Visible processing", latency: "Frame-rate (visible)", desc: "Visible processing"},
+    "011": {name: "Wind (Xun)", function: "STREAM", hardware: "Network / Cache", experience: "Persistent flow", latency: "Continuous (adaptive)", desc: "Persistent flow"},
+    "110": {name: "Lake (Dui)", function: "BROADCAST", hardware: "Speaker / Antenna", experience: "Joyful output", latency: "Variable (amplified)", desc: "Joyful output"}
+};
+
+// ============================================
+// CENTER HARDWARE SPECS
+// ============================================
+
+const CENTER_SPECS = {
+    "Spleen": {latency: "<1ms (RTOS)", processor: "Real-Time OS", clock: "1GHz", buffer: "8KB", desc: "Survival instinct processor"},
+    "Solar Plexus": {latency: "24-72h (Wave)", processor: "Batch Processor", clock: "Variable", buffer: "64MB", desc: "Emotional wave processor"},
+    "Root": {latency: "Constant pressure", processor: "Motor Engine", clock: "Variable", buffer: "Unlimited", desc: "Adrenal pressure engine"},
+    "Heart": {latency: "Sustained (hours)", processor: "Willpower Engine", clock: "2.4GHz", buffer: "16KB", desc: "Ego/will processor"},
+    "G-Center": {latency: "Always on", processor: "Identity Core", clock: "3.2GHz", buffer: "32KB", desc: "Identity coherence engine"},
+    "Throat": {latency: "Variable", processor: "Manifestation Hub", clock: "Variable", buffer: "128KB", desc: "Action/output router"},
+    "Ajna": {latency: "<100ms", processor: "Conceptual Processor", clock: "2.8GHz", buffer: "24KB", desc: "Mental processing unit"},
+    "Head": {latency: "Variable", processor: "Inspiration Receiver", clock: "1.6GHz", buffer: "12KB", desc: "Question/inspiration antenna"},
+    "Sacral": {latency: "<5ms", processor: "Life Force Engine", clock: "4.0GHz", buffer: "48KB", desc: "Generator response engine"}
+};
+
+// ============================================
+// FRICTION PATTERNS
+// ============================================
+
+const FRICTION_PATTERNS = {
+    "HALT-TRIGGER": {type: "CRITICAL: HALT vs TRIGGER", severity: "CRITICAL", desc: "Static foundation trying to pulse - creates restlessness", experience: "Can't sit still, endless starting without finishing", resolution: "Wait for the right timing (Strategy & Authority)"},
+    "TRIGGER-HALT": {type: "HIGH: TRIGGER vs HALT", severity: "HIGH", desc: "Initiating a stop - serial starter syndrome", experience: "Begin many things, complete few - burnout cycle", resolution: "Commit to one thing before starting another"},
+    "ENCRYPT-RENDER": {type: "HIGH: ENCRYPT vs RENDER", severity: "HIGH", desc: "Hidden depth trying to be visible - volatility", experience: "Emotional spikes, sudden outbursts from hidden pressure", resolution: "Allow the process to complete before expressing"},
+    "RENDER-ENCRYPT": {type: "HIGH: RENDER vs ENCRYPT", severity: "HIGH", desc: "Visible processing trying to hide - confusion", experience: "Can't explain what you're feeling, frustration", resolution: "Don't force expression; let it emerge naturally"},
+    "OVERWRITE-STORE": {type: "MEDIUM: OVERWRITE vs STORE", severity: "MEDIUM", desc: "Creative force trying to overwrite stable storage", experience: "Restless innovation, can't settle into routine", resolution: "Balance creation with consolidation"},
+    "STORE-OVERWRITE": {type: "MEDIUM: STORE vs OVERWRITE", severity: "MEDIUM", desc: "Storage resisting creative overwrite - stagnation", experience: "Stuck in old patterns, resistant to change", resolution: "Allow gradual transformation, not sudden overhaul"},
+    "BROADCAST-BROADCAST": {type: "MEDIUM: DOUBLE BROADCAST", severity: "MEDIUM", desc: "Amplified output without input - buffer overflow", experience: "Over-sharing, broadcasting without listening", resolution: "Balance expression with reception"},
+    "STREAM-HALT": {type: "HIGH: STREAM vs HALT", severity: "HIGH", desc: "Persistent flow meeting immovable stop - pressure", experience: "Frustrated momentum, blocked progress", resolution: "Find the natural pause points in the flow"},
+    "TRIGGER-TRIGGER": {type: "MEDIUM: DOUBLE TRIGGER", severity: "MEDIUM", desc: "Multiple initiations - scattered energy", experience: "Too many starts, no completion, overwhelm", resolution: "Prioritize one trigger at a time"},
+    "OVERWRITE-OVERWRITE": {type: "LOW: DOUBLE OVERWRITE", severity: "LOW", desc: "Pure creative force - no grounding", experience: "Inspired but unanchored, ideas without form", resolution: "Find a container (STORE) for the creative force"}
+};
+
+// ============================================
+// ALL 36 DEFINED CHANNELS
+// ============================================
+
+const ALL_CHANNELS = [
+    [1, 8], [2, 14], [3, 60], [4, 63], [5, 15], [6, 59],
+    [7, 31], [9, 52], [10, 20], [10, 34], [10, 57], [11, 56],
+    [12, 22], [13, 33], [16, 48], [17, 62], [18, 58], [19, 49],
+    [20, 34], [20, 57], [21, 45], [23, 43], [24, 61], [25, 51],
+    [26, 44], [27, 50], [28, 38], [29, 46], [30, 41], [32, 54],
+    [34, 57], [35, 36], [37, 40], [39, 55], [42, 53], [47, 64]
+];
+
+// ============================================
+// CAUSAL INFERENCE ENGINE
+// ============================================
+
+class CausalInferenceEngine {
+    constructor() {
+        this.genome = GATE_GENOME;
+        this.trigrams = TRIGRAMS;
+        this.centerSpecs = CENTER_SPECS;
+        this.frictionPatterns = FRICTION_PATTERNS;
+        this.allChannels = ALL_CHANNELS;
+        this.channelAnalyses = new Map();
+        this._analyzeAllChannels();
+    }
+
+    getTrigrams(binary) {
+        return {
+            upper: binary.substring(0, 3),
+            lower: binary.substring(3, 6)
+        };
+    }
+
+    getCausalLogic(gate) {
+        const trigrams = this.getTrigrams(gate.binary);
+        const upper = this.trigrams[trigrams.upper];
+        const lower = this.trigrams[trigrams.lower];
+        return `${upper.function} over ${lower.function}`;
+    }
+
+    getCausalDescription(gate) {
+        const trigrams = this.getTrigrams(gate.binary);
+        const upper = this.trigrams[trigrams.upper];
+        const lower = this.trigrams[trigrams.lower];
+        return `${upper.desc} expressing through ${lower.desc}`;
+    }
+
+    checkFriction(gateA, gateB) {
+        const triA = this.getTrigrams(gateA.binary);
+        const triB = this.getTrigrams(gateB.binary);
+        const upperA = this.trigrams[triA.upper];
+        const lowerB = this.trigrams[triB.lower];
+        const upperB = this.trigrams[triB.upper];
+        const lowerA = this.trigrams[triA.lower];
+
+        const key1 = `${upperA.function}-${lowerB.function}`;
+        const key2 = `${upperB.function}-${lowerA.function}`;
+
+        if (this.frictionPatterns[key1]) return this.frictionPatterns[key1];
+        if (this.frictionPatterns[key2]) return this.frictionPatterns[key2];
+        return null;
+    }
+
+    calculateCoherence(gates, frictions) {
+        let base = 1.0;
+
+        for (const f of frictions) {
+            if (f.severity === "CRITICAL") base -= 0.4;
+            else if (f.severity === "HIGH") base -= 0.25;
+            else if (f.severity === "MEDIUM") base -= 0.15;
+            else base -= 0.05;
+        }
+
+        const centers = gates.map(g => g.center);
+        if (new Set(centers).size === 1) base += 0.2;
+
+        return Math.max(0.0, Math.min(1.0, base));
+    }
+
+    determineSignalQuality(coherence, frictionCount) {
+        if (coherence >= 0.8 && frictionCount === 0) return "CRYSTAL CLEAR - Pure signal flow";
+        if (coherence >= 0.6) return "STRONG - Minor friction, functional channel";
+        if (coherence >= 0.4) return "MODERATE - Significant friction, requires awareness";
+        if (coherence >= 0.2) return "WEAK - High friction, potential dysfunction";
+        return "BROKEN - Critical friction, channel may be blocked";
+    }
+
+    generateHumanExperience(gates, frictions, quality) {
+        if (!frictions || frictions.length === 0) {
+            return `Smooth flow between ${gates[0].gate} and ${gates[1].gate}. Natural expression without internal conflict.`;
+        }
+        const primary = frictions[0];
+        return `${primary.experience} The channel operates with ${quality.toLowerCase()}. Resolution: ${primary.resolution}`;
+    }
+
+    analyzeChannel(gateIds) {
+        const gates = gateIds.map(id => this.genome[id]).filter(g => g);
+        if (gates.length < 2) return null;
+
+        const steps = [];
+        const totalFriction = [];
+
+        for (let i = 0; i < gates.length; i++) {
+            const gate = gates[i];
+            const isOrigin = i === 0;
+            const spec = this.centerSpecs[gate.center] || {processor: "Unknown", latency: "Unknown"};
+
+            let description;
+            if (isOrigin) {
+                description = `${gate.gate} initiates pressure in ${gate.center} (${gate.organ})`;
+            } else {
+                const prev = gates[i-1];
+                description = `${prev.gate} (${prev.center}) triggers ${gate.gate} in ${gate.center} (${gate.organ})`;
+            }
+
+            let friction = null;
+            if (!isOrigin) {
+                friction = this.checkFriction(gates[i-1], gate);
+                if (friction) totalFriction.push(friction);
+            }
+
+            steps.push({
+                stepNumber: i + 1,
+                gate: gate,
+                isOrigin: isOrigin,
+                description: description,
+                causalLogic: this.getCausalLogic(gate),
+                mechanism: this.getCausalDescription(gate),
+                processor: spec.processor,
+                latency: spec.latency,
+                friction: friction
+            });
+        }
+
+        const coherence = this.calculateCoherence(gates, totalFriction);
+        const signalQuality = this.determineSignalQuality(coherence, totalFriction.length);
+        const humanExp = this.generateHumanExperience(gates, totalFriction, signalQuality);
+
+        return {
+            channelId: gateIds.join("-"),
+            gates: gates,
+            steps: steps,
+            totalFriction: totalFriction,
+            signalQuality: signalQuality,
+            coherenceScore: coherence,
+            humanExperience: humanExp
+        };
+    }
+
+    _analyzeAllChannels() {
+        for (const [gateA, gateB] of this.allChannels) {
+            const analysis = this.analyzeChannel([gateA, gateB]);
+            if (analysis) {
+                this.channelAnalyses.set(`${gateA}-${gateB}`, analysis);
+            }
+        }
+    }
+
+    getAllAnalyses() {
+        return Array.from(this.channelAnalyses.values());
+    }
+
+    getAnalysis(channelId) {
+        return this.channelAnalyses.get(channelId);
+    }
+}
+
+// ============================================
+// VISUALIZATION ENGINE
+// ============================================
+
+let engine = new CausalInferenceEngine();
+let currentNodes = [];
+let currentConnections = [];
+let isAnimating = false;
+
+function init() {
+    createBackgroundParticles();
+    populateChannelSelect();
+    populateChannelGrid();
+    populateTrigramGrid();
+    updateStats();
+
+    // Auto-select first channel
+    const firstChannel = ALL_CHANNELS[0];
+    document.getElementById('channelSelect').value = `${firstChannel[0]}-${firstChannel[1]}`;
+    visualizeSelected();
+}
+
+function createBackgroundParticles() {
+    const container = document.getElementById('bgParticles');
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        particle.style.animationDelay = `${Math.random() * 8}s`;
+        particle.style.animationDuration = `${6 + Math.random() * 6}s`;
+        container.appendChild(particle);
+    }
+}
+
+function populateChannelSelect() {
+    const select = document.getElementById('channelSelect');
+    for (const [gateA, gateB] of ALL_CHANNELS) {
+        const gateAData = GATE_GENOME[gateA];
+        const gateBData = GATE_GENOME[gateB];
+        const option = document.createElement('option');
+        option.value = `${gateA}-${gateB}`;
+        option.textContent = `Channel ${gateA}-${gateB}: ${gateAData.gate} → ${gateBData.gate}`;
+        select.appendChild(option);
+    }
+}
+
+function populateChannelGrid() {
+    const grid = document.getElementById('channelGrid');
+    grid.innerHTML = '';
+
+    const analyses = engine.getAllAnalyses();
+
+    for (const analysis of analyses) {
+        const card = document.createElement('div');
+        card.className = 'channel-card';
+        card.dataset.channelId = analysis.channelId;
+
+        const scoreClass = analysis.coherenceScore >= 0.8 ? 'score-high' : 
+                          analysis.coherenceScore >= 0.5 ? 'score-medium' : 'score-low';
+
+        card.innerHTML = `
+            <div class="channel-info">
+                <div class="channel-id">${analysis.channelId}</div>
+                <div class="channel-names">${analysis.gates[0].gate} → ${analysis.gates[1].gate}</div>
+            </div>
+            <div class="channel-score ${scoreClass}">${analysis.coherenceScore.toFixed(2)}</div>
+        `;
+
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            document.getElementById('channelSelect').value = analysis.channelId;
+            visualizeChannel(analysis.channelId);
+        });
+
+        grid.appendChild(card);
+    }
+}
+
+function populateTrigramGrid() {
+    const grid = document.getElementById('trigramGrid');
+    for (const [binary, trigram] of Object.entries(TRIGRAMS)) {
+        const card = document.createElement('div');
+        card.className = 'trigram-card';
+        card.innerHTML = `
+            <div class="trigram-binary">${binary}</div>
+            <div class="trigram-name">${trigram.name}</div>
+            <div class="trigram-function">${trigram.function}</div>
+            <div class="trigram-desc">${trigram.desc}<br>HW: ${trigram.hardware}</div>
+        `;
+        grid.appendChild(card);
+    }
+}
+
+function updateStats() {
+    const analyses = engine.getAllAnalyses();
+    const withFriction = analyses.filter(a => a.totalFriction.length > 0);
+    const crystalClear = analyses.filter(a => a.signalQuality.includes("CRYSTAL CLEAR"));
+    const avgCoherence = analyses.reduce((sum, a) => sum + a.coherenceScore, 0) / analyses.length;
+
+    document.getElementById('statTotalChannels').textContent = analyses.length;
+    document.getElementById('statFrictionChannels').textContent = withFriction.length;
+    document.getElementById('statAvgCoherence').textContent = avgCoherence.toFixed(2);
+    document.getElementById('statCrystalClear').textContent = crystalClear.length;
+}
+
+function visualizeSelected() {
+    const channelId = document.getElementById('channelSelect').value;
+    if (!channelId) return;
+    visualizeChannel(channelId);
+}
+
+function visualizeChannel(channelId) {
+    const analysis = engine.getAnalysis(channelId);
+    if (!analysis) return;
+
+    clearGraph();
+
+    const canvas = document.getElementById('graphCanvas');
+    const canvasRect = canvas.getBoundingClientRect();
+    const canvasWidth = canvasRect.width;
+    const canvasHeight = 450;
+
+    // Create nodes
+    const gates = analysis.gates;
+    const nodeSpacing = canvasWidth / (gates.length + 1);
+
+    gates.forEach((gate, index) => {
+        const x = nodeSpacing * (index + 1) - 90;
+        const y = canvasHeight / 2 - 80;
+        createNode(gate, x, y, index === 0);
+    });
+
+    // Create connections
+    for (let i = 0; i < gates.length - 1; i++) {
+        createConnection(gates[i].id, gates[i+1].id);
+    }
+
+    // Update analysis panel
+    updateAnalysisPanel(analysis);
+
+    // Highlight selected card
+    document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('selected'));
+    const selectedCard = document.querySelector(`.channel-card[data-channel-id="${channelId}"]`);
+    if (selectedCard) selectedCard.classList.add('selected');
+}
+
+function createNode(gate, x, y, isOrigin) {
+    const canvas = document.getElementById('graphCanvas');
+    const node = document.createElement('div');
+    node.className = `node ${isOrigin ? 'active' : ''}`;
+    node.id = `node-${gate.id}`;
+    node.style.left = `${x}px`;
+    node.style.top = `${y}px`;
+
+    const spec = CENTER_SPECS[gate.center] || {latency: "Unknown"};
+
+    node.innerHTML = `
+        <div class="node-header">Gate ${gate.id}: ${gate.name}</div>
+        <div class="node-gate-name">${gate.gate}</div>
+        <div class="node-center">${gate.center} (${gate.organ})</div>
+        <div class="node-binary">${gate.binary}</div>
+        <div class="node-codon">${gate.amino} | ${gate.pressure}</div>
+        <div class="node-latency">${spec.latency}</div>
+    `;
+
+    canvas.appendChild(node);
+    currentNodes.push({id: gate.id, element: node, x: x + 90, y: y + 80});
+}
+
+function createConnection(fromId, toId) {
+    const fromNode = currentNodes.find(n => n.id === fromId);
+    const toNode = currentNodes.find(n => n.id === toId);
+    if (!fromNode || !toNode) return;
+
+    const svg = document.getElementById('connectionsSvg');
+
+    // Curved path
+    const midX = (fromNode.x + toNode.x) / 2;
+    const midY = Math.min(fromNode.y, toNode.y) - 60;
+    const d = `M ${fromNode.x} ${fromNode.y} Q ${midX} ${midY} ${toNode.x} ${toNode.y}`;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('class', 'connection-path');
+    path.id = `conn-${fromId}-${toId}`;
+
+    svg.appendChild(path);
+
+    // Arrow head
+    const angle = Math.atan2(toNode.y - midY, toNode.x - midX);
+    const arrowSize = 12;
+    const arrowX = toNode.x - arrowSize * Math.cos(angle);
+    const arrowY = toNode.y - arrowSize * Math.sin(angle);
+
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    const points = [
+        [toNode.x, toNode.y],
+        [arrowX - arrowSize * 0.5 * Math.sin(angle), arrowY + arrowSize * 0.5 * Math.cos(angle)],
+        [arrowX + arrowSize * 0.5 * Math.sin(angle), arrowY - arrowSize * 0.5 * Math.cos(angle)]
+    ];
+    arrow.setAttribute('points', points.map(p => p.join(',')).join(' '));
+    arrow.setAttribute('class', 'arrow-head');
+    arrow.id = `arrow-${fromId}-${toId}`;
+
+    svg.appendChild(arrow);
+
+    currentConnections.push({from: fromId, to: toId, path: path, arrow: arrow});
+}
+
+function updateAnalysisPanel(analysis) {
+    const content = document.getElementById('analysisContent');
+
+    let qualityClass = 'quality-moderate';
+    if (analysis.signalQuality.includes("CRYSTAL CLEAR")) qualityClass = 'quality-crystal';
+    else if (analysis.signalQuality.includes("STRONG")) qualityClass = 'quality-strong';
+    else if (analysis.signalQuality.includes("MODERATE")) qualityClass = 'quality-moderate';
+    else if (analysis.signalQuality.includes("WEAK")) qualityClass = 'quality-weak';
+    else if (analysis.signalQuality.includes("BROKEN")) qualityClass = 'quality-broken';
+
+    let coherenceColor = '#00ff88';
+    if (analysis.coherenceScore < 0.4) coherenceColor = '#ff3333';
+    else if (analysis.coherenceScore < 0.7) coherenceColor = '#ffaa00';
+
+    let html = `
+        <div class="coherence-meter">
+            <div class="coherence-label">
+                <span>Coherence Score</span>
+                <span>${(analysis.coherenceScore * 100).toFixed(0)}%</span>
+            </div>
+            <div class="coherence-bar">
+                <div class="coherence-fill" style="width: ${analysis.coherenceScore * 100}%; background: ${coherenceColor};"></div>
+            </div>
+        </div>
+
+        <div class="signal-quality-badge ${qualityClass}">${analysis.signalQuality}</div>
+    `;
+
+    for (const step of analysis.steps) {
+        const stepClass = step.isOrigin ? 'origin' : 'result';
+        const labelClass = step.isOrigin ? 'origin' : 'result';
+
+        html += `
+            <div class="causal-step ${stepClass}">
+                <div class="step-label ${labelClass}">Step ${step.stepNumber}: ${step.isOrigin ? 'ORIGIN' : 'RESULT'}</div>
+                <div class="step-description">${step.description}</div>
+                <div class="step-mechanism">
+                    <strong>Causal Logic:</strong> ${step.causalLogic}<br>
+                    <strong>Mechanism:</strong> ${step.mechanism}<br>
+                    <strong>Processor:</strong> ${step.processor} | <strong>Latency:</strong> ${step.latency}
+                </div>
+            </div>
+        `;
+
+        if (step.friction) {
+            html += `
+                <div class="friction-warning">
+                    <h3>⚠️ ${step.friction.type}</h3>
+                    <p><strong>Description:</strong> ${step.friction.desc}</p>
+                    <p><strong>Experience:</strong> ${step.friction.experience}</p>
+                    <p><strong>Resolution:</strong> ${step.friction.resolution}</p>
+                </div>
+            `;
+        }
+    }
+
+    html += `
+        <div class="human-experience">
+            <h3>🧬 Human Experience</h3>
+            <p>${analysis.humanExperience}</p>
+        </div>
+    `;
+
+    content.innerHTML = html;
+}
+
+function animateSignalFlow() {
+    if (isAnimating) return;
+    isAnimating = true;
+
+    // Activate all connections
+    document.querySelectorAll('.connection-path').forEach(path => {
+        path.classList.add('active');
+    });
+    document.querySelectorAll('.arrow-head').forEach(arrow => {
+        arrow.classList.add('active');
+    });
+
+    // Create signal particles
+    const canvas = document.getElementById('graphCanvas');
+    const overlay = document.createElement('div');
+    overlay.className = 'signal-overlay';
+    canvas.appendChild(overlay);
+
+    currentConnections.forEach((conn, index) => {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            particle.className = 'signal-particle';
+            overlay.appendChild(particle);
+
+            const fromNode = currentNodes.find(n => n.id === conn.from);
+            const toNode = currentNodes.find(n => n.id === conn.to);
+
+            if (fromNode && toNode) {
+                animateParticle(particle, fromNode, toNode);
+            }
+        }, index * 500);
+    });
+
+    setTimeout(() => {
+        document.querySelectorAll('.connection-path').forEach(path => {
+            path.classList.remove('active');
+        });
+        document.querySelectorAll('.arrow-head').forEach(arrow => {
+            arrow.classList.remove('active');
+        });
+        if (overlay.parentNode) overlay.remove();
+        isAnimating = false;
+    }, currentConnections.length * 500 + 2000);
+}
+
+function animateParticle(particle, fromNode, toNode) {
+    const startX = fromNode.x;
+    const startY = fromNode.y;
+    const endX = toNode.x;
+    const endY = toNode.y;
+    const midX = (startX + endX) / 2;
+    const midY = Math.min(startY, endY) - 60;
+
+    const duration = 1500;
+    const startTime = performance.now();
+
+    function update(time) {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Quadratic bezier curve
+        const t = progress;
+        const x = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * midX + t * t * endX;
+        const y = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * midY + t * t * endY;
+
+        particle.style.left = `${x - 3}px`;
+        particle.style.top = `${y - 3}px`;
+        particle.style.opacity = progress < 0.1 ? progress * 10 : progress > 0.9 ? (1 - progress) * 10 : 1;
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            particle.remove();
+        }
+    }
+
+    requestAnimationFrame(update);
+}
+
+function clearGraph() {
+    const canvas = document.getElementById('graphCanvas');
+    // Remove all nodes
+    canvas.querySelectorAll('.node').forEach(n => n.remove());
+    // Remove overlay
+    canvas.querySelectorAll('.signal-overlay').forEach(o => o.remove());
+    // Clear SVG
+    const svg = document.getElementById('connectionsSvg');
+    svg.innerHTML = '';
+
+    currentNodes = [];
+    currentConnections = [];
+}
+
+function showAllChannels() {
+    const grid = document.getElementById('channelGrid');
+    grid.scrollIntoView({ behavior: 'smooth' });
+}
+
+function toggleTrigramLegend() {
+    const legend = document.getElementById('trigramLegend');
+    legend.style.display = legend.style.display === 'none' ? 'block' : 'none';
+    if (legend.style.display === 'block') {
+        legend.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Filter handlers
+document.getElementById('qualityFilter').addEventListener('change', function() {
+    filterChannels();
+});
+
+document.getElementById('frictionFilter').addEventListener('change', function() {
+    filterChannels();
+});
+
+function filterChannels() {
+    const qualityFilter = document.getElementById('qualityFilter').value;
+    const frictionFilter = document.getElementById('frictionFilter').value;
+
+    const cards = document.querySelectorAll('.channel-card');
+
+    cards.forEach(card => {
+        const channelId = card.dataset.channelId;
+        const analysis = engine.getAnalysis(channelId);
+        if (!analysis) return;
+
+        let show = true;
+
+        // Quality filter
+        if (qualityFilter !== 'all') {
+            const quality = analysis.signalQuality.toLowerCase();
+            if (qualityFilter === 'crystal' && !quality.includes('crystal')) show = false;
+            if (qualityFilter === 'strong' && !quality.includes('strong')) show = false;
+            if (qualityFilter === 'moderate' && !quality.includes('moderate')) show = false;
+            if (qualityFilter === 'weak' && !quality.includes('weak')) show = false;
+            if (qualityFilter === 'broken' && !quality.includes('broken')) show = false;
+        }
+
+        // Friction filter
+        if (frictionFilter !== 'all') {
+            const hasFriction = analysis.totalFriction.length > 0;
+            if (frictionFilter === 'none' && hasFriction) show = false;
+            if (frictionFilter === 'critical' && !analysis.totalFriction.some(f => f.severity === 'CRITICAL')) show = false;
+            if (frictionFilter === 'high' && !analysis.totalFriction.some(f => f.severity === 'CRITICAL' || f.severity === 'HIGH')) show = false;
+        }
+
+        card.style.display = show ? 'flex' : 'none';
+    });
+}
+
+// Initialize on load
+window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('resize', () => {
+    const channelId = document.getElementById('channelSelect').value;
+    if (channelId) visualizeChannel(channelId);
+});
+
+    </script>
+</body>
+</html>
