@@ -1,0 +1,941 @@
+// Multi-Page Self-Evolving App Architecture
+// This shows how the app grows from 1 page to multiple pages/features
+
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import RNFS from 'react-native-fs';
+
+// App Registry - Tracks all pages/components that exist
+class AppRegistry {
+  static COMPONENTS_DIR = `${RNFS.DocumentDirectoryPath}/components`;
+  static REGISTRY_FILE = `${RNFS.DocumentDirectoryPath}/registry.json`;
+
+  // Initial seed app structure
+  static SEED_STRUCTURE = {
+    version: '1.0.0',
+    pages: [
+      {
+        id: 'home',
+        name: 'Home',
+        type: 'screen',
+        path: 'HomeScreen.js',
+        enabled: true,
+        createdAt: new Date().toISOString(),
+        icon: '🏠'
+      }
+    ],
+    components: [],
+    navigation: {
+      initialRoute: 'home',
+      routes: ['home']
+    }
+  };
+
+  static async initialize() {
+    try {
+      // Create components directory
+      const exists = await RNFS.exists(this.COMPONENTS_DIR);
+      if (!exists) {
+        await RNFS.mkdir(this.COMPONENTS_DIR);
+      }
+
+      // Check if registry exists
+      const registryExists = await RNFS.exists(this.REGISTRY_FILE);
+      if (!registryExists) {
+        await this.saveRegistry(this.SEED_STRUCTURE);
+      }
+
+      // Save initial home screen
+      await this.saveComponent('home', this.getInitialHomeScreen());
+    } catch (error) {
+      console.error('Registry initialization failed:', error);
+    }
+  }
+
+  static async getRegistry() {
+    try {
+      const registryData = await RNFS.readFile(this.REGISTRY_FILE, 'utf8');
+      return JSON.parse(registryData);
+    } catch (error) {
+      return this.SEED_STRUCTURE;
+    }
+  }
+
+  static async saveRegistry(registry) {
+    try {
+      await RNFS.writeFile(this.REGISTRY_FILE, JSON.stringify(registry, null, 2), 'utf8');
+    } catch (error) {
+      console.error('Failed to save registry:', error);
+    }
+  }
+
+  static async addPage(pageDefinition, code) {
+    try {
+      const registry = await this.getRegistry();
+      
+      // Add page to registry
+      const newPage = {
+        id: pageDefinition.id,
+        name: pageDefinition.name,
+        type: 'screen',
+        path: `${pageDefinition.id}.js`,
+        enabled: true,
+        createdAt: new Date().toISOString(),
+        icon: pageDefinition.icon || '📄',
+        evolutionId: pageDefinition.evolutionId
+      };
+
+      registry.pages.push(newPage);
+      registry.navigation.routes.push(pageDefinition.id);
+      registry.version = this.incrementVersion(registry.version);
+
+      // Save component file
+      await this.saveComponent(pageDefinition.id, code);
+      
+      // Update registry
+      await this.saveRegistry(registry);
+
+      return newPage;
+    } catch (error) {
+      console.error('Failed to add page:', error);
+      throw error;
+    }
+  }
+
+  static async addComponent(componentDef, code) {
+    try {
+      const registry = await this.getRegistry();
+      
+      const newComponent = {
+        id: componentDef.id,
+        name: componentDef.name,
+        type: 'component',
+        path: `${componentDef.id}.js`,
+        enabled: true,
+        createdAt: new Date().toISOString(),
+        evolutionId: componentDef.evolutionId
+      };
+
+      registry.components.push(newComponent);
+      
+      await this.saveComponent(componentDef.id, code);
+      await this.saveRegistry(registry);
+
+      return newComponent;
+    } catch (error) {
+      console.error('Failed to add component:', error);
+      throw error;
+    }
+  }
+
+  static async saveComponent(componentId, code) {
+    const filePath = `${this.COMPONENTS_DIR}/${componentId}.js`;
+    await RNFS.writeFile(filePath, code, 'utf8');
+  }
+
+  static async getComponent(componentId) {
+    try {
+      const filePath = `${this.COMPONENTS_DIR}/${componentId}.js`;
+      return await RNFS.readFile(filePath, 'utf8');
+    } catch (error) {
+      console.error(`Failed to load component ${componentId}:`, error);
+      return null;
+    }
+  }
+
+  static incrementVersion(version) {
+    const [major, minor, patch] = version.split('.').map(Number);
+    return `${major}.${minor}.${patch + 1}`;
+  }
+
+  static getInitialHomeScreen() {
+    return `import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+
+export default function HomeScreen({ navigation }) {
+  const [count, setCount] = useState(0);
+  
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>🧬 Self-Evolving App</Text>
+      <Text style={styles.subtitle}>Home Screen</Text>
+      
+      <View style={styles.counterContainer}>
+        <Text style={styles.label}>Counter Example</Text>
+        <Text style={styles.count}>{count}</Text>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity 
+            style={[styles.button, styles.primaryButton]} 
+            onPress={() => setCount(count + 1)}
+          >
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.button, styles.secondaryButton]} 
+            onPress={() => setCount(0)}
+          >
+            <Text style={styles.buttonText}>Reset</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>
+          This app will evolve new pages and features automatically!
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f8f9fa',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    textAlign: 'center',
+    marginTop: 40,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  counterContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 30,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 15,
+  },
+  count: {
+    fontSize: 72,
+    fontWeight: 'bold',
+    color: '#007AFF',
+    marginBottom: 20,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  button: {
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 12,
+    minWidth: 100,
+  },
+  primaryButton: {
+    backgroundColor: '#007AFF',
+  },
+  secondaryButton: {
+    backgroundColor: '#6c757d',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  infoBox: {
+    backgroundColor: '#E3F2FD',
+    padding: 20,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2196F3',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#1976D2',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+});`;
+  }
+}
+
+// Enhanced Evolution Engine that can generate entire new pages
+class MultiPageEvolutionEngine {
+  constructor(aiClient) {
+    this.aiClient = aiClient;
+    this.registry = null;
+  }
+
+  async initialize() {
+    await AppRegistry.initialize();
+    this.registry = await AppRegistry.getRegistry();
+  }
+
+  async analyzeAppStructure() {
+    // Get full app structure
+    const registry = await AppRegistry.getRegistry();
+    
+    // Load all current pages
+    const pageContents = await Promise.all(
+      registry.pages.map(async page => ({
+        ...page,
+        code: await AppRegistry.getComponent(page.id)
+      }))
+    );
+
+    const analysisPrompt = `
+Analyze this React Native app structure and suggest what new page or feature to add next:
+
+CURRENT APP STRUCTURE:
+${JSON.stringify(registry, null, 2)}
+
+EXISTING PAGES:
+${pageContents.map(p => `- ${p.name} (${p.id}): ${p.code?.substring(0, 200)}...`).join('\n')}
+
+Suggest ONE new page/feature that would logically enhance this app.
+
+Respond with ONLY valid JSON:
+{
+  "suggestedAddition": {
+    "type": "page|component|feature",
+    "id": "unique_id_for_this",
+    "name": "Display Name",
+    "description": "What this adds to the app",
+    "benefit": "Why users would want this",
+    "icon": "emoji",
+    "complexity": 1-10,
+    "priority": "high|medium|low"
+  },
+  "reasoning": "Why this is the logical next evolution"
+}`;
+
+    try {
+      const analysis = await this.aiClient.generateAnalysis(analysisPrompt);
+      return analysis;
+    } catch (error) {
+      console.error('App structure analysis failed:', error);
+      throw error;
+    }
+  }
+
+  async generateNewPage(pageDefinition) {
+    const prompt = `
+Generate a complete React Native screen component for this new page:
+
+PAGE DEFINITION:
+- ID: ${pageDefinition.id}
+- Name: ${pageDefinition.name}
+- Description: ${pageDefinition.description}
+- Icon: ${pageDefinition.icon}
+
+Requirements:
+1. Must be a complete React Native functional component
+2. Use hooks (useState, useEffect) as needed
+3. Include proper imports
+4. Create a complete StyleSheet
+5. Make it visually appealing and user-friendly
+6. Include the navigation prop parameter
+7. Match the style of the existing app
+8. Add meaningful functionality, not just placeholders
+
+Generate ONLY the complete component code, no explanations.
+`;
+
+    try {
+      const code = await this.aiClient.generateCode(prompt);
+      return code;
+    } catch (error) {
+      console.error('Page generation failed:', error);
+      throw error;
+    }
+  }
+
+  async evolveNewPage(evolutionId) {
+    try {
+      // Step 1: Analyze what page to add
+      const analysis = await this.analyzeAppStructure();
+      const pageToAdd = analysis.suggestedAddition;
+
+      // Step 2: Generate the new page code
+      const pageCode = await this.generateNewPage(pageToAdd);
+
+      // Step 3: Add to registry
+      pageToAdd.evolutionId = evolutionId;
+      await AppRegistry.addPage(pageToAdd, pageCode);
+
+      // Reload registry
+      this.registry = await AppRegistry.getRegistry();
+
+      return {
+        success: true,
+        pageAdded: pageToAdd,
+        code: pageCode,
+        newVersion: this.registry.version
+      };
+    } catch (error) {
+      console.error('Page evolution failed:', error);
+      throw error;
+    }
+  }
+}
+
+// Simple Navigation Component
+const SimpleNavigator = ({ registry, currentRoute, onNavigate }) => {
+  if (!registry || !registry.pages) return null;
+
+  return (
+    <View style={navStyles.container}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={navStyles.scroll}
+      >
+        {registry.pages.map(page => (
+          <TouchableOpacity
+            key={page.id}
+            style={[
+              navStyles.navButton,
+              currentRoute === page.id && navStyles.activeNavButton
+            ]}
+            onPress={() => onNavigate(page.id)}
+          >
+            <Text style={navStyles.navIcon}>{page.icon}</Text>
+            <Text style={[
+              navStyles.navText,
+              currentRoute === page.id && navStyles.activeNavText
+            ]}>
+              {page.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
+
+// Dynamic Page Renderer
+const DynamicPageRenderer = ({ pageId, registry }) => {
+  const [pageComponent, setPageComponent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadPage();
+  }, [pageId]);
+
+  const loadPage = async () => {
+    setLoading(true);
+    try {
+      const code = await AppRegistry.getComponent(pageId);
+      
+      // In production, you'd use react-native-dynamic-code-eval or similar
+      // For now, we'll show the code as a preview
+      setPageComponent(code);
+    } catch (error) {
+      console.error('Failed to load page:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading {pageId}...</Text>
+      </View>
+    );
+  }
+
+  // In production, this would actually execute the component
+  // For demo purposes, show info about the page
+  const page = registry.pages.find(p => p.id === pageId);
+  
+  return (
+    <View style={styles.pageContainer}>
+      <Text style={styles.pageTitle}>{page.icon} {page.name}</Text>
+      <Text style={styles.pageInfo}>Created: {new Date(page.createdAt).toLocaleDateString()}</Text>
+      
+      <View style={styles.codePreview}>
+        <Text style={styles.codeTitle}>Component Code Preview:</Text>
+        <ScrollView style={styles.codeScroll}>
+          <Text style={styles.codeText}>{pageComponent?.substring(0, 500)}...</Text>
+        </ScrollView>
+      </View>
+
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>
+          ✨ In production, this would render the actual React Native component dynamically!
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+// Main App with Multi-Page Evolution
+export default function MultiPageEvolvingApp() {
+  const [registry, setRegistry] = useState(null);
+  const [currentRoute, setCurrentRoute] = useState('home');
+  const [isEvolving, setIsEvolving] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  // Mock AI client for demo
+  const aiClient = {
+    generateAnalysis: async (prompt) => {
+      // Simulate AI suggesting new pages
+      const suggestions = [
+        {
+          suggestedAddition: {
+            type: 'page',
+            id: 'profile',
+            name: 'Profile',
+            description: 'User profile page with settings',
+            benefit: 'Users can customize their experience',
+            icon: '👤',
+            complexity: 5,
+            priority: 'high'
+          },
+          reasoning: 'Most apps need a profile/settings page'
+        },
+        {
+          suggestedAddition: {
+            type: 'page',
+            id: 'stats',
+            name: 'Statistics',
+            description: 'View app usage statistics',
+            benefit: 'Users can track their activity',
+            icon: '📊',
+            complexity: 6,
+            priority: 'medium'
+          },
+          reasoning: 'Users love data visualization'
+        },
+        {
+          suggestedAddition: {
+            type: 'page',
+            id: 'settings',
+            name: 'Settings',
+            description: 'App configuration and preferences',
+            benefit: 'Customize app behavior',
+            icon: '⚙️',
+            complexity: 4,
+            priority: 'high'
+          },
+          reasoning: 'Essential for user customization'
+        }
+      ];
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return suggestions[Math.floor(Math.random() * suggestions.length)];
+    },
+    generateCode: async (prompt) => {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Generate appropriate code based on prompt
+      if (prompt.includes('Profile')) {
+        return `import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+
+export default function ProfileScreen({ navigation }) {
+  const [user] = useState({
+    name: 'Evolution User',
+    email: 'user@evolving.app',
+    joined: new Date().toLocaleDateString()
+  });
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>👤 Profile</Text>
+      
+      <View style={styles.profileCard}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>EU</Text>
+        </View>
+        <Text style={styles.name}>{user.name}</Text>
+        <Text style={styles.email}>{user.email}</Text>
+        <Text style={styles.joined}>Joined: {user.joined}</Text>
+      </View>
+
+      <View style={styles.optionsContainer}>
+        <TouchableOpacity style={styles.option}>
+          <Text style={styles.optionText}>Edit Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.option}>
+          <Text style={styles.optionText}>Preferences</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.option}>
+          <Text style={styles.optionText}>Privacy</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: '#f8f9fa' },
+  title: { fontSize: 32, fontWeight: 'bold', textAlign: 'center', marginTop: 40, marginBottom: 30 },
+  profileCard: { backgroundColor: 'white', borderRadius: 16, padding: 30, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
+  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#007AFF', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
+  avatarText: { color: 'white', fontSize: 32, fontWeight: 'bold' },
+  name: { fontSize: 24, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 5 },
+  email: { fontSize: 16, color: '#666', marginBottom: 5 },
+  joined: { fontSize: 14, color: '#999' },
+  optionsContainer: { backgroundColor: 'white', borderRadius: 16, padding: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
+  option: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  optionText: { fontSize: 16, color: '#333' }
+});`;
+      } else if (prompt.includes('Statistics')) {
+        return `import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+
+export default function StatisticsScreen({ navigation }) {
+  const [stats] = useState({
+    evolutions: 5,
+    features: 8,
+    uptime: '99.8%',
+    lastUpdate: new Date().toLocaleDateString()
+  });
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>📊 Statistics</Text>
+      
+      <View style={styles.statsGrid}>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{stats.evolutions}</Text>
+          <Text style={styles.statLabel}>Total Evolutions</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{stats.features}</Text>
+          <Text style={styles.statLabel}>Active Features</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{stats.uptime}</Text>
+          <Text style={styles.statLabel}>Uptime</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>A+</Text>
+          <Text style={styles.statLabel}>Health Score</Text>
+        </View>
+      </View>
+
+      <View style={styles.chartPlaceholder}>
+        <Text style={styles.chartText}>📈 Evolution Timeline</Text>
+        <Text style={styles.chartSubtext}>Last updated: {stats.lastUpdate}</Text>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: '#f8f9fa' },
+  title: { fontSize: 32, fontWeight: 'bold', textAlign: 'center', marginTop: 40, marginBottom: 30 },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 20 },
+  statCard: { width: '48%', backgroundColor: 'white', borderRadius: 12, padding: 20, marginBottom: 15, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
+  statNumber: { fontSize: 36, fontWeight: 'bold', color: '#007AFF', marginBottom: 5 },
+  statLabel: { fontSize: 12, color: '#666', textAlign: 'center' },
+  chartPlaceholder: { backgroundColor: 'white', borderRadius: 16, padding: 40, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
+  chartText: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 10 },
+  chartSubtext: { fontSize: 14, color: '#666' }
+});`;
+      } else {
+        return `import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+
+export default function NewScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>✨ New Feature</Text>
+      <Text style={styles.subtitle}>This page was generated by AI evolution!</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#f8f9fa' },
+  title: { fontSize: 32, fontWeight: 'bold', marginBottom: 10 },
+  subtitle: { fontSize: 16, color: '#666', textAlign: 'center' }
+});`;
+      }
+    }
+  };
+
+  const [engine] = useState(() => new MultiPageEvolutionEngine(aiClient));
+
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      await engine.initialize();
+      const reg = await AppRegistry.getRegistry();
+      setRegistry(reg);
+      setCurrentRoute(reg.navigation.initialRoute);
+      setInitialized(true);
+    } catch (error) {
+      Alert.alert('Initialization Error', error.message);
+    }
+  };
+
+  const evolveNewPage = async () => {
+    if (isEvolving) return;
+
+    Alert.alert(
+      'Evolve New Page?',
+      'The AI will analyze your app and add a new page that makes sense for the app structure.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Evolve!', 
+          onPress: async () => {
+            setIsEvolving(true);
+            try {
+              const result = await engine.evolveNewPage(`evolution_${Date.now()}`);
+              
+              // Update registry
+              const newRegistry = await AppRegistry.getRegistry();
+              setRegistry(newRegistry);
+              
+              Alert.alert(
+                '🎉 New Page Added!',
+                `${result.pageAdded.icon} ${result.pageAdded.name}\n\n${result.pageAdded.description}`,
+                [
+                  { 
+                    text: 'View It', 
+                    onPress: () => setCurrentRoute(result.pageAdded.id)
+                  }
+                ]
+              );
+            } catch (error) {
+              Alert.alert('Evolution Failed', error.message);
+            } finally {
+              setIsEvolving(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  if (!initialized || !registry) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Initializing Multi-Page Engine...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>🧬 Self-Evolving App</Text>
+        <Text style={styles.headerSubtitle}>v{registry.version} • {registry.pages.length} Pages</Text>
+      </View>
+
+      {/* Navigation */}
+      <SimpleNavigator 
+        registry={registry}
+        currentRoute={currentRoute}
+        onNavigate={setCurrentRoute}
+      />
+
+      {/* Content */}
+      <ScrollView style={styles.content}>
+        <DynamicPageRenderer 
+          pageId={currentRoute}
+          registry={registry}
+        />
+      </ScrollView>
+
+      {/* Evolution Button */}
+      <TouchableOpacity 
+        style={[styles.evolveButton, isEvolving && styles.evolvingButton]}
+        onPress={evolveNewPage}
+        disabled={isEvolving}
+      >
+        {isEvolving ? (
+          <View style={styles.evolvingContainer}>
+            <ActivityIndicator color="white" size="small" />
+            <Text style={styles.evolveButtonText}>Evolving New Page...</Text>
+          </View>
+        ) : (
+          <Text style={styles.evolveButtonText}>✨ Evolve New Page</Text>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  header: {
+    backgroundColor: 'white',
+    paddingTop: 50,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  content: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#666',
+  },
+  pageContainer: {
+    padding: 20,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 10,
+  },
+  pageInfo: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+  },
+  codePreview: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  codeTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 10,
+  },
+  codeScroll: {
+    maxHeight: 300,
+  },
+  codeText: {
+    fontFamily: 'monospace',
+    fontSize: 11,
+    color: '#1F2937',
+    lineHeight: 16,
+  },
+  infoBox: {
+    backgroundColor: '#FFF3CD',
+    padding: 15,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FFC107',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#856404',
+    textAlign: 'center',
+  },
+  evolveButton: {
+    backgroundColor: '#10B981',
+    padding: 18,
+    margin: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  evolvingButton: {
+    backgroundColor: '#6c757d',
+  },
+  evolvingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  evolveButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+});
+
+const navStyles = StyleSheet.create({
+  container: {
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  scroll: {
+    paddingHorizontal: 10,
+  },
+  navButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginHorizontal: 5,
+    borderRadius: 8,
+    alignItems: 'center',
+    minWidth: 80,
+  },
+  activeNavButton: {
+    backgroundColor: '#007AFF',
+  },
+  navIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  navText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+  },
+  activeNavText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+});
